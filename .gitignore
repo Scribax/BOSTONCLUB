@@ -1,0 +1,39 @@
+# Boston Club Project Gitignore
+
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Testing
+/coverage
+
+# Next.js
+.next/
+out/
+
+# Production
+build/
+dist/
+
+# Misc
+.DS_Store
+*.pem
+
+# Env and DB
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+backend/prisma/dev.db
+backend/prisma/dev.db-journal
+
+# Vericel
+.vercel
+
+# Subfolders Gitignore (Cascade)
+**/node_modules/
+**/dist/
+**/.next/
+**/.env*

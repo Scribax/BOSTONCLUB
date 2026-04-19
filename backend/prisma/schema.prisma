@@ -1,0 +1,138 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String            @id @default(uuid())
+  dni             String            @unique
+  firstName       String
+  lastName        String
+  email           String            @unique
+  passwordHash    String
+  whatsapp        String?
+  birthDate       DateTime?
+  role            String            @default("CUSTOMER")
+  points          Int               @default(0)
+  membershipLevel String            @default("BRONZE")
+  isBlocked       Boolean           @default(false)
+  pointHistory    PointHistory[]
+  redemptions     Redemption[]
+  notifications   Notification[]
+  visits          Visit[]
+  vipRewardSentAt DateTime?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+}
+
+model PointHistory {
+  id           String      @id @default(uuid())
+  userId       String
+  user         User        @relation(fields: [userId], references: [id])
+  pointsGained Int
+  source       String
+  description  String?
+  createdAt    DateTime    @default(now())
+}
+
+model Reward {
+  id             String       @id @default(uuid())
+  name           String
+  description    String
+  pointsRequired Int
+  type           String       @default("BEBIDA")
+  imageUrl       String?
+  isActive       Boolean      @default(true)
+  redemptions    Redemption[]
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+}
+
+model Redemption {
+  id        String           @id @default(uuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id])
+  rewardId  String
+  reward    Reward           @relation(fields: [rewardId], references: [id])
+  status    String           @default("PENDING")
+  qrToken   String?          @unique
+  expiresAt DateTime?
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+}
+
+model Event {
+  id           String   @id @default(uuid())
+  title        String
+  description  String   // Breve descripción o punchline
+  details      String?  // Detalles extendidos del evento
+  location     String?  @default("Boston Club")
+  eventDate    DateTime
+  imageUrl     String?
+  benefits     String?
+  type         String   @default("EVENT") // EVENT o BANNER
+  buttonText   String?  @default("RESERVAR MESA")
+  externalLink String?  // Link de WhatsApp o externo
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+  title     String
+  message   String
+  type      String   @default("IN_APP")
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model Visit {
+  id           String   @id @default(uuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id])
+  pointsEarned Int
+  checkinTime  DateTime @default(now())
+}
+
+model PromoToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  points    Int
+  type      String   // "SINGLE_USE" (400 pts) or "DAILY_CHECKIN" (100 pts)
+  expiresAt DateTime?
+  isUsed    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model ClubSettings {
+  id                 String @id @default("singleton")
+  vipThreshold       Int    @default(1000)
+  checkinPoints      Int    @default(100)
+  isEventDay         Boolean @default(false)
+  eventCheckinPoints Int    @default(1000)
+  
+  // Tiers Thresholds
+  goldThreshold      Int    @default(500000)
+  platinumThreshold  Int    @default(1500000)
+  diamondThreshold   Int    @default(5000000)
+  superVipThreshold  Int    @default(10000000)
+
+  vipMessageTemplate String @default("¡Felicidades {name}! 🎉 Has llegado a los {points} puntos en Boston Club. ¡Eres un socio VIP! Canjea tus puntos por premios exclusivos.")
+  rewardListText     String @default("- 30% Off en Bebidas\n- Ingreso Free a Eventos\n- Regalo Sorpresa")
+  
+  // Per-Tier Benefits
+  bronceBenefits     String @default("- Beneficios base de socio\n- Acceso a promociones")
+  goldBenefits       String @default("- 10% Off en toda la carta\n- Mesa reservada los findes")
+  platinumBenefits   String @default("- 20% Off en toda la carta\n- Acceso anticipado a eventos")
+  diamondBenefits    String @default("- 30% Off en toda la carta\n- Zona VIP sin cargo\n- Regalo de cumpleaños")
+  superVipBenefits   String @default("- 50% Off en toda la carta\n- Todo incluido en eventos seleccionados\n- Concierge privado")
+
+  updatedAt          DateTime @updatedAt
+}

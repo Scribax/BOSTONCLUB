@@ -1,0 +1,25 @@
+services:
+  backend:
+    build: 
+      context: ./backend
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./backend/prisma:/app/prisma
+      - ./backend/uploads:/app/uploads
+    restart: always
+    environment:
+      - PORT=8080
+      - DATABASE_URL=file:./dev.db
+      - JWT_SECRET=boston_club_secret_production_key_2026
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        - NEXT_PUBLIC_API_URL=http://186.64.123.130:8080/api
+    ports:
+      - "80:3000"
+    restart: always
+    depends_on:
+      - backend
