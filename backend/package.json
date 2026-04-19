@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "nodemon src/index.ts",
     "build": "tsc",
+    "setup": "node setup-admin.js",
     "start": "node dist/index.js"
   },
   "keywords": [],
