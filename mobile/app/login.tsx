@@ -14,6 +14,7 @@ export default function LoginScreen() {
   const [lastName, setLastName] = useState('');
   const [dni, setDni] = useState('');
   const [whatsapp, setWhatsapp] = useState('');
+  const [birthDateInput, setBirthDateInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const router = useRouter();
@@ -59,18 +60,39 @@ export default function LoginScreen() {
         await setAuthToken(token);
         router.replace('/(tabs)');
       } else {
-        if (!firstName || !lastName || !dni || !whatsapp) {
-          Alert.alert('Error', 'Debes completar todo tu perfil');
+        if (!firstName || !lastName || !dni || !whatsapp || !birthDateInput) {
+          Alert.alert('Error', 'Debes completar todo tu perfil, incluyendo tu fecha de nacimiento.');
           setLoading(false);
           return;
         }
+
+        let birthDateIso = '';
+        if (birthDateInput.length === 10) {
+            const [dd, mm, yyyy] = birthDateInput.split('/');
+            const year = parseInt(yyyy, 10);
+            const month = parseInt(mm, 10);
+            const day = parseInt(dd, 10);
+            
+            if (year < 1900 || year > new Date().getFullYear() || month < 1 || month > 12 || day < 1 || day > 31) {
+               Alert.alert('Error', 'Ingresa una fecha de nacimiento válida.');
+               setLoading(false);
+               return;
+            }
+            birthDateIso = `${yyyy}-${mm.padStart(2, '0')}-${dd.padStart(2, '0')}T00:00:00.000Z`;
+        } else {
+            Alert.alert('Error', 'Formato de fecha de nacimiento incorrecto (Usa DD/MM/YYYY).');
+            setLoading(false);
+            return;
+        }
+
         const response = await api.post('/auth/register', { 
           firstName, 
           lastName, 
           dni, 
           whatsapp, 
           email, 
-          password 
+          password,
+          birthDate: birthDateIso
         });
         const { token } = response.data;
         await setAuthToken(token);
@@ -168,13 +190,33 @@ export default function LoginScreen() {
                     className="w-full bg-black/40 text-white border border-white/5 rounded-2xl py-3.5 px-4 h-12 font-bold tracking-[0.2em]" 
                   />
                 </View>
-                <View className="space-y-1.5">
-                  <Text className="text-[10px] font-bold text-white/80 uppercase ml-1 tracking-widest">WhatsApp</Text>
-                  <TextInput 
-                    value={whatsapp} onChangeText={(t) => setWhatsapp(t.replace(/\D/g, ''))} 
-                    placeholder="1122334455" keyboardType="numeric" placeholderTextColor="rgba(255,255,255,0.4)"
-                    className="w-full bg-black/40 text-white border border-white/5 rounded-2xl py-3.5 px-4 h-12 font-bold tracking-[0.2em]" 
-                  />
+                <View className="flex-row space-x-4">
+                  <View className="flex-[1.2] space-y-1.5">
+                    <Text className="text-[9px] font-bold text-white/80 uppercase ml-1 tracking-widest">Nacimiento (DD/MM/YYYY)</Text>
+                    <TextInput 
+                      value={birthDateInput} 
+                      onChangeText={(text) => {
+                         let t = text.replace(/\D/g, '').slice(0,8);
+                         if (t.length >= 5) {
+                            setBirthDateInput(`${t.slice(0,2)}/${t.slice(2,4)}/${t.slice(4)}`);
+                         } else if (t.length >= 3) {
+                            setBirthDateInput(`${t.slice(0,2)}/${t.slice(2)}`);
+                         } else {
+                            setBirthDateInput(t);
+                         }
+                      }} 
+                      placeholder="DD/MM/YYYY" keyboardType="numeric" placeholderTextColor="rgba(255,255,255,0.4)"
+                      className="w-full bg-black/40 text-white border border-white/5 rounded-2xl py-3.5 px-4 h-12 font-bold tracking-widest" 
+                    />
+                  </View>
+                  <View className="flex-[0.8] space-y-1.5">
+                    <Text className="text-[9px] font-bold text-white/80 uppercase ml-1 tracking-widest">WhatsApp</Text>
+                    <TextInput 
+                      value={whatsapp} onChangeText={(t) => setWhatsapp(t.replace(/\D/g, ''))} 
+                      placeholder="11223344" keyboardType="numeric" placeholderTextColor="rgba(255,255,255,0.4)"
+                      className="w-full bg-black/40 text-white border border-white/5 rounded-2xl py-3.5 px-4 h-12 font-bold tracking-[0.1em]" 
+                    />
+                  </View>
                 </View>
               </View>
             )}

@@ -55,6 +55,7 @@ model Reward {
   type           String       @default("BEBIDA")
   imageUrl       String?
   isActive       Boolean      @default(true)
+  isAdultOnly    Boolean      @default(false)
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
   redemptions    Redemption[]
@@ -86,6 +87,7 @@ model Event {
   buttonText   String?  @default("RESERVAR MESA")
   externalLink String?
   isActive     Boolean  @default(true)
+  isAdultOnly  Boolean  @default(false)
   reminderSent Boolean  @default(false)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt

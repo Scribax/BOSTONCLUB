@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Trash2, Gift, Ticket, Save, X, Utensils, Beer, Star, Edit3 } from "lucide-react";
+import { Plus, Trash2, Gift, Ticket, Save, X, Utensils, Beer, Star, Edit3, Image as ImageIcon } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -11,7 +11,9 @@ type Reward = {
   description: string;
   pointsRequired: number;
   type: string;
+  imageUrl?: string;
   isActive: boolean;
+  isAdultOnly: boolean;
 };
 
 export default function AdminRewardsPage() {
@@ -25,7 +27,18 @@ export default function AdminRewardsPage() {
   const [newDesc, setNewDesc] = useState("");
   const [newPoints, setNewPoints] = useState("");
   const [newType, setNewType] = useState("BEBIDA");
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isAdultOnly, setIsAdultOnly] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => setImagePreview(reader.result as string);
+      reader.readAsDataURL(file);
+    }
+  };
 
   useEffect(() => {
     fetchRewards();
@@ -49,6 +62,8 @@ export default function AdminRewardsPage() {
     setNewDesc(reward.description);
     setNewPoints(reward.pointsRequired.toString());
     setNewType(reward.type);
+    setImagePreview(reward.imageUrl || null);
+    setIsAdultOnly(reward.isAdultOnly || false);
     setIsAdding(true);
   };
 
@@ -56,28 +71,27 @@ export default function AdminRewardsPage() {
     e.preventDefault();
     setSaving(true);
     try {
+      const body = {
+         name: newName,
+         description: newDesc,
+         pointsRequired: parseInt(newPoints),
+         type: newType,
+         imageUrl: imagePreview || null,
+         isAdultOnly: isAdultOnly
+      };
+      
       if (editingReward) {
         // Update
         const updated = await apiFetch(`/rewards/${editingReward.id}`, {
           method: "PATCH",
-          body: JSON.stringify({
-            name: newName,
-            description: newDesc,
-            pointsRequired: parseInt(newPoints),
-            type: newType
-          })
+          body: JSON.stringify(body)
         });
         setRewards(rewards.map(r => r.id === editingReward.id ? updated : r));
       } else {
         // Create
         const reward = await apiFetch("/rewards", {
           method: "POST",
-          body: JSON.stringify({
-            name: newName,
-            description: newDesc,
-            pointsRequired: parseInt(newPoints),
-            type: newType
-          })
+          body: JSON.stringify(body)
         });
         setRewards([...rewards, reward]);
       }
@@ -110,6 +124,8 @@ export default function AdminRewardsPage() {
     setNewDesc("");
     setNewPoints("");
     setNewType("BEBIDA");
+    setImagePreview(null);
+    setIsAdultOnly(false);
   };
 
   return (
@@ -173,6 +189,44 @@ export default function AdminRewardsPage() {
                     </select>
                   </div>
                 </div>
+
+                <div className="grid grid-cols-1 gap-4 pt-2">
+                   <div>
+                      <label className="text-[10px] text-white/40 uppercase font-black tracking-[0.2em] mb-2 block flex justify-between">
+                        Foto del Premio
+                        <span className="text-boston-gold/60 lowercase italic font-medium">
+                          Recomendado: 800x800px (1:1)
+                        </span>
+                      </label>
+                      <label className={`w-full border border-dashed border-white/10 rounded-xl flex flex-col items-center justify-center text-white/20 hover:bg-white/5 transition-all cursor-pointer overflow-hidden relative aspect-video h-32`}>
+                         <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
+                         {imagePreview ? (
+                           // eslint-disable-next-line @next/next/no-img-element
+                           <img src={imagePreview} alt="Preview" className="absolute inset-0 w-full h-full object-cover transition-all" />
+                         ) : (
+                           <>
+                             <ImageIcon className="w-8 h-8 mb-2 text-white/10" />
+                             <span className="text-[10px] font-black uppercase tracking-widest text-center px-4">Subir Foto</span>
+                           </>
+                         )}
+                      </label>
+                   </div>
+                   <div className="flex items-center">
+                     <label className="flex items-center cursor-pointer select-none">
+                        <div className="relative">
+                           <input type="checkbox" checked={isAdultOnly} onChange={(e) => setIsAdultOnly(e.target.checked)} className="sr-only" />
+                           <div className={`box block h-6 w-10 rounded-full transition-colors ${isAdultOnly ? 'bg-boston-red-glow' : 'bg-white/10'}`}></div>
+                           <div className={`absolute left-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-white transition-transform ${isAdultOnly ? 'translate-x-4' : ''}`}></div>
+                        </div>
+                        <div className="ml-3">
+                           <span className="text-[11px] font-black uppercase tracking-widest text-white/80">
+                             {isAdultOnly ? "Restringido +18" : "Todos los públicos"}
+                           </span>
+                        </div>
+                     </label>
+                   </div>
+                </div>
+
                 <button 
                   disabled={saving}
                   className="w-full bg-boston-gold text-black font-black uppercase text-xs tracking-widest py-4 rounded-2xl mt-4 hover:brightness-110 transition-all flex items-center justify-center gap-2"
@@ -195,30 +249,42 @@ export default function AdminRewardsPage() {
               transition={{ delay: idx * 0.1 }}
               className="glass-panel p-6 rounded-[2rem] border border-white/5 group hover:border-white/10 transition-all relative overflow-hidden"
             >
-              <div className="flex justify-between items-start mb-4">
-                <div className={`p-3 rounded-xl ${r.type === 'BEBIDA' ? 'bg-blue-500/10 text-blue-400' : 'bg-orange-500/10 text-orange-400'}`}>
-                  {r.type === 'BEBIDA' ? <Beer className="w-6 h-6" /> : <Utensils className="w-6 h-6" />}
+              <div className="flex justify-between items-start mb-4 relative z-10">
+                <div className="flex flex-col gap-2">
+                   <div className={`p-3 rounded-xl self-start ${r.type === 'BEBIDA' ? 'bg-blue-500/10 text-blue-400' : 'bg-orange-500/10 text-orange-400'}`}>
+                     {r.type === 'BEBIDA' ? <Beer className="w-6 h-6" /> : <Utensils className="w-6 h-6" />}
+                   </div>
+                   {r.isAdultOnly && (
+                     <span className="text-[10px] font-black px-2 py-0.5 rounded-sm uppercase bg-red-600/30 text-red-400 border border-red-500/50 self-start">
+                       +18
+                     </span>
+                   )}
                 </div>
                 <div className="flex gap-2">
                   <button 
                     onClick={() => openEdit(r)}
-                    className="p-2 text-white/20 hover:text-boston-gold transition-colors"
+                    className="p-2 text-white bg-black/60 rounded-lg hover:text-boston-gold hover:bg-black/80 transition-colors"
                   >
                     <Edit3 className="w-5 h-5" />
                   </button>
                   <button 
                     onClick={() => handleDelete(r.id)}
-                    className="p-2 text-white/20 hover:text-red-500 transition-colors"
+                    className="p-2 text-white bg-black/60 rounded-lg hover:text-red-500 hover:bg-black/80 transition-colors"
                   >
                     <Trash2 className="w-5 h-5" />
                   </button>
                 </div>
               </div>
               
-              <h3 className="text-white font-black text-lg tracking-tight mb-1">{r.name}</h3>
-              <p className="text-white/40 text-xs line-clamp-2 mb-6">{r.description}</p>
+              <h3 className="text-white font-black text-lg tracking-tight mb-1 relative z-10">{r.name}</h3>
+              <p className="text-white/40 text-xs line-clamp-2 mb-6 relative z-10">{r.description}</p>
               
-              <div className="flex items-center justify-between">
+              {r.imageUrl && (
+                 // eslint-disable-next-line @next/next/no-img-element
+                 <img src={r.imageUrl} alt="Reward" className="absolute inset-0 w-full h-full object-cover opacity-20 pointer-events-none mix-blend-lighten" />
+              )}
+              
+              <div className="flex items-center justify-between relative z-10">
                 <div className="flex items-center gap-1.5 px-3 py-1.5 bg-boston-gold/10 rounded-full border border-boston-gold/20">
                   <Star className="w-3 h-3 text-boston-gold fill-boston-gold" />
                   <span className="text-boston-gold font-black text-xs uppercase tracking-tighter">{r.pointsRequired} Puntos</span>

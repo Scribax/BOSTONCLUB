@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
-import { MercadoPagoConfig, Payment } from "mercadopago";
+import { MercadoPagoConfig, Payment, MerchantOrder } from "mercadopago";
 
 const prisma = new PrismaClient();
 
@@ -18,6 +18,8 @@ export const trackPosOrder = async (req: any, res: Response): Promise<void> => {
       res.status(400).json({ message: "Order ID is required" });
       return;
     }
+
+    console.log(`[POS] Vinculando Order ${orderId} al usuario ${userId}`);
 
     // Vinculamos al usuario con esta orden de MP
     await prisma.posTransaction.upsert({
@@ -37,73 +39,141 @@ export const trackPosOrder = async (req: any, res: Response): Promise<void> => {
   }
 };
 
+export const checkPosStatus = async (req: any, res: Response): Promise<void> => {
+  try {
+    const { orderId } = req.params;
+    const userId = req.user.id;
+
+    const trans = await prisma.posTransaction.findUnique({
+      where: { orderId }
+    });
+
+    if (!trans) {
+      res.status(404).json({ message: "Transacción no encontrada" });
+      return;
+    }
+
+    if (trans.userId !== userId) {
+      res.status(403).json({ message: "Acceso denegado" });
+      return;
+    }
+
+    res.json({ 
+      status: trans.status, 
+      processed: trans.processed, 
+      amount: trans.amount 
+    });
+  } catch (error) {
+    console.error("Error checking POS status:", error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+
 export const handleWebhook = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { action, data } = req.body;
+    // Soportar tanto Webhook normal (body) como IPN (query params)
+    const actionBody = req.body.action || req.body.type;
+    const queryTopic = req.query.topic || req.query.type;
+    const actionOrType = actionBody || queryTopic;
+    
+    // El ID puede venir en data.id (Webhook) o en id (IPN)
+    const dataId = req.body.data?.id || req.body.id || req.query.id;
 
-    // Solo procesamos pagos aprobados
-    if (action === "payment.created" || action === "payment.updated") {
-      const paymentId = data.id;
+    console.log(`[WEBHOOK] ${new Date().toLocaleTimeString()} - Tipo: ${actionOrType} - ID recogido: ${dataId}`);
+
+    if (!dataId) {
+      res.sendStatus(200);
+      return;
+    }
+
+    // 1. Manejo de Pagos (Payment)
+    if (actionOrType === "payment.created" || actionOrType === "payment.updated" || actionOrType === "payment") {
+      const paymentId = dataId.toString();
       const payment = new Payment(client);
-      
       const paymentData = await payment.get({ id: paymentId });
 
-      if (paymentData.status === "approved" && paymentData.transaction_amount) {
-        // Buscamos la transacción vinculada (usando el order_id o external_reference)
-        // Nota: El QR del POSNET suele generar un Merchant Order, pero el pago tiene una referencia
+      if (paymentData.status === "approved" && typeof paymentData.transaction_amount === "number") {
         const amount = paymentData.transaction_amount;
-        
-        // Intentamos encontrar por merchant_order o por id de pago si lo mapeamos antes
-        // Mercado Pago suele enviar el merchant_order_id en el pago
         const orderId = paymentData.order?.id?.toString();
+        const externalRef = paymentData.external_reference;
 
-        if (!orderId) {
-          res.sendStatus(200); // No hay orden vinculada, ignoramos
-          return;
-        }
+        // Búsqueda profunda del UUID del Smart POS (usamos `any` para evitar error de tipos de TypeScript en MP SDK)
+        const pointOfInteraction: any = paymentData.point_of_interaction;
+        const pointRefs = pointOfInteraction?.references || [];
+        const instoreRefObj = pointRefs.find((r: any) => r.type === "INSTORE_ORDER");
+        const instoreRef = instoreRefObj?.id;
 
-        const trans = await prisma.posTransaction.findUnique({
-          where: { orderId }
-        });
+        console.log(`[PAYMENT] Aprobado. Order: ${orderId}, ExternalRef: ${externalRef}, InstoreRef: ${instoreRef}, Monto: ${amount}`);
 
-        if (trans && !trans.processed) {
-          const pointsToAward = Math.floor(amount);
+        if (orderId) await processPointsAwarding(orderId, amount, paymentId);
+        if (externalRef) await processPointsAwarding(externalRef, amount, paymentId);
+        if (instoreRef) await processPointsAwarding(instoreRef, amount, paymentId);
+      }
+    } 
 
-          await prisma.$transaction([
-            // 1. Dar puntos al usuario
-            prisma.user.update({
-              where: { id: trans.userId },
-              data: { points: { increment: pointsToAward } }
-            }),
-            // 2. Registrar historial
-            prisma.pointHistory.create({
-              data: {
-                userId: trans.userId,
-                pointsGained: pointsToAward,
-                source: "COMPRA_POSNET",
-                description: `Puntos por pago en POSNET (${orderId})`
-              }
-            }),
-            // 3. Marcar transacción como procesada
-            prisma.posTransaction.update({
-              where: { id: trans.id },
-              data: { 
-                status: "SUCCESS", 
-                amount, 
-                processed: true,
-                externalPaymentId: paymentId.toString()
-              }
-            })
-          ]);
+    // 2. Manejo de Merchant Orders (Estructura Smart POS o Simulación)
+    else if (actionOrType === "merchant_order" || actionOrType === "order" || actionOrType === "merchant_order.created" || actionOrType === "merchant_order.updated") {
+      const orderId = dataId.toString();
+      const merchantOrder = new MerchantOrder(client);
+      const orderData = await merchantOrder.get({ merchantOrderId: orderId });
 
-          console.log(`✅ Puntos acreditados: ${pointsToAward} para el usuario ${trans.userId}`);
-        }
+      console.log(`[ORDER] Detalle recibido: ${orderData.status} - ID: ${orderId}`);
+
+      if (orderData.status === "closed" || (orderData.payments && orderData.payments.some(p => p.status === 'approved'))) {
+        const amount = orderData.total_amount || 0;
+        const externalRef = orderData.external_reference;
+
+        await processPointsAwarding(orderId, amount, "ORDER_" + orderId);
+        if (externalRef) await processPointsAwarding(externalRef, amount, "ORDER_" + orderId);
       }
     }
 
     res.sendStatus(200);
   } catch (error) {
-    console.error("Webhook Error:", error);
-    res.status(200).send(); // Siempre devolver 200 a MP para evitar reintentos infinitos si falla algo no crítico
+    console.error("[WEBHOOK ERROR]", error);
+    res.status(200).send(); 
   }
 };
+
+// Función auxiliar para acreditar puntos
+async function processPointsAwarding(idToSearch: string, amount: number, externalId: string) {
+  try {
+    // Buscamos la transacción que coincida con el ID escaneado (sea Order o External Ref)
+    const trans = await prisma.posTransaction.findUnique({
+      where: { orderId: idToSearch }
+    });
+
+    if (trans && !trans.processed) {
+      const pointsToAward = Math.floor(amount);
+      if (pointsToAward <= 0) return;
+
+      await prisma.$transaction([
+        prisma.user.update({
+          where: { id: trans.userId },
+          data: { points: { increment: pointsToAward } }
+        }),
+        prisma.pointHistory.create({
+          data: {
+            userId: trans.userId,
+            pointsGained: pointsToAward,
+            source: "COMPRA_POSNET",
+            description: `Puntos por pago en POSNET (${idToSearch})`
+          }
+        }),
+        prisma.posTransaction.update({
+          where: { id: trans.id },
+          data: { 
+            status: "SUCCESS", 
+            amount, 
+            processed: true,
+            externalPaymentId: externalId
+          }
+        })
+      ]);
+
+      console.log(`[POINTS] ✅ ${pointsToAward} puntos acreditados con éxito al socio.`);
+    }
+  } catch (err) {
+    console.error("[PROCESS POINTS ERROR]", err);
+  }
+}

@@ -1,6 +1,6 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, Alert, ActivityIndicator, TextInput, Modal } from 'react-native';
-import { useRouter, useFocusEffect } from 'expo-router';
+import { router } from 'expo-router';
 import { LogOut, User, ShieldCheck, Mail, Edit2, X, Phone, Check } from 'lucide-react-native';
 import api, { logout } from '../../lib/api';
 import { StatusBar } from 'expo-status-bar';
@@ -16,14 +16,12 @@ export default function ProfileScreen() {
   const [saving, setSaving] = useState(false);
   const [isBiometricSupported, setIsBiometricSupported] = useState(false);
   const [biometricsEnabled, setBiometricsEnabled] = useState(false);
-  const router = useRouter();
 
-  useFocusEffect(
-    useCallback(() => {
-      fetchUser();
-      checkBiometrics();
-    }, [])
-  );
+  // Usamos useEffect para cargar datos al montar el componente
+  useEffect(() => {
+    fetchUser();
+    checkBiometrics();
+  }, []);
 
   const checkBiometrics = async () => {
     const compatible = await LocalAuthentication.hasHardwareAsync();
@@ -43,6 +41,7 @@ export default function ProfileScreen() {
       setUser(response.data);
       setNewWhatsapp(response.data.whatsapp || '');
     } catch (err) {
+      // Redirección directa usando el objeto router global
       router.replace('/login');
     } finally {
       setLoading(false);
@@ -71,17 +70,34 @@ export default function ProfileScreen() {
     const newVal = !biometricsEnabled;
     
     if (newVal) {
-      // Pedir verificación antes de activar
+      // Pedir verificación biométrica antes de ACTIVAR
       const result = await LocalAuthentication.authenticateAsync({
         promptMessage: 'Confirma tu identidad para activar el acceso biométrico',
         fallbackLabel: 'Usar contraseña'
       });
       
       if (!result.success) return;
+
+      setBiometricsEnabled(true);
+      await SecureStore.setItemAsync('biometrics_enabled', 'true');
+    } else {
+      // Para DESACTIVAR, usar un Alert de confirmación (evita conflictos de hardware biométrico)
+      Alert.alert(
+        'Desactivar Biometría',
+        '¿Querés desactivar el bloqueo biométrico? Tu sesión quedará sin protección adicional.',
+        [
+          { text: 'Cancelar', style: 'cancel' },
+          {
+            text: 'Desactivar',
+            style: 'destructive',
+            onPress: async () => {
+              setBiometricsEnabled(false);
+              await SecureStore.setItemAsync('biometrics_enabled', 'false');
+            }
+          }
+        ]
+      );
     }
-    
-    setBiometricsEnabled(newVal);
-    await SecureStore.setItemAsync('biometrics_enabled', newVal ? 'true' : 'false');
   };
 
   const handleLogout = async () => {
@@ -101,6 +117,7 @@ export default function ProfileScreen() {
       ]
     );
   };
+
 
   if (loading && !user) {
     return (

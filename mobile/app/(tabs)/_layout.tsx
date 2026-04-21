@@ -51,8 +51,8 @@ export default function TabLayout() {
         headerShown: false,
         // Prevenir flashes al cambiar: seteamos el fondo del contenedor
         sceneContainerStyle: { backgroundColor: '#050505' },
-        // Animación de desvanecimiento más suave
-        animation: 'fade',
+        // Animación fluida de desplazamiento y fundido estilo nativo
+        animation: 'shift',
         tabBarStyle: {
           position: 'absolute',
           bottom: Platform.OS === 'ios' ? 25 : 12,

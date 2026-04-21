@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import Script from "next/script";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -29,16 +30,22 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <link rel="apple-touch-icon" href="/icon.png" />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('/sw.js').then(reg => console.log('SW Registered')).catch(err => console.log('SW Error', err)); }); }`
-          }}
-        />
       </head>
       <body 
         className={`${inter.className} min-h-screen bg-boston-black text-foreground antialiased selection:bg-boston-red selection:text-white`}
         suppressHydrationWarning
       >
+        <Script id="register-sw" strategy="afterInteractive">
+          {`
+            if ('serviceWorker' in navigator) {
+              window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                  .then(reg => console.log('SW Registered'))
+                  .catch(err => console.log('SW Error', err));
+              });
+            }
+          `}
+        </Script>
         {children}
       </body>
     </html>

@@ -11,6 +11,7 @@ type Reward = {
   description: string;
   pointsRequired: number;
   type: string;
+  imageUrl?: string;
 };
 
 export default function RewardsScreen() {
@@ -42,6 +43,14 @@ export default function RewardsScreen() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const resolveImageUrl = (url: string | undefined | null) => {
+    if (!url) return null;
+    if (url.startsWith('http') || url.startsWith('data:')) return url;
+    const baseUrl = api.defaults.baseURL || 'http://192.168.1.36:8080/api';
+    const rootUrl = baseUrl.replace(/\/api$/, '');
+    return `${rootUrl}${url}`;
   };
 
   const handleRedeem = async (reward: Reward) => {
@@ -117,10 +126,14 @@ export default function RewardsScreen() {
                 key={reward.id}
                 className={`flex-row items-center p-5 rounded-[2rem] border ${canRedeem ? 'bg-white/[0.03] border-white/10' : 'bg-white/[0.01] border-white/5 opacity-50'}`}
               >
-                <View className="w-16 h-16 bg-[#111] rounded-2xl items-center justify-center mr-5 shadow-inner border border-white/5">
-                  <Text className="text-3xl">
-                     {reward.type === 'BEBIDA' ? '🍺' : reward.type === 'COMIDA' ? '🍔' : '🎫'}
-                  </Text>
+                <View className="w-16 h-16 bg-[#111] rounded-2xl items-center justify-center mr-5 shadow-inner border border-white/5 overflow-hidden relative">
+                  {reward.imageUrl ? (
+                     <Image source={{ uri: resolveImageUrl(reward.imageUrl) || '' }} style={{ width: '100%', height: '100%', position: 'absolute' }} resizeMode="cover" />
+                  ) : (
+                    <Text className="text-3xl relative z-10">
+                       {reward.type === 'BEBIDA' ? '🍺' : reward.type === 'COMIDA' ? '🍔' : '🎫'}
+                    </Text>
+                  )}
                 </View>
                 
                 <View className="flex-1 mr-2">

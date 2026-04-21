@@ -17,6 +17,7 @@ type EventType = {
   buttonText?: string;
   externalLink?: string;
   isActive: boolean;
+  isAdultOnly: boolean;
 };
 
 export default function AdminEventsPage() {
@@ -33,6 +34,7 @@ export default function AdminEventsPage() {
   const [type, setType] = useState("EVENTO");
   const [buttonText, setButtonText] = useState("RESERVAR MESA");
   const [externalLink, setExternalLink] = useState("");
+  const [isAdultOnly, setIsAdultOnly] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -74,6 +76,7 @@ export default function AdminEventsPage() {
           type,
           buttonText,
           externalLink,
+          isAdultOnly,
           imageUrl: imagePreview || null
         })
       });
@@ -83,6 +86,7 @@ export default function AdminEventsPage() {
       setBenefits("");
       setEventDate("");
       setExternalLink("");
+      setIsAdultOnly(false);
       setImagePreview(null);
       fetchEvents();
       alert("Publicado con éxito. Se envió una notificación automática.");
@@ -183,6 +187,22 @@ export default function AdminEventsPage() {
                    <input type="text" value={externalLink} onChange={(e) => setExternalLink(e.target.value)} placeholder="https://..." className="w-full bg-[#0a0a0a] text-white border border-white/10 rounded-2xl py-4 px-5 focus:border-boston-gold transition-all outline-none text-sm" />
                  </div>
               </div>
+
+              {/* Adult Only Toggle */}
+              <div className="flex items-center mt-4">
+                 <label className="flex items-center cursor-pointer select-none">
+                    <div className="relative">
+                       <input type="checkbox" checked={isAdultOnly} onChange={(e) => setIsAdultOnly(e.target.checked)} className="sr-only" />
+                       <div className={`box block h-6 w-10 rounded-full transition-colors ${isAdultOnly ? 'bg-boston-red-glow' : 'bg-white/10'}`}></div>
+                       <div className={`absolute left-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-white transition-transform ${isAdultOnly ? 'translate-x-4' : ''}`}></div>
+                    </div>
+                    <div className="ml-3">
+                       <span className="text-[11px] font-black uppercase tracking-widest text-white/80">
+                         {isAdultOnly ? "Solo para Mayores de 18 (+18)" : "Apto para todo público"}
+                       </span>
+                    </div>
+                 </label>
+              </div>
             </div>
 
             {/* Visual Part */}
@@ -240,9 +260,16 @@ export default function AdminEventsPage() {
              {events.map((ev) => (
                <tr key={ev.id} className="border-b border-white/5 last:border-0 hover:bg-white/5 transition-colors">
                   <td className="py-4 pl-4">
-                     <span className={`text-[10px] font-black px-2 py-1 rounded-sm uppercase ${ev.type === 'BANNER' ? 'bg-boston-red-glow text-white' : 'bg-boston-gold/20 text-boston-gold'}`}>
-                        {ev.type}
-                     </span>
+                     <div className="flex flex-col gap-1 items-start">
+                       <span className={`text-[10px] font-black px-2 py-1 rounded-sm uppercase ${ev.type === 'BANNER' ? 'bg-boston-red-glow text-white' : 'bg-boston-gold/20 text-boston-gold'}`}>
+                          {ev.type}
+                       </span>
+                       {ev.isAdultOnly && (
+                         <span className="text-[9px] font-black px-1.5 py-0.5 rounded-sm uppercase bg-red-600/30 text-red-400 border border-red-500/50 mt-1">
+                           +18
+                         </span>
+                       )}
+                     </div>
                   </td>
                   <td className="py-4 text-white font-bold">{ev.title}</td>
                   <td className="py-4 text-white/60 text-sm">{ev.description}</td>

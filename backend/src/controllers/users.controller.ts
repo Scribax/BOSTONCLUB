@@ -43,6 +43,7 @@ export const getAllUsers = async (req: Request, res: Response): Promise<void> =>
         isBlocked: true,
         vipRewardSentAt: true,
         createdAt: true,
+        birthDate: true,
       },
     });
     res.json(users);

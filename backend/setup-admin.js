@@ -21,9 +21,10 @@ async function main() {
         role: 'ADMIN',
         firstName: 'Franco',
         lastName: 'De Marto',
+        isEmailVerified: true,
       },
       create: {
-        dni: '0', // DNI temporal para el admin
+        dni: '0', 
         firstName: 'Franco',
         lastName: 'De Marto',
         email: adminEmail,
@@ -31,6 +32,7 @@ async function main() {
         role: 'ADMIN',
         membershipLevel: 'SÚPER VIP',
         points: 0,
+        isEmailVerified: true,
       },
     });
 

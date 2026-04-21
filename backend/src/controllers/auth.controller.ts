@@ -20,6 +20,11 @@ export const register = async (req: Request, res: Response): Promise<void> => {
         return;
     }
 
+    if (!birthDate) {
+        res.status(400).json({ message: "La fecha de nacimiento es obligatoria." });
+        return;
+    }
+
     if (!/^\d{1,8}$/.test(dni)) {
       res.status(400).json({ message: "DNI inválido. Debe contener solo números (máximo 8)." });
       return;

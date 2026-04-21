@@ -14,7 +14,11 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.scribax.mobile",
+      "infoPlist": {
+        "NSFaceIDUsageDescription": "Permitir el acceso a FaceID para asegurar tu entrada al club de forma segura y privada."
+      }
     },
     "android": {
       "package": "com.scribax.mobile",
@@ -33,7 +37,8 @@
     },
     "plugins": [
       "expo-router",
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-local-authentication"
     ],
     "experiments": {
       "typedRoutes": true

@@ -1,12 +1,52 @@
 import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
 import { sendEventPublishedNotification } from "../services/push.service";
+import jwt from "jsonwebtoken";
 
 const prisma = new PrismaClient();
 
 export const getAllEvents = async (req: Request, res: Response): Promise<void> => {
   try {
+     let isMinor = true; 
+
+     const authHeader = req.headers.authorization;
+     if (authHeader && authHeader.startsWith("Bearer ")) {
+         const token = authHeader.split(" ")[1];
+         try {
+            const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as any;
+            if (decoded && decoded.id) {
+               const user = await prisma.user.findUnique({
+                  where: { id: decoded.id },
+                  select: { birthDate: true, role: true }
+               });
+               
+               if (user && user.role === "ADMIN") {
+                  isMinor = false; 
+               } else if (user && user.birthDate) {
+                  const today = new Date();
+                  const birthDate = new Date(user.birthDate);
+                  let age = today.getFullYear() - birthDate.getFullYear();
+                  const m = today.getMonth() - birthDate.getMonth();
+                  if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+                     age--;
+                  }
+                  if (age >= 18) {
+                     isMinor = false;
+                  }
+               }
+            }
+         } catch(e) {
+            // invalid token, just treat as minor
+         }
+     }
+
+     const whereClause: any = {};
+     if (isMinor) {
+        whereClause.isAdultOnly = false;
+     }
+
     const events = await prisma.event.findMany({
+      where: whereClause,
       orderBy: { eventDate: "asc" }
     });
     res.json(events);
@@ -28,7 +68,8 @@ export const createEvent = async (req: Request, res: Response): Promise<void> =>
       type,
       buttonText,
       externalLink,
-      isActive
+      isActive,
+      isAdultOnly
     } = req.body;
     
     const event = await prisma.event.create({
@@ -44,6 +85,7 @@ export const createEvent = async (req: Request, res: Response): Promise<void> =>
         buttonText: buttonText || "RESERVAR MESA",
         externalLink,
         isActive: isActive !== undefined ? isActive : true,
+        isAdultOnly: isAdultOnly || false,
         reminderSent: false,
       }
     });
