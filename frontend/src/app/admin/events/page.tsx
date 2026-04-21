@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { CalendarPlus, Image as ImageIcon, Trash2 } from "lucide-react";
+import { CalendarPlus, Image as ImageIcon, Trash2, Bell } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 
 type EventType = {
@@ -41,7 +41,7 @@ export default function AdminEventsPage() {
 
   const fetchEvents = async () => {
     try {
-      const data = await apiFetch("/events");
+      const data = await apiFetch("/events", { cache: "no-store", headers: { "Cache-Control": "no-cache" }});
       setEvents(data);
     } catch (err) {
       console.error("Error fetching events", err);
@@ -85,6 +85,7 @@ export default function AdminEventsPage() {
       setExternalLink("");
       setImagePreview(null);
       fetchEvents();
+      alert("Publicado con éxito. Se envió una notificación automática.");
     } catch (err) {
       alert("Error al crear evento");
     } finally {
@@ -99,6 +100,16 @@ export default function AdminEventsPage() {
       setEvents(events.filter(event => event.id !== id));
     } catch (err) {
       alert("Error al eliminar evento");
+    }
+  };
+
+  const handleNotify = async (id: string) => {
+    if (!confirm("¿Deseas enviar una alerta PUSH manual a todos los usuarios con la App recordando este evento?")) return;
+    try {
+      await apiFetch(`/events/${id}/notify`, { method: "POST" });
+      alert("Notificación Push enviada!");
+    } catch (err) {
+      alert("Error al enviar notificación manualmente.");
     }
   };
 
@@ -236,13 +247,22 @@ export default function AdminEventsPage() {
                   <td className="py-4 text-white font-bold">{ev.title}</td>
                   <td className="py-4 text-white/60 text-sm">{ev.description}</td>
                   <td className="py-4 text-white/60 text-sm">{ev.benefits}</td>
-                  <td className="py-4 pr-4 text-right">
-                     <button 
-                       onClick={() => handleDelete(ev.id)}
-                       className="text-boston-red-glow hover:text-white p-2 rounded-lg hover:bg-white/10 transition-colors"
-                     >
-                       <Trash2 className="w-4 h-4" />
-                     </button>
+                  <td className="py-4 pr-4">
+                     <div className="flex justify-end gap-2">
+                       <button 
+                         onClick={() => handleNotify(ev.id)}
+                         title="Enviar Notificación (Alerta Push) a la App"
+                         className="text-[#D4AF37] hover:text-white p-2 rounded-lg hover:bg-white/10 transition-colors border border-transparent hover:border-white/10"
+                       >
+                         <Bell className="w-4 h-4" />
+                       </button>
+                       <button 
+                         onClick={() => handleDelete(ev.id)}
+                         className="text-boston-red-glow hover:text-white p-2 rounded-lg hover:bg-white/10 transition-colors"
+                       >
+                         <Trash2 className="w-4 h-4" />
+                       </button>
+                     </div>
                   </td>
                </tr>
              ))}

@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
+import { sendEventPublishedNotification } from "../services/push.service";
 
 const prisma = new PrismaClient();
 
@@ -42,11 +43,38 @@ export const createEvent = async (req: Request, res: Response): Promise<void> =>
         type: type || "EVENT",
         buttonText: buttonText || "RESERVAR MESA",
         externalLink,
-        isActive: isActive !== undefined ? isActive : true
+        isActive: isActive !== undefined ? isActive : true,
+        reminderSent: false,
       }
     });
 
+    // Enviar notificación Push solo si está activo
+    if (event.isActive) {
+      // Background execution so it doesn't block response
+      sendEventPublishedNotification(event.title, event.description, event.type).catch(console.error);
+    }
+
     res.status(201).json(event);
+  } catch (error) {
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+
+export const notifyEvent = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const event = await prisma.event.findUnique({
+      where: { id: id as string }
+    });
+
+    if (!event) {
+      res.status(404).json({ message: "Event not found" });
+      return;
+    }
+
+    sendEventPublishedNotification(event.title, event.description, event.type).catch(console.error);
+
+    res.json({ message: "Notification dispatched manually" });
   } catch (error) {
     res.status(500).json({ message: "Server Error" });
   }

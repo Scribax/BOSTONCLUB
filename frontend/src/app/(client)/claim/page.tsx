@@ -64,6 +64,31 @@ export default function ClaimPointsPage() {
   const claimPoints = async (token: string) => {
     setStatus("loading");
     try {
+      // 1. Detectar si es un QR de Mercado Pago (POSNET)
+      const mpRegex = /(?:mercadopago\.com(?:\.ar)?|mpago\.la)\/(?:s|p|order|instore)\/([a-zA-Z0-9_-]+)/;
+      const match = token.match(mpRegex);
+
+      if (match) {
+        const orderId = match[1];
+        setMessage("Viculando pago con tu cuenta...");
+        
+        // Avisamos al backend que estamos por pagar esta orden
+        await apiFetch("/payments/track-pos", {
+          method: "POST",
+          body: JSON.stringify({ orderId })
+        });
+
+        setStatus("success");
+        setMessage("¡Vinculado con éxito! Redirigiendo a Mercado Pago para completar el pago...");
+        
+        // Redirigimos al link original de MP después de un breve delay
+        setTimeout(() => {
+          window.location.href = token;
+        }, 2000);
+        return;
+      }
+
+      // 2. Si no es MP, procesar como un QR de puntos normal
       const data = await apiFetch("/promo/claim", {
         method: "POST",
         body: JSON.stringify({ token })
@@ -72,7 +97,7 @@ export default function ClaimPointsPage() {
       setMessage(data.message);
     } catch (err: any) {
       setStatus("error");
-      setMessage(err.message || "Error al reclamar puntos");
+      setMessage(err.message || "Error al procesar el código");
     }
   };
 

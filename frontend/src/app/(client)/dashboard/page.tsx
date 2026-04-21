@@ -3,7 +3,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import DigitalCard from "@/components/DigitalCard";
 import PWAInstallButton from "@/components/PWAInstallButton";
-import { Gift, CalendarDays, History, MapPin, Ticket, Flame, ArrowRight, QrCode, User, Crown } from "lucide-react";
+import { Gift, CalendarDays, History, MapPin, Ticket, Flame, ArrowRight, QrCode, User, Crown, CreditCard } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { apiFetch, logout } from "@/lib/api";
@@ -180,17 +180,37 @@ export default function DashboardPage() {
            </div>
         </section>
 
-        {/* Quick Actions */}
-        <div className="flex gap-4">
-          <Link href="/rewards" className="flex-1 glass-panel py-4 sm:py-5 rounded-3xl flex items-center justify-center gap-3 hover:bg-boston-red transition-all group border-boston-red/20 shadow-2xl shadow-boston-red/5">
-            <Gift className="w-5 h-5 text-boston-red-glow group-hover:text-white" />
-            <span className="text-xs font-black text-white uppercase tracking-widest">Catálogo</span>
+        {/* Quick Actions Re-Designed */}
+        <div className="space-y-4">
+          {/* MAIN ACTION: PAY */}
+          <Link href="/claim" className="relative block group">
+            <div className="absolute -inset-0.5 bg-gradient-to-r from-boston-gold/50 to-boston-gold/20 rounded-[2rem] blur opacity-20 group-hover:opacity-40 transition duration-1000 group-hover:duration-200"></div>
+            <div className="relative glass-panel rounded-[2rem] p-6 flex items-center justify-between border border-boston-gold/30 bg-gradient-to-br from-boston-gold/10 to-transparent hover:bg-boston-gold transition-all duration-500 overflow-hidden">
+                <div className="flex items-center gap-5">
+                   <div className="w-14 h-14 bg-boston-gold/20 rounded-2xl flex items-center justify-center border border-boston-gold/30 group-hover:bg-black/20 transition-colors">
+                      <CreditCard className="w-7 h-7 text-boston-gold group-hover:text-black" />
+                   </div>
+                   <div>
+                      <h4 className="text-white font-black text-xl italic uppercase tracking-tighter group-hover:text-black transition-colors">Pagar con la App</h4>
+                      <p className="text-[9px] text-white/40 font-bold uppercase tracking-[0.2em] group-hover:text-black/50 transition-colors underline decoration-boston-gold/30 underline-offset-4">Escanea el QR del POSNET</p>
+                   </div>
+                </div>
+                <ArrowRight className="w-5 h-5 text-boston-gold group-hover:text-black group-hover:translate-x-1 transition-all" />
+            </div>
           </Link>
-          
-          <Link href="/claim" className="flex-1 glass-panel py-4 sm:py-5 rounded-3xl flex items-center justify-center gap-3 hover:bg-boston-gold transition-all group border-boston-gold/20 shadow-2xl shadow-boston-gold/5">
-            <QrCode className="w-5 h-5 text-boston-gold group-hover:text-black" />
-            <span className="text-xs font-black text-white group-hover:text-black uppercase tracking-widest whitespace-nowrap">Canjear QR</span>
-          </Link>
+
+          {/* SECONDARY ACTIONS: REDEEM & CLAIM */}
+          <div className="flex gap-4">
+            <Link href="/rewards" className="flex-1 glass-panel p-5 rounded-[2rem] border border-white/5 flex flex-col items-center justify-center gap-2 hover:bg-boston-red/10 hover:border-boston-red/30 transition-all group">
+              <Gift className="w-5 h-5 text-boston-red-glow" />
+              <span className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em] group-hover:text-white">Explorar Canjes</span>
+            </Link>
+
+            <Link href="/claim" className="flex-1 glass-panel p-5 rounded-[2rem] border border-white/5 flex flex-col items-center justify-center gap-2 hover:bg-white/5 transition-all group">
+              <QrCode className="w-5 h-5 text-white/20 group-hover:text-boston-gold" />
+              <span className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em] group-hover:text-white">Sumar Puntos</span>
+            </Link>
+          </div>
         </div>
 
         {/* Flash Promo Banners Carousel */}

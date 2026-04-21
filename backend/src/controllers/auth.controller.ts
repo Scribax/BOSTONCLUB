@@ -9,6 +9,11 @@ export const register = async (req: Request, res: Response): Promise<void> => {
   try {
     const { dni, firstName, lastName, email, password, whatsapp, birthDate } = req.body;
 
+    if (!whatsapp || whatsapp.trim() === "") {
+        res.status(400).json({ message: "El WhatsApp es obligatorio para el registro." });
+        return;
+    }
+
     // Validación estricta de DNI
     if (!/^\d{1,8}$/.test(dni)) {
       res.status(400).json({ message: "DNI inválido. Debe contener solo números (máximo 8)." });
@@ -138,4 +143,15 @@ export const updateMe = async (req: any, res: Response): Promise<void> => {
     res.status(500).json({ message: "Error al actualizar perfil" });
   }
 };
-
+export const updatePushToken = async (req: any, res: Response): Promise<void> => {
+  try {
+    const { token } = req.body;
+    await prisma.user.update({
+      where: { id: req.user.id },
+      data: { expoPushToken: token }
+    });
+    res.json({ message: "Push token updated" });
+  } catch (error) {
+    res.status(500).json({ message: "Server Error" });
+  }
+};

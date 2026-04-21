@@ -21,10 +21,12 @@ model User {
   points          Int               @default(0)
   membershipLevel String            @default("BRONZE")
   isBlocked       Boolean           @default(false)
+  expoPushToken   String?
   pointHistory    PointHistory[]
   redemptions     Redemption[]
   notifications   Notification[]
   visits          Visit[]
+  posTransactions PosTransaction[]
   vipRewardSentAt DateTime?
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
@@ -79,6 +81,7 @@ model Event {
   buttonText   String?  @default("RESERVAR MESA")
   externalLink String?  // Link de WhatsApp o externo
   isActive     Boolean  @default(true)
+  reminderSent Boolean  @default(false)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
@@ -136,4 +139,17 @@ model ClubSettings {
   superVipBenefits   String @default("- 50% Off en toda la carta\n- Todo incluido en eventos seleccionados\n- Concierge privado")
 
   updatedAt          DateTime @updatedAt
+}
+
+model PosTransaction {
+  id               String   @id @default(uuid())
+  orderId          String   @unique // ID de la orden de MP escaneada
+  userId           String
+  user             User     @relation(fields: [userId], references: [id])
+  amount           Float?   
+  status           String   @default("PENDING")
+  externalPaymentId String? @unique 
+  processed        Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 }

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "359120142742",
+    "project_id": "boston-club-95e7f",
+    "storage_bucket": "boston-club-95e7f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:359120142742:android:35ce7a0ad6b68d0f3fddb7",
+        "android_client_info": {
+          "package_name": "com.scribax.mobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBOn8Twk1QesAJZr-P5o1Sff1JBxXXLZY4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

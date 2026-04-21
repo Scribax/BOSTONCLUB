@@ -35,7 +35,10 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={`${inter.className} min-h-screen bg-boston-black text-foreground antialiased selection:bg-boston-red selection:text-white`}>
+      <body 
+        className={`${inter.className} min-h-screen bg-boston-black text-foreground antialiased selection:bg-boston-red selection:text-white`}
+        suppressHydrationWarning
+      >
         {children}
       </body>
     </html>
