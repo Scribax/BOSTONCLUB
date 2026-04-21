@@ -7,7 +7,7 @@ import { getAllEvents, createEvent, deleteEvent, notifyEvent } from "../controll
 import { getAllUsers, adjustPoints, toggleBlockUser, deleteUser, toggleVipRewardStatus } from "../controllers/users.controller";
 import { getAdminStats } from "../controllers/admin.controller";
 import { generatePromoToken, claimPromoToken } from "../controllers/promo.controller";
-import { getSettings, updateSettings } from "../controllers/settings.controller";
+import { getSettings, updateSettings, uploadVideo, upload } from "../controllers/settings.controller";
 
 const router = Router();
 
@@ -52,5 +52,6 @@ router.post("/promo/claim", authenticate, claimPromoToken);
 // VIP Settings
 router.get("/settings", authenticate, getSettings);
 router.post("/settings", authenticate, requireAdmin, updateSettings);
+router.post("/settings/upload-video", authenticate, requireAdmin, upload.single("video"), uploadVideo);
 
 export default router;

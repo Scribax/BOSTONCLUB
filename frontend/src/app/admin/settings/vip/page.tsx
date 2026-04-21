@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Save, Crown, MessageSquare, ListCheck, Loader2 } from "lucide-react";
+import { ArrowLeft, Save, Crown, MessageSquare, ListCheck, Loader2, Video, Upload, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { apiFetch } from "@/lib/api";
 import { formatWithDots, parseSmartNumber } from "@/lib/numberFormatting";
@@ -22,7 +22,8 @@ export default function VipSettingsPage() {
     goldBenefits: "",
     platinumBenefits: "",
     diamondBenefits: "",
-    superVipBenefits: ""
+    superVipBenefits: "",
+    loginVideoUrl: ""
   });
 
   useEffect(() => {
@@ -52,6 +53,44 @@ export default function VipSettingsPage() {
       alert("Error al guardar los ajustes");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const [uploadingVideo, setUploadingVideo] = useState(false);
+
+  const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 20 * 1024 * 1024) {
+      alert("El video es demasiado pesado (máx 20MB)");
+      return;
+    }
+
+    setUploadingVideo(true);
+    const formData = new FormData();
+    formData.append("video", file);
+
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8080/api"}/settings/upload-video`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${localStorage.getItem("boston_club_token")}`
+        },
+        body: formData
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        setSettings({ ...settings, loginVideoUrl: data.url });
+        alert("¡Video subido con éxito! 🎥");
+      } else {
+        throw new Error(data.message);
+      }
+    } catch (err) {
+      alert("Error al subir el video");
+    } finally {
+      setUploadingVideo(false);
     }
   };
 
@@ -264,6 +303,77 @@ export default function VipSettingsPage() {
                 </span>
               </div>
             </button>
+          </motion.div>
+
+          {/* Video Background Section */}
+          <motion.div 
+            initial={{ x: 20, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{ delay: 0.3 }}
+            className="glass-panel p-8 rounded-[2.5rem] border border-white/5 bg-gradient-to-br from-[#0c0c0c] to-black"
+          >
+            <div className="flex items-center gap-4 mb-8">
+              <div className="w-12 h-12 bg-boston-gold/10 rounded-2xl flex items-center justify-center border border-boston-gold/20 shadow-[0_0_20px_rgba(204,166,80,0.1)]">
+                <Video className="w-6 h-6 text-boston-gold" />
+              </div>
+              <div>
+                <h3 className="text-lg font-black text-white uppercase italic tracking-tight">Video de Inicio</h3>
+                <p className="text-[10px] text-white/30 font-bold uppercase tracking-widest leading-none">Fondo animado para el Login móvil</p>
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              {settings.loginVideoUrl ? (
+                <div className="relative aspect-video rounded-2xl overflow-hidden border border-white/10 group">
+                  <video 
+                    src={settings.loginVideoUrl} 
+                    className="w-full h-full object-cover"
+                    muted
+                    loop
+                    autoPlay
+                    playsInline
+                  />
+                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center gap-4">
+                    <button 
+                      onClick={() => setSettings({ ...settings, loginVideoUrl: "" })}
+                      className="p-3 bg-red-500/20 text-red-500 rounded-full hover:bg-red-500 hover:text-white transition-all"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
+                  </div>
+                  <div className="absolute bottom-4 left-4 right-4 bg-black/80 backdrop-blur-md p-3 rounded-xl border border-white/10">
+                    <p className="text-[9px] text-white/40 truncate font-mono uppercase tracking-tighter">{settings.loginVideoUrl}</p>
+                  </div>
+                </div>
+              ) : (
+                <label className="border-2 border-dashed border-white/5 rounded-[2rem] p-12 flex flex-col items-center justify-center gap-4 cursor-pointer hover:border-boston-gold/50 hover:bg-boston-gold/5 transition-all group">
+                  <input 
+                    type="file" 
+                    accept="video/mp4,video/quicktime" 
+                    className="hidden" 
+                    onChange={handleVideoUpload}
+                    disabled={uploadingVideo}
+                  />
+                  <div className="w-16 h-16 bg-white/5 rounded-3xl flex items-center justify-center group-hover:scale-110 transition-all">
+                    {uploadingVideo ? (
+                      <Loader2 className="w-8 h-8 text-boston-gold animate-spin" />
+                    ) : (
+                      <Upload className="w-8 h-8 text-white/20" />
+                    )}
+                  </div>
+                  <div className="text-center">
+                    <p className="text-sm font-bold text-white mb-1">Subir Video (.mp4)</p>
+                    <p className="text-[10px] text-white/20 font-medium uppercase tracking-widest">Máximo 20MB • Recomendado 9:16</p>
+                  </div>
+                </label>
+              )}
+
+              <div className="p-4 bg-white/5 rounded-2xl border border-white/5">
+                <p className="text-[10px] text-white/40 leading-relaxed italic">
+                  Tip: Subí un video corto en bucle para darle un toque cinematográfico a la App. Los socios lo verán al abrir la App.
+                </p>
+              </div>
+            </div>
           </motion.div>
         </div>
       </div>

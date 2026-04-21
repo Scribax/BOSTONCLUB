@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, Alert, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, Alert, ActivityIndicator, StyleSheet } from 'react-native';
+import { Video, ResizeMode } from 'expo-av';
 import { useRouter } from 'expo-router';
 import { Mail, Lock, LogIn, ChevronRight, Crown, ArrowRight, User as UserIcon, Phone } from 'lucide-react-native';
 import api, { setAuthToken } from '../lib/api';
@@ -14,7 +15,23 @@ export default function LoginScreen() {
   const [dni, setDni] = useState('');
   const [whatsapp, setWhatsapp] = useState('');
   const [loading, setLoading] = useState(false);
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const router = useRouter();
+
+  useEffect(() => {
+    fetchSettings();
+  }, []);
+
+  const fetchSettings = async () => {
+    try {
+      const response = await api.get('/settings');
+      if (response.data.loginVideoUrl) {
+        setVideoUrl(response.data.loginVideoUrl);
+      }
+    } catch (error) {
+      console.error('Error fetching settings for video', error);
+    }
+  };
 
   const handleAuth = async () => {
     if (!email || !password) {
@@ -70,9 +87,22 @@ export default function LoginScreen() {
     >
       <StatusBar style="light" />
       
-      {/* Background Glows */}
-      <View className="absolute top-0 right-0 w-64 h-64 bg-boston-red opacity-10 rounded-full blur-[80px]" />
-      <View className="absolute bottom-0 left-0 w-64 h-64 bg-boston-gold opacity-10 rounded-full blur-[80px]" />
+      {/* Dynamic Video Background */}
+      {videoUrl && (
+        <Video
+          source={{ uri: videoUrl }}
+          style={StyleSheet.absoluteFill}
+          resizeMode={ResizeMode.COVER}
+          shouldPlay
+          isLooping
+          isMuted
+        />
+      )}
+      
+      {/* Background Glows Overlay */}
+      <View className="absolute top-0 right-0 w-64 h-64 bg-boston-red opacity-[0.15] rounded-full blur-[80px]" />
+      <View className="absolute bottom-0 left-0 w-64 h-64 bg-boston-gold opacity-[0.15] rounded-full blur-[80px]" />
+      <View className="absolute inset-0 bg-black/40" />
 
       <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }} className="px-6 py-12">
         {/* Header */}

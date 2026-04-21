@@ -9,42 +9,42 @@ datasource db {
 }
 
 model User {
-  id              String            @id @default(uuid())
-  dni             String            @unique
-  firstName       String
-  lastName        String
-  email           String            @unique
-  passwordHash    String
-  whatsapp        String?
-  birthDate       DateTime?
-  role            String            @default("CUSTOMER")
-  points          Int               @default(0)
-  membershipLevel String            @default("BRONZE")
-  isBlocked       Boolean           @default(false)
-  isEmailVerified Boolean           @default(false)
-  verificationCode String?          
+  id                      String           @id @default(uuid())
+  dni                     String           @unique
+  firstName               String
+  lastName                String
+  email                   String           @unique
+  passwordHash            String
+  whatsapp                String?
+  birthDate               DateTime?
+  role                    String           @default("CUSTOMER")
+  points                  Int              @default(0)
+  membershipLevel         String           @default("BRONZE")
+  isBlocked               Boolean          @default(false)
+  isEmailVerified         Boolean          @default(false)
+  verificationCode        String?
   verificationCodeExpires DateTime?
-  resetCode       String?           
-  resetCodeExpires DateTime?
-  expoPushToken   String?
-  pointHistory    PointHistory[]
-  redemptions     Redemption[]
-  notifications   Notification[]
-  visits          Visit[]
-  posTransactions PosTransaction[]
-  vipRewardSentAt DateTime?
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
+  resetCode               String?
+  resetCodeExpires        DateTime?
+  expoPushToken           String?
+  vipRewardSentAt         DateTime?
+  createdAt               DateTime         @default(now())
+  updatedAt               DateTime         @updatedAt
+  notifications           Notification[]
+  pointHistory            PointHistory[]
+  posTransactions         PosTransaction[]
+  redemptions             Redemption[]
+  visits                  Visit[]
 }
 
 model PointHistory {
-  id           String      @id @default(uuid())
+  id           String   @id @default(uuid())
   userId       String
-  user         User        @relation(fields: [userId], references: [id])
   pointsGained Int
   source       String
   description  String?
-  createdAt    DateTime    @default(now())
+  createdAt    DateTime @default(now())
+  user         User     @relation(fields: [userId], references: [id])
 }
 
 model Reward {
@@ -55,36 +55,36 @@ model Reward {
   type           String       @default("BEBIDA")
   imageUrl       String?
   isActive       Boolean      @default(true)
-  redemptions    Redemption[]
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
+  redemptions    Redemption[]
 }
 
 model Redemption {
-  id        String           @id @default(uuid())
+  id        String    @id @default(uuid())
   userId    String
-  user      User             @relation(fields: [userId], references: [id])
   rewardId  String
-  reward    Reward           @relation(fields: [rewardId], references: [id])
-  status    String           @default("PENDING")
-  qrToken   String?          @unique
+  status    String    @default("PENDING")
+  qrToken   String?   @unique
   expiresAt DateTime?
-  createdAt DateTime         @default(now())
-  updatedAt DateTime         @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  reward    Reward    @relation(fields: [rewardId], references: [id])
+  user      User      @relation(fields: [userId], references: [id])
 }
 
 model Event {
   id           String   @id @default(uuid())
   title        String
-  description  String   // Breve descripción o punchline
-  details      String?  // Detalles extendidos del evento
+  description  String
+  details      String?
   location     String?  @default("Boston Club")
   eventDate    DateTime
   imageUrl     String?
   benefits     String?
-  type         String   @default("EVENT") // EVENT o BANNER
+  type         String   @default("EVENT")
   buttonText   String?  @default("RESERVAR MESA")
-  externalLink String?  // Link de WhatsApp o externo
+  externalLink String?
   isActive     Boolean  @default(true)
   reminderSent Boolean  @default(false)
   createdAt    DateTime @default(now())
@@ -94,67 +94,62 @@ model Event {
 model Notification {
   id        String   @id @default(uuid())
   userId    String?
-  user      User?    @relation(fields: [userId], references: [id])
   title     String
   message   String
   type      String   @default("IN_APP")
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
+  user      User?    @relation(fields: [userId], references: [id])
 }
 
 model Visit {
   id           String   @id @default(uuid())
   userId       String
-  user         User     @relation(fields: [userId], references: [id])
   pointsEarned Int
   checkinTime  DateTime @default(now())
+  user         User     @relation(fields: [userId], references: [id])
 }
 
 model PromoToken {
-  id        String   @id @default(uuid())
-  token     String   @unique
+  id        String    @id @default(uuid())
+  token     String    @unique
   points    Int
-  type      String   // "SINGLE_USE" (400 pts) or "DAILY_CHECKIN" (100 pts)
+  type      String
   expiresAt DateTime?
-  isUsed    Boolean  @default(false)
-  createdAt DateTime @default(now())
+  isUsed    Boolean   @default(false)
+  createdAt DateTime  @default(now())
 }
 
 model ClubSettings {
-  id                 String @id @default("singleton")
-  vipThreshold       Int    @default(1000)
-  checkinPoints      Int    @default(100)
-  isEventDay         Boolean @default(false)
-  eventCheckinPoints Int    @default(1000)
-  
-  // Tiers Thresholds
-  goldThreshold      Int    @default(500000)
-  platinumThreshold  Int    @default(1500000)
-  diamondThreshold   Int    @default(5000000)
-  superVipThreshold  Int    @default(10000000)
-
-  vipMessageTemplate String @default("¡Felicidades {name}! 🎉 Has llegado a los {points} puntos en Boston Club. ¡Eres un socio VIP! Canjea tus puntos por premios exclusivos.")
-  rewardListText     String @default("- 30% Off en Bebidas\n- Ingreso Free a Eventos\n- Regalo Sorpresa")
-  
-  // Per-Tier Benefits
-  bronceBenefits     String @default("- Beneficios base de socio\n- Acceso a promociones")
-  goldBenefits       String @default("- 10% Off en toda la carta\n- Mesa reservada los findes")
-  platinumBenefits   String @default("- 20% Off en toda la carta\n- Acceso anticipado a eventos")
-  diamondBenefits    String @default("- 30% Off en toda la carta\n- Zona VIP sin cargo\n- Regalo de cumpleaños")
-  superVipBenefits   String @default("- 50% Off en toda la carta\n- Todo incluido en eventos seleccionados\n- Concierge privado")
-
+  id                 String   @id @default("singleton")
+  vipThreshold       Int      @default(1000)
+  checkinPoints      Int      @default(100)
+  isEventDay         Boolean  @default(false)
+  eventCheckinPoints Int      @default(1000)
+  goldThreshold      Int      @default(500000)
+  platinumThreshold  Int      @default(1500000)
+  diamondThreshold   Int      @default(5000000)
+  superVipThreshold  Int      @default(10000000)
+  vipMessageTemplate String   @default("¡Felicidades {name}! 🎉 Has llegado a los {points} puntos en Boston Club. ¡Eres un socio VIP! Canjea tus puntos por premios exclusivos.")
+  rewardListText     String   @default("- 30% Off en Bebidas\n- Ingreso Free a Eventos\n- Regalo Sorpresa")
+  bronceBenefits     String   @default("- Beneficios base de socio\n- Acceso a promociones")
+  goldBenefits       String   @default("- 10% Off en toda la carta\n- Mesa reservada los findes")
+  platinumBenefits   String   @default("- 20% Off en toda la carta\n- Acceso anticipado a eventos")
+  diamondBenefits    String   @default("- 30% Off en toda la carta\n- Zona VIP sin cargo\n- Regalo de cumpleaños")
+  superVipBenefits   String   @default("- 50% Off en toda la carta\n- Todo incluido en eventos seleccionados\n- Concierge privado")
+  loginVideoUrl      String?
   updatedAt          DateTime @updatedAt
 }
 
 model PosTransaction {
-  id               String   @id @default(uuid())
-  orderId          String   @unique // ID de la orden de MP escaneada
-  userId           String
-  user             User     @relation(fields: [userId], references: [id])
-  amount           Float?   
-  status           String   @default("PENDING")
-  externalPaymentId String? @unique 
-  processed        Boolean  @default(false)
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  id                String   @id @default(uuid())
+  orderId           String   @unique
+  userId            String
+  amount            Float?
+  status            String   @default("PENDING")
+  externalPaymentId String?  @unique
+  processed         Boolean  @default(false)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  user              User     @relation(fields: [userId], references: [id])
 }

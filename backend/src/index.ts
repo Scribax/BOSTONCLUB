@@ -1,4 +1,5 @@
 import express from "express";
+import path from "path";
 import cors from "cors";
 import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
@@ -26,6 +27,8 @@ app.use(express.json({ limit: '5mb' })); // allow base64 image uploads
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok", message: "Boston Club API is running" });
 });
+
+app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
 app.use("/api/auth", authRoutes);
 app.use("/api/payments", paymentRoutes);
