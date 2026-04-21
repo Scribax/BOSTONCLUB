@@ -1,6 +1,6 @@
 mybostonclub.com {
-    # Reverse Proxy para el Backend
-    handle_path /api/* {
+    # Reverse Proxy para el Backend (Mantenemos el prefijo /api)
+    handle /api/* {
         reverse_proxy backend:8080
     }
 
