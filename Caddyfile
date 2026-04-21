@@ -1,0 +1,24 @@
+mybostonclub.com {
+    # Reverse Proxy para el Backend
+    handle_path /api/* {
+        reverse_proxy backend:8080
+    }
+
+    # Reverse Proxy para el Frontend
+    handle {
+        reverse_proxy frontend:3000
+    }
+
+    # Optimización: Compresión Gzip
+    encode gzip
+
+    # Seguridad: Cabeceras básicas
+    header {
+        # Deshabilitar sniff de MIME
+        X-Content-Type-Options nosniff
+        # Prevenir clickjacking
+        X-Frame-Options DENY
+        # HSTS (Seguridad estricta de transporte)
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+    }
+}

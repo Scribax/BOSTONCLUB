@@ -2,8 +2,8 @@ import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 
-// USAR TU VPS PARA PRODUCCIÓN
-const API_URL = 'http://186.64.123.130:8080/api';
+// USAR TU VPS PARA PRODUCCIÓN (CON SSL)
+const API_URL = 'https://mybostonclub.com/api';
 
 export const getAuthToken = async () => {
   return await SecureStore.getItemAsync('boston_club_token');
