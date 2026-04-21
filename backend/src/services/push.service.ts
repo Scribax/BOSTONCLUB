@@ -38,7 +38,9 @@ export const sendEventPublishedNotification = async (title: string, description:
           priority: 'high',
           title: `${noticePrefix}${title}`,
           body: description || 'Toca para ver los detalles en la app.',
-          data: { type: 'NEW_EVENT' },
+          data: { 
+            type: type === 'BANNER' ? 'NEW_BANNER' : 'NEW_EVENT' 
+          },
         });
       }
     }

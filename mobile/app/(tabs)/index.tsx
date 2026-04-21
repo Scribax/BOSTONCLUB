@@ -76,6 +76,7 @@ export default function DashboardScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
   const [showBenefits, setShowBenefits] = useState(false);
+  const [selectedBanner, setSelectedBanner] = useState<BannerEvent | null>(null);
   const router = useRouter();
 
   const loadProfile = async () => {
@@ -262,80 +263,37 @@ export default function DashboardScreen() {
           {/* Info Blocks Row */}
           <FadeInView delay={200} className="flex-col gap-3">
              <Text className="text-[10px] font-black text-white/20 uppercase tracking-[0.4em] ml-2">
-                ¿Cómo subir a {calculateNextTier()?.name || 'SÚPER VIP'}?
+                Experiencia VIP Boston
              </Text>
              <View className="flex-row justify-between gap-3">
                 <TouchableOpacity 
-                  onPress={() => setShowGuide(true)}
-                  className="flex-1 bg-white/[0.03] border border-white/5 py-4 px-2 rounded-3xl items-center justify-between"
+                   onPress={() => setShowGuide(true)}
+                   className="flex-1 bg-white/[0.03] border border-white/5 py-5 px-2 rounded-[2rem] items-center justify-center"
                 >
                    <Flame size={20} color="#ff4d4d" className="mb-2" />
-                   <Text className="text-[9px] font-black text-white uppercase leading-none text-center h-6" numberOfLines={2}>$1 = 1 PUNTO</Text>
-                   <Text className="text-[7px] text-white/40 font-bold uppercase mt-2 tracking-widest">Saber más</Text>
+                   <Text className="text-[10px] font-black text-white uppercase tracking-widest text-center">Niveles</Text>
+                   <Text className="text-[7px] text-white/40 font-bold uppercase mt-1 tracking-widest">Saber más</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity 
-                  onPress={() => router.push('/scanner')}
-                  className="flex-1 bg-white/[0.03] border border-white/5 py-4 px-2 rounded-3xl items-center justify-between"
-                >
-                   <MapPin size={20} color="#D4AF37" className="mb-2" />
-                   <Text className="text-[9px] font-black text-white uppercase leading-none text-center h-6" numberOfLines={2}>Check-in</Text>
-                   <Text className="text-[7px] text-white/40 font-bold uppercase mt-2 tracking-widest">Sumar puntos</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity 
-                  onPress={() => router.push('/events')}
-                  className="flex-1 bg-white/[0.03] border border-white/5 py-4 px-2 rounded-3xl items-center justify-between"
+                   onPress={() => router.push('/events')}
+                   className="flex-1 bg-white/[0.03] border border-white/5 py-5 px-2 rounded-[2rem] items-center justify-center"
                 >
                    <Ticket size={20} color="#22D3EE" className="mb-2" />
-                   <Text className="text-[9px] font-black text-white uppercase leading-none text-center h-6" numberOfLines={2}>Eventos</Text>
-                   <Text className="text-[7px] text-white/40 font-bold uppercase mt-2 tracking-widest">Ver cartel</Text>
+                   <Text className="text-[10px] font-black text-white uppercase tracking-widest text-center">Próximos</Text>
+                   <Text className="text-[7px] text-white/40 font-bold uppercase mt-1 tracking-widest">Cartelera</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity 
+                  activeOpacity={0.8}
+                  onPress={() => router.push('/rewards')}
+                  className="flex-1 bg-white/[0.03] border border-white/5 py-5 px-2 rounded-[2rem] items-center justify-center"
+                >
+                  <Gift size={20} color="#D4AF37" className="mb-2" />
+                  <Text className="text-[10px] font-black text-white uppercase tracking-widest text-center">Premios</Text>
+                  <Text className="text-[7px] text-white/40 font-bold uppercase mt-1 tracking-widest">Ver Canjes</Text>
                 </TouchableOpacity>
              </View>
-          </FadeInView>
-
-          {/* Quick Actions Re-Designed */}
-          <FadeInView delay={300} className="flex-col gap-4">
-            {/* MAIN ACTION: PAY */}
-            <TouchableOpacity 
-              activeOpacity={0.9}
-              onPress={() => router.push('/scanner')}
-              className="relative rounded-[2rem] overflow-hidden bg-[#111]"
-            >
-              <View className="absolute inset-0 bg-boston-gold opacity-10" />
-              <View className="flex-row items-center justify-between p-6 bg-boston-gold/10 border border-boston-gold/30 rounded-[2rem]">
-                  <View className="flex-row items-center flex-1 pr-4">
-                     <View className="w-14 h-14 bg-boston-gold/20 rounded-2xl items-center justify-center border border-boston-gold/30 mr-5">
-                        <CreditCard size={26} color="#D4AF37" />
-                     </View>
-                     <View className="flex-1 justify-center">
-                        <Text className="text-white font-black text-xl italic uppercase tracking-tighter" numberOfLines={1}>Pagar con la App</Text>
-                     </View>
-                  </View>
-                  <ArrowRight size={20} color="#D4AF37" />
-              </View>
-            </TouchableOpacity>
-
-            {/* SECONDARY ACTIONS: REDEEM & CLAIM */}
-            <View className="flex-row gap-4">
-              <TouchableOpacity 
-                activeOpacity={0.8}
-                onPress={() => router.push('/rewards')}
-                className="flex-1 bg-white/[0.02] py-5 rounded-[2rem] border border-white/5 items-center justify-center"
-              >
-                <Gift size={20} color="#ff4d4d" className="mb-2" />
-                <Text className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em] text-center px-2" numberOfLines={1}>Explorar Canjes</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity 
-                activeOpacity={0.8}
-                onPress={() => router.push('/scanner')}
-                className="flex-1 bg-white/[0.02] py-5 rounded-[2rem] border border-white/5 items-center justify-center"
-              >
-                <QrCode size={20} color="rgba(255,255,255,0.3)" className="mb-2" />
-                <Text className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em] text-center px-2" numberOfLines={1}>Sumar Puntos</Text>
-              </TouchableOpacity>
-            </View>
           </FadeInView>
 
           {/* Flash Promo Banners Carousel */}
@@ -351,7 +309,12 @@ export default function DashboardScreen() {
                 }}
               >
                 {banners.map((slide, idx) => (
-                  <View key={slide.id} className="w-[100vw] pr-12">
+                  <TouchableOpacity 
+                    key={slide.id} 
+                    className="w-[100vw] pr-12"
+                    activeOpacity={0.9}
+                    onPress={() => setSelectedBanner(slide)}
+                  >
                     <View className={`rounded-[2.5rem] relative overflow-hidden shadow-2xl border border-white/10 ${!slide.imageUrl ? 'bg-[#5a0000]' : 'bg-[#111]'}`}>
                       {slide.imageUrl && (
                         <View className="absolute inset-0">
@@ -377,7 +340,7 @@ export default function DashboardScreen() {
                           </View>
                       </View>
                     </View>
-                  </View>
+                  </TouchableOpacity>
                 ))}
               </ScrollView>
 
@@ -518,6 +481,56 @@ export default function DashboardScreen() {
                  </View>
               </ScrollView>
            </View>
+        </View>
+      </Modal>
+
+      {/* Banner Detail Modal */}
+      <Modal visible={!!selectedBanner} transparent animationType="fade">
+        <View className="flex-1 bg-black/90 justify-center p-6">
+          <View className="bg-[#0D0D0D] border border-boston-gold/20 rounded-[40px] overflow-hidden">
+            {selectedBanner?.imageUrl && (
+              <View className="w-full h-64 relative">
+                <Image source={{ uri: selectedBanner.imageUrl }} className="w-full h-full" resizeMode="cover" />
+                <View className="absolute inset-0 bg-black/30" />
+              </View>
+            )}
+            
+            <View className="p-8">
+              <View className="flex-row justify-between items-start mb-6">
+                <View className="flex-1 pr-4">
+                  <View className="bg-boston-gold/10 self-start px-3 py-1 rounded-full mb-3 border border-boston-gold/20">
+                    <Text className="text-boston-gold text-[8px] font-black uppercase tracking-widest">Novedad Especial</Text>
+                  </View>
+                  <Text className="text-3xl font-black text-white italic uppercase tracking-tighter">{selectedBanner?.title}</Text>
+                </View>
+                <TouchableOpacity 
+                  onPress={() => setSelectedBanner(null)}
+                  className="w-10 h-10 bg-white/5 rounded-full items-center justify-center border border-white/10"
+                >
+                  <X size={20} color="white" />
+                </TouchableOpacity>
+              </View>
+
+              <ScrollView className="max-h-[250px] mb-8" showsVerticalScrollIndicator={false}>
+                <Text className="text-white/70 text-sm font-medium leading-relaxed uppercase">
+                  {selectedBanner?.description}
+                </Text>
+                {selectedBanner?.benefits && (
+                  <View className="mt-6 p-4 bg-boston-gold/5 border border-boston-gold/10 rounded-2xl">
+                    <Text className="text-boston-gold text-[10px] font-black uppercase tracking-widest mb-2">🎁 Beneficio Club</Text>
+                    <Text className="text-white/90 text-xs italic font-medium">{selectedBanner.benefits}</Text>
+                  </View>
+                )}
+              </ScrollView>
+
+              <TouchableOpacity 
+                onPress={() => setSelectedBanner(null)}
+                className="bg-boston-gold w-full py-5 rounded-[1.5rem] items-center shadow-lg"
+              >
+                <Text className="text-black font-black uppercase text-xs tracking-widest">Entendido</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
       </Modal>
     </View>

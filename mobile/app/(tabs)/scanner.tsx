@@ -118,8 +118,11 @@ export default function ScannerScreen() {
                 <View className="bg-black/60 px-6 py-3 rounded-full mt-10 border border-white/10">
                   <Text className="text-boston-gold font-bold uppercase text-[10px] tracking-widest text-center">Enfoque el código QR</Text>
                 </View>
-                <Text className="text-white/40 text-[10px] text-center mt-4 uppercase tracking-widest px-10">
-                   Apunta al POSNET de Mercado Pago o al QR del Club para sumar puntos extra.
+                <Text className="text-white/80 text-[11px] text-center mt-6 uppercase font-black tracking-[0.2em] px-10 leading-5">
+                   CENTRO DE ESCANEO UNIVERSAL
+                </Text>
+                <Text className="text-white/40 text-[9px] text-center mt-2 uppercase tracking-[0.1em] px-12 leading-4">
+                   Apunta aquí para realizar pagos, hacer tu Check-in o sumar puntos con los códigos del Club.
                 </Text>
              </View>
           </View>
