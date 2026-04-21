@@ -103,19 +103,35 @@ export default function VipSettingsPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto pb-24">
-      <header className="mb-12 flex items-center gap-6 px-4">
-        <Link href="/admin/users" className="p-3 bg-white/5 rounded-2xl hover:bg-white/10 transition-all border border-white/5">
-          <ArrowLeft className="w-6 h-6 text-white" />
-        </Link>
-        <div>
-          <h1 className="text-3xl font-black text-white italic uppercase tracking-tighter">Rangos y Estatus</h1>
-          <p className="text-white/40 font-bold uppercase tracking-[0.3em] text-[10px] mt-1">Define las metas de puntos para cada nivel de membresía</p>
+    <div className="max-w-6xl mx-auto pb-24 px-4 sm:px-6">
+      <header className="mb-12 flex items-center justify-between">
+        <div className="flex items-center gap-6">
+          <Link href="/admin/users" className="p-3 bg-white/5 rounded-2xl hover:bg-white/10 transition-all border border-white/5">
+            <ArrowLeft className="w-6 h-6 text-white" />
+          </Link>
+          <div>
+            <h1 className="text-3xl font-black text-white italic uppercase tracking-tighter">Rangos y Estatus</h1>
+            <p className="text-white/40 font-bold uppercase tracking-[0.3em] text-[10px] mt-1">Define las metas de puntos para cada nivel de membresía</p>
+          </div>
         </div>
+
+        <button 
+          onClick={handleSave}
+          disabled={saving}
+          className="relative group overflow-hidden rounded-2xl p-[1px] transition-all hover:scale-[1.02] active:scale-95"
+        >
+          <div className="absolute inset-0 bg-gradient-to-r from-boston-red via-boston-gold to-boston-red bg-[length:200%_auto] animate-shimmer" />
+          <div className="relative flex items-center justify-center gap-3 bg-boston-black py-3 px-8 rounded-2xl border border-white/10">
+            {saving ? <Loader2 className="w-4 h-4 text-boston-gold animate-spin" /> : <Save className="w-4 h-4 text-boston-gold" /> }
+            <span className="text-xs font-black text-white uppercase tracking-[0.2em]">
+              {saving ? "Guardando..." : "Guardar Cambios"}
+            </span>
+          </div>
+        </button>
       </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 px-4">
-        <div className="lg:col-span-2 space-y-8">
+      <div className="space-y-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Tiers Thresholds */}
           <motion.div 
             initial={{ y: 20, opacity: 0 }}
@@ -176,12 +192,65 @@ export default function VipSettingsPage() {
             </div>
           </motion.div>
 
+          {/* Video Background Section (Moved up) */}
+          <motion.div 
+            initial={{ x: 20, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{ delay: 0.1 }}
+            className="glass-panel p-8 rounded-[2.5rem] border border-white/5 bg-gradient-to-br from-[#0c0c0c] to-black"
+          >
+            <div className="flex items-center gap-4 mb-8">
+              <div className="w-12 h-12 bg-boston-gold/10 rounded-2xl flex items-center justify-center border border-boston-gold/20 shadow-[0_0_20px_rgba(204,166,80,0.1)]">
+                <Video className="w-6 h-6 text-boston-gold" />
+              </div>
+              <div>
+                <h3 className="text-lg font-black text-white uppercase italic tracking-tight">Video de Inicio</h3>
+                <p className="text-[10px] text-white/30 font-bold uppercase tracking-widest leading-none">Fondo animado para el Login móvil</p>
+              </div>
+            </div>
 
+            <div className="space-y-6">
+              {settings.loginVideoUrl ? (
+                <div className="relative aspect-video rounded-2xl overflow-hidden border border-white/10 group">
+                  <video 
+                    src={settings.loginVideoUrl} 
+                    className="w-full h-full object-cover"
+                    muted
+                    loop
+                    autoPlay
+                    playsInline
+                  />
+                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center gap-4">
+                    <button 
+                      onClick={() => setSettings({ ...settings, loginVideoUrl: "" })}
+                      className="p-3 bg-red-500/20 text-red-500 rounded-full hover:bg-red-500 hover:text-white transition-all"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <label className="border-2 border-dashed border-white/5 rounded-[2rem] p-12 flex flex-col items-center justify-center gap-4 cursor-pointer hover:border-boston-gold/50 hover:bg-boston-gold/5 transition-all group h-full">
+                  <input type="file" accept="video/mp4" className="hidden" onChange={handleVideoUpload} disabled={uploadingVideo} />
+                  <div className="w-16 h-16 bg-white/5 rounded-3xl flex items-center justify-center group-hover:scale-110 transition-all">
+                    {uploadingVideo ? <Loader2 className="w-8 h-8 text-boston-gold animate-spin" /> : <Upload className="w-8 h-8 text-white/20" />}
+                  </div>
+                  <div className="text-center">
+                    <p className="text-sm font-bold text-white mb-1">Subir Video</p>
+                    <p className="text-[10px] text-white/20 font-medium uppercase tracking-widest">Máx 20MB</p>
+                  </div>
+                </label>
+              )}
+            </div>
+          </motion.div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Message Template */}
           <motion.div 
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.1 }}
+            transition={{ delay: 0.2 }}
             className="glass-panel p-8 rounded-[2.5rem] border border-white/5 bg-gradient-to-br from-[#0c0c0c] to-black"
           >
             <div className="flex items-center gap-4 mb-8">
@@ -220,92 +289,7 @@ export default function VipSettingsPage() {
             </div>
           </motion.div>
 
-          {/* Per-Tier Benefits Section */}
-          <motion.div 
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.2 }}
-            className="glass-panel p-8 rounded-[2.5rem] border border-white/5 bg-gradient-to-br from-[#0c0c0c] to-black"
-          >
-            <div className="flex items-center gap-4 mb-8">
-              <div className="w-12 h-12 bg-boston-gold/10 rounded-2xl flex items-center justify-center border border-boston-gold/20 shadow-[0_0_20px_rgba(204,166,80,0.1)]">
-                <ListCheck className="w-6 h-6 text-boston-gold" />
-              </div>
-              <div>
-                <h3 className="text-lg font-black text-white uppercase italic tracking-tight">Privilegios por Rango</h3>
-                <p className="text-[10px] text-white/30 font-bold uppercase tracking-widest leading-none">Lo que el socio ve al tocar su tarjeta</p>
-              </div>
-            </div>
-
-            <div className="space-y-10">
-              {[
-                { label: "BRONCE", key: "bronceBenefits", color: "text-white/40", icon: "🥉" },
-                { label: "ORO", key: "goldBenefits", color: "text-boston-gold", icon: "🥇" },
-                { label: "PLATINO", key: "platinumBenefits", color: "text-white", icon: "💎" },
-                { label: "DIAMANTE", key: "diamondBenefits", color: "text-cyan-400", icon: "💠" },
-                { label: "SÚPER VIP", key: "superVipBenefits", color: "text-boston-red-glow", icon: "🔥" },
-              ].map((tier) => (
-                <div key={tier.key} className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg">{tier.icon}</span>
-                    <label className={`text-[11px] font-black uppercase tracking-[0.2em] ${tier.color}`}>
-                      Beneficios {tier.label}
-                    </label>
-                  </div>
-                  <textarea 
-                    rows={4}
-                    value={(settings as any)[tier.key]}
-                    onChange={(e) => setSettings({ ...settings, [tier.key]: e.target.value })}
-                    placeholder={`- Beneficio 1\n- Beneficio 2...`}
-                    className="w-full bg-black/40 text-white border border-white/5 rounded-3xl py-4 px-6 text-sm font-medium focus:border-white/20 outline-none transition-all placeholder:text-white/5 resize-none leading-relaxed"
-                  />
-                </div>
-              ))}
-            </div>
-          </motion.div>
-        </div>
-
-        <div className="space-y-8">
-          {/* Reward List */}
-          <motion.div 
-            initial={{ x: 20, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            className="glass-panel p-8 rounded-[2.5rem] border border-white/5 bg-gradient-to-br from-[#0c0c0c] to-black h-full"
-          >
-            <div className="flex items-center gap-4 mb-8">
-              <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center border border-white/10">
-                <ListCheck className="w-6 h-6 text-white/40" />
-              </div>
-              <div>
-                <h3 className="text-lg font-black text-white uppercase italic tracking-tight">Lista de Premios</h3>
-                <p className="text-[10px] text-white/30 font-bold uppercase tracking-widest leading-none">Beneficios exclusivos</p>
-              </div>
-            </div>
-
-            <textarea 
-              rows={12}
-              value={settings.rewardListText}
-              onChange={(e) => setSettings({ ...settings, rewardListText: e.target.value })}
-              placeholder="- 30% Off..."
-              className="w-full bg-black/40 text-white border border-white/10 rounded-3xl py-6 px-8 text-sm font-medium focus:border-white transition-all outline-none placeholder:text-white/10 resize-none leading-relaxed mb-6"
-            />
-
-            <button 
-              onClick={handleSave}
-              disabled={saving}
-              className="w-full relative group overflow-hidden rounded-2xl p-[1px] transition-all hover:scale-[1.02] active:scale-95"
-            >
-              <div className="absolute inset-0 bg-gradient-to-r from-boston-red via-boston-gold to-boston-red bg-[length:200%_auto] animate-shimmer" />
-              <div className="relative flex items-center justify-center gap-3 bg-boston-black py-4 px-8 rounded-2xl">
-                {saving ? <Loader2 className="w-4 h-4 text-boston-gold animate-spin" /> : <Save className="w-4 h-4 text-boston-gold" /> }
-                <span className="text-xs font-black text-white uppercase tracking-[0.2em]">
-                  {saving ? "Guardando..." : "Guardar Ajustes"}
-                </span>
-              </div>
-            </button>
-          </motion.div>
-
-          {/* Video Background Section */}
+          {/* Reward List (Moved here) */}
           <motion.div 
             initial={{ x: 20, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
@@ -313,69 +297,67 @@ export default function VipSettingsPage() {
             className="glass-panel p-8 rounded-[2.5rem] border border-white/5 bg-gradient-to-br from-[#0c0c0c] to-black"
           >
             <div className="flex items-center gap-4 mb-8">
-              <div className="w-12 h-12 bg-boston-gold/10 rounded-2xl flex items-center justify-center border border-boston-gold/20 shadow-[0_0_20px_rgba(204,166,80,0.1)]">
-                <Video className="w-6 h-6 text-boston-gold" />
+              <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center border border-white/10">
+                <ListCheck className="w-6 h-6 text-white/40" />
               </div>
               <div>
-                <h3 className="text-lg font-black text-white uppercase italic tracking-tight">Video de Inicio</h3>
-                <p className="text-[10px] text-white/30 font-bold uppercase tracking-widest leading-none">Fondo animado para el Login móvil</p>
+                <h3 className="text-lg font-black text-white uppercase italic tracking-tight">Lista de Premios</h3>
+                <p className="text-[10px] text-white/30 font-bold uppercase tracking-widest leading-none">Visibles en la App</p>
               </div>
             </div>
 
-            <div className="space-y-6">
-              {settings.loginVideoUrl ? (
-                <div className="relative aspect-video rounded-2xl overflow-hidden border border-white/10 group">
-                  <video 
-                    src={settings.loginVideoUrl} 
-                    className="w-full h-full object-cover"
-                    muted
-                    loop
-                    autoPlay
-                    playsInline
-                  />
-                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center gap-4">
-                    <button 
-                      onClick={() => setSettings({ ...settings, loginVideoUrl: "" })}
-                      className="p-3 bg-red-500/20 text-red-500 rounded-full hover:bg-red-500 hover:text-white transition-all"
-                    >
-                      <Trash2 className="w-5 h-5" />
-                    </button>
-                  </div>
-                  <div className="absolute bottom-4 left-4 right-4 bg-black/80 backdrop-blur-md p-3 rounded-xl border border-white/10">
-                    <p className="text-[9px] text-white/40 truncate font-mono uppercase tracking-tighter">{settings.loginVideoUrl}</p>
-                  </div>
-                </div>
-              ) : (
-                <label className="border-2 border-dashed border-white/5 rounded-[2rem] p-12 flex flex-col items-center justify-center gap-4 cursor-pointer hover:border-boston-gold/50 hover:bg-boston-gold/5 transition-all group">
-                  <input 
-                    type="file" 
-                    accept="video/mp4,video/quicktime" 
-                    className="hidden" 
-                    onChange={handleVideoUpload}
-                    disabled={uploadingVideo}
-                  />
-                  <div className="w-16 h-16 bg-white/5 rounded-3xl flex items-center justify-center group-hover:scale-110 transition-all">
-                    {uploadingVideo ? (
-                      <Loader2 className="w-8 h-8 text-boston-gold animate-spin" />
-                    ) : (
-                      <Upload className="w-8 h-8 text-white/20" />
-                    )}
-                  </div>
-                  <div className="text-center">
-                    <p className="text-sm font-bold text-white mb-1">Subir Video (.mp4)</p>
-                    <p className="text-[10px] text-white/20 font-medium uppercase tracking-widest">Máximo 20MB • Recomendado 9:16</p>
-                  </div>
-                </label>
-              )}
-
-              <div className="p-4 bg-white/5 rounded-2xl border border-white/5">
-                <p className="text-[10px] text-white/40 leading-relaxed italic">
-                  Tip: Subí un video corto en bucle para darle un toque cinematográfico a la App. Los socios lo verán al abrir la App.
-                </p>
-              </div>
-            </div>
+            <textarea 
+              rows={6}
+              value={settings.rewardListText}
+              onChange={(e) => setSettings({ ...settings, rewardListText: e.target.value })}
+              className="w-full bg-black/40 text-white border border-white/10 rounded-3xl py-6 px-8 text-sm font-medium focus:border-white transition-all outline-none placeholder:text-white/10 resize-none leading-relaxed"
+            />
           </motion.div>
         </div>
+
+        {/* Per-Tier Benefits (Full Width Grid) */}
+        <motion.div 
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.4 }}
+          className="glass-panel p-10 rounded-[3rem] border border-white/5 bg-gradient-to-br from-[#0c0c0c] to-black"
+        >
+          <div className="flex items-center gap-4 mb-10">
+            <div className="w-12 h-12 bg-boston-gold/10 rounded-2xl flex items-center justify-center border border-boston-gold/20 shadow-[0_0_20px_rgba(204,166,80,0.1)]">
+              <ListCheck className="w-6 h-6 text-boston-gold" />
+            </div>
+            <div>
+              <h3 className="text-lg font-black text-white uppercase italic tracking-tight">Privilegios por Rango</h3>
+              <p className="text-[10px] text-white/30 font-bold uppercase tracking-widest leading-none">Beneficios exclusivos para cada nivel</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[
+              { label: "BRONCE", key: "bronceBenefits", color: "text-white/40", icon: "🥉" },
+              { label: "ORO", key: "goldBenefits", color: "text-boston-gold", icon: "🥇" },
+              { label: "PLATINO", key: "platinumBenefits", color: "text-white", icon: "💎" },
+              { label: "DIAMANTE", key: "diamondBenefits", color: "text-cyan-400", icon: "💠" },
+              { label: "SÚPER VIP", key: "superVipBenefits", color: "text-boston-red-glow", icon: "🔥" },
+            ].map((tier) => (
+              <div key={tier.key} className="space-y-4 bg-white/[0.02] p-6 rounded-[2rem] border border-white/5">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">{tier.icon}</span>
+                  <label className={`text-[11px] font-black uppercase tracking-[0.2em] ${tier.color}`}>
+                    {tier.label}
+                  </label>
+                </div>
+                <textarea 
+                  rows={4}
+                  value={(settings as any)[tier.key]}
+                  onChange={(e) => setSettings({ ...settings, [tier.key]: e.target.value })}
+                  placeholder={`- Beneficio 1\n- Beneficio 2...`}
+                  className="w-full bg-black/40 text-white border border-white/5 rounded-2xl py-4 px-5 text-xs font-medium focus:border-white/20 outline-none transition-all placeholder:text-white/5 resize-none leading-relaxed"
+                />
+              </div>
+            ))}
+          </div>
+        </motion.div>
       </div>
     </div>
   );
