@@ -101,7 +101,8 @@ export const updateSettings = async (req: Request, res: Response): Promise<void>
         superVipBenefits,
         checkinPoints: Number(checkinPoints),
         isEventDay: Boolean(req.body.isEventDay),
-        eventCheckinPoints: Number(req.body.eventCheckinPoints)
+        eventCheckinPoints: Number(req.body.eventCheckinPoints),
+        loginVideoUrl: req.body.loginVideoUrl
       },
       create: {
         id: "singleton",

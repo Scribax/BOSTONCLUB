@@ -4,6 +4,9 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import { LogOut, User, ShieldCheck, Mail, Edit2, X, Phone, Check } from 'lucide-react-native';
 import api, { logout } from '../../lib/api';
 import { StatusBar } from 'expo-status-bar';
+import * as LocalAuthentication from 'expo-local-authentication';
+import * as SecureStore from 'expo-secure-store';
+import { Fingerprint, MonitorCheck } from 'lucide-react-native';
 
 export default function ProfileScreen() {
   const [user, setUser] = useState<any>(null);
@@ -11,13 +14,27 @@ export default function ProfileScreen() {
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [newWhatsapp, setNewWhatsapp] = useState('');
   const [saving, setSaving] = useState(false);
+  const [isBiometricSupported, setIsBiometricSupported] = useState(false);
+  const [biometricsEnabled, setBiometricsEnabled] = useState(false);
   const router = useRouter();
 
   useFocusEffect(
     useCallback(() => {
       fetchUser();
+      checkBiometrics();
     }, [])
   );
+
+  const checkBiometrics = async () => {
+    const compatible = await LocalAuthentication.hasHardwareAsync();
+    const types = await LocalAuthentication.supportedAuthenticationTypesAsync();
+    const isEnrolled = await LocalAuthentication.isEnrolledAsync();
+    
+    setIsBiometricSupported(compatible && isEnrolled);
+    
+    const storedPref = await SecureStore.getItemAsync('biometrics_enabled');
+    setBiometricsEnabled(storedPref === 'true');
+  };
 
   const fetchUser = async () => {
     setLoading(true);
@@ -48,6 +65,23 @@ export default function ProfileScreen() {
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleToggleBiometrics = async () => {
+    const newVal = !biometricsEnabled;
+    
+    if (newVal) {
+      // Pedir verificación antes de activar
+      const result = await LocalAuthentication.authenticateAsync({
+        promptMessage: 'Confirma tu identidad para activar el acceso biométrico',
+        fallbackLabel: 'Usar contraseña'
+      });
+      
+      if (!result.success) return;
+    }
+    
+    setBiometricsEnabled(newVal);
+    await SecureStore.setItemAsync('biometrics_enabled', newVal ? 'true' : 'false');
   };
 
   const handleLogout = async () => {
@@ -138,6 +172,23 @@ export default function ProfileScreen() {
               <Edit2 size={16} color="white" />
             </TouchableOpacity>
          </View>
+
+         {/* Biometric Toggle Section */}
+         {isBiometricSupported && (
+            <View className="bg-white/[0.03] border border-white/5 rounded-3xl p-6 flex-row items-center shadow-lg">
+               <Fingerprint size={22} color={biometricsEnabled ? "#D4AF37" : "rgba(255,255,255,0.4)"} />
+               <View className="ml-5 flex-1">
+                  <Text className="text-white/30 text-[9px] font-black uppercase tracking-widest leading-none mb-1">Acceso VIP Extra</Text>
+                  <Text className="text-white text-sm font-medium leading-none mt-1">Bloqueo con Huella / FaceID</Text>
+               </View>
+               <TouchableOpacity 
+                 onPress={handleToggleBiometrics}
+                 className={`w-12 h-6 rounded-full items-center flex-row px-1 ${biometricsEnabled ? 'bg-boston-gold shadow-lg shadow-boston-gold/20' : 'bg-white/10'}`}
+               >
+                 <View className={`w-4 h-4 rounded-full ${biometricsEnabled ? 'bg-black ml-auto' : 'bg-white/40'}`} />
+               </TouchableOpacity>
+            </View>
+         )}
 
          <TouchableOpacity 
            activeOpacity={0.8}

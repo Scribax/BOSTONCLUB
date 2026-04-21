@@ -10,6 +10,9 @@ import 'react-native-reanimated';
 import { useColorScheme } from '@/components/useColorScheme';
 import { getAuthToken } from '../lib/api';
 import "../global.css";
+import * as LocalAuthentication from 'expo-local-authentication';
+import * as SecureStore from 'expo-secure-store';
+import { Lock } from 'lucide-react-native';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -33,6 +36,7 @@ export default function RootLayout() {
 
   const [isAuthChecking, setIsAuthChecking] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLocked, setIsLocked] = useState(false);
   const router = useRouter();
 
   // Escuchar cuando el usuario toca una notificación
@@ -63,12 +67,33 @@ export default function RootLayout() {
       const token = await getAuthToken();
       if (token) {
         setIsLoggedIn(true);
+        
+        // Verificación Biométrica si está activa
+        const bioEnabled = await SecureStore.getItemAsync('biometrics_enabled');
+        if (bioEnabled === 'true') {
+          setIsLocked(true);
+          await handleBiometricAuth();
+        }
       } else {
-        // Redirigir a login si no hay token
-        // Usamos un pequeño delay para asegurar que el router esté listo
         setTimeout(() => router.replace('/login'), 10);
       }
       setIsAuthChecking(false);
+    }
+
+    async function handleBiometricAuth() {
+      const result = await LocalAuthentication.authenticateAsync({
+        promptMessage: 'Bienvenido de nuevo a Boston Club',
+        fallbackLabel: 'Ingresar con DNI/Contraseña',
+        disableDeviceFallback: false,
+      });
+
+      if (result.success) {
+        setIsLocked(false);
+      } else {
+        // Si falla o cancela, enviamos al login por seguridad
+        // a menos que quiera reintentar
+        setIsLocked(true);
+      }
     }
     
     if (loaded) {
@@ -81,6 +106,50 @@ export default function RootLayout() {
     return (
       <View style={{ flex: 1, backgroundColor: '#050505', alignItems: 'center', justifyContent: 'center' }}>
         <ActivityIndicator color="#D4AF37" />
+      </View>
+    );
+  }
+
+  if (isLocked) {
+    return (
+      <View className="flex-1 bg-[#050505] items-center justify-center px-10">
+        <View className="absolute top-0 right-0 w-80 h-80 bg-boston-gold opacity-10 rounded-full blur-[100px]" />
+        
+        <View className="w-20 h-20 bg-white/5 rounded-3xl items-center justify-center border border-white/10 mb-8">
+          <Lock size={32} color="#D4AF37" />
+        </View>
+        
+        <Text className="text-white text-2xl font-black italic uppercase tracking-tighter text-center mb-2">Acceso Protegido</Text>
+        <Text className="text-white/50 text-xs font-medium text-center mb-10">Tu sesión en Boston Club está resguardada por biometría.</Text>
+        
+        <TouchableOpacity 
+          onPress={() => {
+            const checkLogin = async () => {
+              const result = await LocalAuthentication.authenticateAsync({
+                promptMessage: 'Bienvenido de nuevo a Boston Club',
+                fallbackLabel: 'Usar PIN/Contraseña',
+              });
+              if (result.success) setIsLocked(false);
+            };
+            checkLogin();
+          }}
+          className="bg-boston-gold py-4 px-8 rounded-2xl w-full flex-row justify-center items-center"
+        >
+          <Text className="text-black font-black uppercase text-xs tracking-widest">Desbloquear App</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          onPress={async () => {
+             const { logout } = await import('../lib/api');
+             await logout();
+             setIsLocked(false);
+             setIsLoggedIn(false);
+             router.replace('/login');
+          }}
+          className="mt-6"
+        >
+          <Text className="text-white/30 font-bold uppercase text-[10px] tracking-widest underline">Cerrar Sesión Activa</Text>
+        </TouchableOpacity>
       </View>
     );
   }
