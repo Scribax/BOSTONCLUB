@@ -94,6 +94,15 @@ export default function VipSettingsPage() {
     }
   };
 
+  const getFullUrl = (url: string | null) => {
+    if (!url) return "";
+    if (url.startsWith("http")) return url;
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8080/api";
+    // Eliminar /api del final de la URL base para acceder a /uploads
+    const rootUrl = baseUrl.replace(/\/api$/, "");
+    return `${rootUrl}${url}`;
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-boston-black">
@@ -213,7 +222,7 @@ export default function VipSettingsPage() {
               {settings.loginVideoUrl ? (
                 <div className="relative aspect-video rounded-2xl overflow-hidden border border-white/10 group">
                   <video 
-                    src={settings.loginVideoUrl} 
+                    src={getFullUrl(settings.loginVideoUrl)} 
                     className="w-full h-full object-cover"
                     muted
                     loop

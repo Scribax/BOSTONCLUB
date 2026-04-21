@@ -22,6 +22,17 @@ export default function LoginScreen() {
     fetchSettings();
   }, []);
 
+  const resolveVideoUrl = (url: string | null) => {
+    if (!url) return null;
+    if (url.startsWith('http')) return url;
+    
+    // El api.defaults.baseURL suele ser something like http://192.168.1.36:8080/api
+    // Necesitamos el root (sin el /api) para acceder a /uploads
+    const baseUrl = api.defaults.baseURL || 'http://192.168.1.36:8080/api';
+    const rootUrl = baseUrl.replace(/\/api$/, '');
+    return `${rootUrl}${url}`;
+  };
+
   const fetchSettings = async () => {
     try {
       const response = await api.get('/settings');
@@ -90,7 +101,7 @@ export default function LoginScreen() {
       {/* Dynamic Video Background */}
       {videoUrl && (
         <Video
-          source={{ uri: videoUrl }}
+          source={{ uri: resolveVideoUrl(videoUrl) || '' }}
           style={StyleSheet.absoluteFill}
           resizeMode={ResizeMode.COVER}
           shouldPlay

@@ -50,7 +50,7 @@ router.post("/promo/generate", authenticate, requireAdmin, generatePromoToken);
 router.post("/promo/claim", authenticate, claimPromoToken);
 
 // VIP Settings
-router.get("/settings", authenticate, getSettings);
+router.get("/settings", getSettings);
 router.post("/settings", authenticate, requireAdmin, updateSettings);
 router.post("/settings/upload-video", authenticate, requireAdmin, upload.single("video"), uploadVideo);
 

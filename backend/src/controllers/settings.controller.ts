@@ -138,7 +138,7 @@ export const uploadVideo = async (req: Request, res: Response): Promise<void> =>
       return;
     }
 
-    const videoUrl = `${req.protocol}://${req.get("host")}/uploads/videos/${req.file.filename}`;
+    const videoUrl = `/uploads/videos/${req.file.filename}`;
     
     // Auto-update settings with the new video URL
     await prisma.clubSettings.upsert({
