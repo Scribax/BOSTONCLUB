@@ -262,7 +262,7 @@ export default function DashboardScreen() {
 
           {/* Info Blocks Row */}
           <FadeInView delay={200} className="flex-col gap-3">
-             <Text className="text-[10px] font-black text-white/20 uppercase tracking-[0.4em] ml-2">
+             <Text className="text-[10px] font-black text-white/40 uppercase tracking-[0.4em] ml-2">
                 Experiencia VIP Boston
              </Text>
              <View className="flex-row justify-between gap-3">

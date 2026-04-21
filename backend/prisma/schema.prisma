@@ -21,6 +21,11 @@ model User {
   points          Int               @default(0)
   membershipLevel String            @default("BRONZE")
   isBlocked       Boolean           @default(false)
+  isEmailVerified Boolean           @default(false)
+  verificationCode String?          
+  verificationCodeExpires DateTime?
+  resetCode       String?           
+  resetCodeExpires DateTime?
   expoPushToken   String?
   pointHistory    PointHistory[]
   redemptions     Redemption[]

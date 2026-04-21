@@ -44,9 +44,18 @@ export default function LoginScreen() {
         });
         const { token } = response.data;
         await setAuthToken(token);
-        router.replace('/(tabs)');
+        // Despues de registrar, mandamos a verificar
+        router.replace({ pathname: '/verify-email', params: { email } });
       }
     } catch (error: any) {
+      if (error.response?.status === 401 && error.response?.data?.isEmailVerified === false) {
+          const { token } = error.response.data;
+          // Si el error es falta de verificación, guardamos token (para que verify-email pueda usarlo)
+          // y mandamos a la pantalla de verificación
+          if (token) await setAuthToken(token);
+          router.replace({ pathname: '/verify-email', params: { email } });
+          return;
+      }
       const msg = error.response?.data?.message || 'Credenciales inválidas o error en el registro';
       Alert.alert('Acceso Denegado', msg);
     } finally {
@@ -153,6 +162,13 @@ export default function LoginScreen() {
                 />
               </View>
             </View>
+
+            <TouchableOpacity 
+              onPress={() => router.push('/forgot-password')}
+              className="mt-4 self-end"
+            >
+              <Text className="text-[10px] font-bold text-white/30 uppercase tracking-widest">¿Olvidaste tu contraseña?</Text>
+            </TouchableOpacity>
 
             <TouchableOpacity 
               onPress={handleAuth}

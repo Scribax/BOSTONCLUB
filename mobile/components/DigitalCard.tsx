@@ -112,8 +112,8 @@ export default function DigitalCard({ name, points, level, qrValue, nextTier, on
              </View>
           </View>
           <View className="items-end">
-             <Text className="text-white/20 font-black italic text-lg tracking-widest leading-none">BOSTON</Text>
-             <Text className="text-white/10 font-bold text-[7px] uppercase tracking-[0.3em] mt-1">Official Member</Text>
+             <Text className="text-white/40 font-black italic text-lg tracking-widest leading-none">BOSTON</Text>
+             <Text className="text-white/30 font-bold text-[7px] uppercase tracking-[0.3em] mt-1">Official Member</Text>
           </View>
         </View>
       </View>
