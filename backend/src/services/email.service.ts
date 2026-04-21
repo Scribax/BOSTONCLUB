@@ -12,6 +12,7 @@ const transporter = nodemailer.createTransport({
 
 export const sendVerificationEmail = async (to: string, code: string) => {
   try {
+    console.log(`\n[SECURITY] Código de Verificación para ${to}: ${code}\n`);
     await transporter.sendMail({
       from: `"Boston Club VIP" <${process.env.SMTP_USER}>`,
       to,
@@ -36,6 +37,7 @@ export const sendVerificationEmail = async (to: string, code: string) => {
 
 export const sendPasswordResetEmail = async (to: string, code: string) => {
   try {
+    console.log(`\n[SECURITY] Código de Recuperación para ${to}: ${code}\n`);
     await transporter.sendMail({
       from: `"Boston Club VIP" <${process.env.SMTP_USER}>`,
       to,
