@@ -92,46 +92,28 @@ export const handleWebhook = async (req: Request, res: Response): Promise<void> 
       const payment = new Payment(client);
       const paymentData = await payment.get({ id: paymentId });
 
-      console.log(`[PAYMENT_DATA] Status: ${paymentData.status}, ID: ${paymentId}`);
+      console.log(`[DEBUG_MP] Datos completos del Pago ${paymentId}:`, JSON.stringify(paymentData, null, 2));
 
       if (paymentData.status === "approved" && typeof paymentData.transaction_amount === "number") {
         const amount = paymentData.transaction_amount;
         let orderId = paymentData.order?.id?.toString();
         const externalRef = paymentData.external_reference;
+        
+        // Buscar en metadata (Muy común en integraciones de POS)
+        const metadataId = (paymentData as any).metadata?.order_id || (paymentData as any).metadata?.id;
 
-        // --- BÚSQUEDA PROFUNDA PARA SMART POS ---
-        // Si no tenemos orderId o externalRef útil, buscamos la Merchant Order vinculada
-        if (!orderId && paymentData.order?.id) {
-           orderId = paymentData.order.id.toString();
-        }
+        console.log(`[MP_MATCH] Analizando: Order=${orderId}, ExtRef=${externalRef}, Meta=${metadataId}`);
 
-        // Si el pago no nos da el ID, le preguntamos a la Merchant Order
-        if (orderId) {
-          try {
-            const merchantOrder = new MerchantOrder(client);
-            const orderData = await merchantOrder.get({ merchantOrderId: orderId });
-            console.log(`[DEEP_SEARCH] Merchant Order ${orderId} encontrada. Status: ${orderData.status}`);
-            
-            // Intentamos acreditar usando el ID de la orden directamente
-            await processPointsAwarding(orderId, amount, paymentId);
-            
-            // A veces el ID que escaneó la app es el 'id' de la merchant order en MP
-            if (orderData.id) await processPointsAwarding(orderData.id.toString(), amount, paymentId);
-          } catch (e) {
-            console.log("[DEEP_SEARCH] No se pudo obtener Merchant Order");
-          }
-        }
+        if (orderId) await processPointsAwarding(orderId, amount, paymentId);
+        if (externalRef) await processPointsAwarding(externalRef, amount, paymentId);
+        if (metadataId) await processPointsAwarding(metadataId.toString(), amount, paymentId);
 
         const poi: any = paymentData.point_of_interaction;
         const pointRefs = poi?.references || [];
-        const instoreRef = pointRefs.find((r: any) => r.type === "INSTORE_ORDER")?.id;
-        const transactionRef = poi?.transaction_data?.qr_code_id;
-
-        console.log(`[MP_MATCH] Monto: ${amount} - Buscando en Refs...`);
-        if (orderId) await processPointsAwarding(orderId, amount, paymentId);
-        if (externalRef) await processPointsAwarding(externalRef, amount, paymentId);
-        if (instoreRef) await processPointsAwarding(instoreRef, amount, paymentId);
-        if (transactionRef) await processPointsAwarding(transactionRef, amount, paymentId);
+        for (const ref of pointRefs) {
+          console.log(`[MP_REF] Tipo: ${ref.type}, ID: ${ref.id}`);
+          await processPointsAwarding(ref.id.toString(), amount, paymentId);
+        }
       }
     }
 
