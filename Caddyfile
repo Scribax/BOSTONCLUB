@@ -1,29 +1,26 @@
 mybostonclub.com {
-    # Reverse Proxy para el Backend
+    encode gzip
+
+    # Archivos estáticos: Caddy los sirve directamente desde el volumen
+    handle /uploads/* {
+        root * /srv
+        file_server
+    }
+
+    # API del Backend
     handle /api/* {
         reverse_proxy backend:8080
     }
 
-    # Servir archivos estáticos (videos/imágenes) desde el Backend
-    handle /uploads/* {
-        reverse_proxy backend:8080
-    }
-
-    # Reverse Proxy para el Frontend
+    # Frontend
     handle {
         reverse_proxy frontend:3000
     }
 
-    # Optimización: Compresión Gzip
-    encode gzip
-
-    # Seguridad: Cabeceras básicas
+    # Cabeceras de seguridad
     header {
-        # Deshabilitar sniff de MIME
         X-Content-Type-Options nosniff
-        # Prevenir clickjacking
-        X-Frame-Options DENY
-        # HSTS (Seguridad estricta de transporte)
+        X-Frame-Options SAMEORIGIN
         Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
     }
 }
