@@ -2,15 +2,25 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { ShieldCheck, ArrowRight, Mail } from 'lucide-react-native';
-import api from '../lib/api';
+import api, { setAuthToken } from '../lib/api';
 import { StatusBar } from 'expo-status-bar';
+import axios from 'axios';
 
 export default function VerifyEmailScreen() {
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
   const router = useRouter();
-  const { email } = useLocalSearchParams();
+  const { email, pendingToken } = useLocalSearchParams<{ email: string; pendingToken: string }>();
+
+  // Helper para hacer llamadas con el token pendiente (antes de guardarlo)
+  const apiWithToken = (token: string) => axios.create({
+    baseURL: api.defaults.baseURL,
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+  });
 
   const handleVerify = async () => {
     if (code.length !== 6) {
@@ -20,10 +30,22 @@ export default function VerifyEmailScreen() {
 
     setLoading(true);
     try {
-      await api.post('/auth/verify-email', { code });
-      Alert.alert('¡Éxito!', 'Tu correo ha sido verificado. Ya puedes ingresar.', [
-        { text: 'OK', onPress: () => router.replace('/login') }
-      ]);
+      // Usar el token pendiente si existe, sino usar la instancia normal
+      if (pendingToken) {
+        await apiWithToken(pendingToken).post('/auth/verify-email', { code });
+      } else {
+        await api.post('/auth/verify-email', { code });
+      }
+
+      // Guardamos el token AHORA que está verificado y vamos al dashboard
+      if (pendingToken) {
+        await setAuthToken(pendingToken);
+        router.replace('/(tabs)');
+      } else {
+        Alert.alert('¡Éxito!', 'Tu correo ha sido verificado. Ya puedes ingresar.', [
+          { text: 'OK', onPress: () => router.replace('/login') }
+        ]);
+      }
     } catch (error: any) {
       const msg = error.response?.data?.message || 'Código incorrecto o expirado';
       Alert.alert('Error', msg);
@@ -35,7 +57,11 @@ export default function VerifyEmailScreen() {
   const handleResend = async () => {
     setResending(true);
     try {
-      await api.post('/auth/resend-verification');
+      if (pendingToken) {
+        await apiWithToken(pendingToken).post('/auth/resend-verification');
+      } else {
+        await api.post('/auth/resend-verification');
+      }
       Alert.alert('Código Enviado', 'Se ha enviado un nuevo código a tu correo.');
     } catch (error: any) {
       const msg = error.response?.data?.message || 'Error al reenviar el código';

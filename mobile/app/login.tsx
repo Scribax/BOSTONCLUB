@@ -97,17 +97,15 @@ export default function LoginScreen() {
           birthDate: birthDateIso
         });
         const { token } = response.data;
-        await setAuthToken(token);
-        // Despues de registrar, mandamos a verificar
-        router.replace({ pathname: '/verify-email', params: { email } });
+        // NO guardamos el token todavía - el guard lo mandaría al dashboard
+        // En cambio lo pasamos como parámetro a verify-email
+        router.replace({ pathname: '/verify-email', params: { email, pendingToken: token } });
       }
     } catch (error: any) {
       if (error.response?.status === 401 && error.response?.data?.isEmailVerified === false) {
           const { token } = error.response.data;
-          // Si el error es falta de verificación, guardamos token (para que verify-email pueda usarlo)
-          // y mandamos a la pantalla de verificación
-          if (token) await setAuthToken(token);
-          router.replace({ pathname: '/verify-email', params: { email } });
+          // Pasar token como param sin guardarlo
+          router.replace({ pathname: '/verify-email', params: { email, pendingToken: token || '' } });
           return;
       }
       const msg = error.response?.data?.message || 'Credenciales inválidas o error en el registro';

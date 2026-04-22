@@ -51,13 +51,11 @@ api.interceptors.request.use(async (config) => {
 });
 
 // Interceptor para manejar errores (401, etc)
+// NO hacemos logout automático aquí - cada pantalla decide qué hacer con el error
+// Esto evita bucles de redirección cuando hay pantallas de auth que necesitan el token
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    if (error.response?.status === 401 || error.response?.status === 403) {
-      await logout();
-      // Podríamos emitir un evento o usar un set del estado global si tuvieramos uno
-    }
     return Promise.reject(error);
   }
 );

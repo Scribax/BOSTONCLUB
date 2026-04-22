@@ -92,22 +92,31 @@ export const handleWebhook = async (req: Request, res: Response): Promise<void> 
       const payment = new Payment(client);
       const paymentData = await payment.get({ id: paymentId });
 
+      console.log(`[PAYMENT_DATA] Status: ${paymentData.status}, ID: ${paymentId}`);
+
       if (paymentData.status === "approved" && typeof paymentData.transaction_amount === "number") {
         const amount = paymentData.transaction_amount;
         const orderId = paymentData.order?.id?.toString();
         const externalRef = paymentData.external_reference;
 
         // Búsqueda profunda del UUID del Smart POS (usamos `any` para evitar error de tipos de TypeScript en MP SDK)
-        const pointOfInteraction: any = paymentData.point_of_interaction;
-        const pointRefs = pointOfInteraction?.references || [];
-        const instoreRefObj = pointRefs.find((r: any) => r.type === "INSTORE_ORDER");
-        const instoreRef = instoreRefObj?.id;
+        const poi: any = paymentData.point_of_interaction;
+        const pointRefs = poi?.references || [];
+        
+        // Intentamos capturar cualquier ID que parezca el que escaneó la app
+        const instoreRef = pointRefs.find((r: any) => r.type === "INSTORE_ORDER")?.id;
+        const transactionRef = poi?.transaction_data?.qr_code_id; // A veces viene aquí en Smart POS
 
-        console.log(`[PAYMENT] Aprobado. Order: ${orderId}, ExternalRef: ${externalRef}, InstoreRef: ${instoreRef}, Monto: ${amount}`);
+        console.log(`[MP_MATCH] Buscando coincidencia para Monto: ${amount}`);
+        console.log(`- orderId: ${orderId}`);
+        console.log(`- externalRef: ${externalRef}`);
+        console.log(`- instoreRef: ${instoreRef}`);
+        console.log(`- transactionRef: ${transactionRef}`);
 
         if (orderId) await processPointsAwarding(orderId, amount, paymentId);
         if (externalRef) await processPointsAwarding(externalRef, amount, paymentId);
         if (instoreRef) await processPointsAwarding(instoreRef, amount, paymentId);
+        if (transactionRef) await processPointsAwarding(transactionRef, amount, paymentId);
       }
     } 
 
@@ -117,7 +126,7 @@ export const handleWebhook = async (req: Request, res: Response): Promise<void> 
       const merchantOrder = new MerchantOrder(client);
       const orderData = await merchantOrder.get({ merchantOrderId: orderId });
 
-      console.log(`[ORDER] Detalle recibido: ${orderData.status} - ID: ${orderId}`);
+      console.log(`[ORDER] Detalle: ${orderData.status} - ID: ${orderId} - Ref: ${orderData.external_reference}`);
 
       if (orderData.status === "closed" || (orderData.payments && orderData.payments.some(p => p.status === 'approved'))) {
         const amount = orderData.total_amount || 0;

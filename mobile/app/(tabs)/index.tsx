@@ -68,6 +68,7 @@ const FadeInView = ({ delay = 0, children, className = "", style = {} }: any) =>
 };
 
 export default function DashboardScreen() {
+  const router = useRouter();
   const [user, setUser] = useState<UserData | null>(null);
   const [banners, setBanners] = useState<BannerEvent[]>([]);
   const [currentBannerIdx, setCurrentBannerIdx] = useState(0);
@@ -363,7 +364,7 @@ export default function DashboardScreen() {
                 {banners.map((slide, idx) => (
                   <TouchableOpacity 
                     key={slide.id} 
-                    className="w-[100vw] pr-12"
+                    className="w-screen px-6"
                     activeOpacity={0.9}
                     onPress={() => setSelectedBanner(slide)}
                   >
@@ -397,7 +398,7 @@ export default function DashboardScreen() {
               </ScrollView>
 
               {banners.length > 1 && (
-                <View className="flex-row justify-center gap-2 mt-4 pr-12">
+                <View className="flex-row justify-center gap-2 mt-4">
                   {banners.map((_, idx) => (
                     <View 
                       key={idx}
