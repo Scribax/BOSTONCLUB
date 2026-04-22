@@ -62,8 +62,8 @@ export default function VipSettingsPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 20 * 1024 * 1024) {
-      alert("El video es demasiado pesado (máx 20MB)");
+    if (file.size > 100 * 1024 * 1024) {
+      alert("El video es demasiado pesado (máx 100MB)");
       return;
     }
 

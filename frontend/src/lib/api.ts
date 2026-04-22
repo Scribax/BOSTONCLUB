@@ -72,13 +72,10 @@ export const apiFetch = async (endpoint: string, options: RequestInit = {}) => {
   } catch (err: any) {
     clearTimeout(timeout);
     
-    // Alerta de depuración para celular
-    if (typeof window !== "undefined") {
-      alert("API Error: " + (err.message || "Error de red/conectividad"));
-    }
+    // Error silencioso en producción - el componente manejará el estado de error
 
     if (err.name === "AbortError") {
-      throw new Error("El servidor tardó demasiado. Verifica que el backend esté corriendo en el puerto 8080.");
+      throw new Error("El servidor tardó demasiado. Intenta de nuevo.");
     }
     throw err;
   }
