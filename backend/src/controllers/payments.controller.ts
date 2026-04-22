@@ -96,29 +96,44 @@ export const handleWebhook = async (req: Request, res: Response): Promise<void> 
 
       if (paymentData.status === "approved" && typeof paymentData.transaction_amount === "number") {
         const amount = paymentData.transaction_amount;
-        const orderId = paymentData.order?.id?.toString();
+        let orderId = paymentData.order?.id?.toString();
         const externalRef = paymentData.external_reference;
 
-        // Búsqueda profunda del UUID del Smart POS (usamos `any` para evitar error de tipos de TypeScript en MP SDK)
+        // --- BÚSQUEDA PROFUNDA PARA SMART POS ---
+        // Si no tenemos orderId o externalRef útil, buscamos la Merchant Order vinculada
+        if (!orderId && paymentData.order?.id) {
+           orderId = paymentData.order.id.toString();
+        }
+
+        // Si el pago no nos da el ID, le preguntamos a la Merchant Order
+        if (orderId) {
+          try {
+            const merchantOrder = new MerchantOrder(client);
+            const orderData = await merchantOrder.get({ merchantOrderId: orderId });
+            console.log(`[DEEP_SEARCH] Merchant Order ${orderId} encontrada. Status: ${orderData.status}`);
+            
+            // Intentamos acreditar usando el ID de la orden directamente
+            await processPointsAwarding(orderId, amount, paymentId);
+            
+            // A veces el ID que escaneó la app es el 'id' de la merchant order en MP
+            if (orderData.id) await processPointsAwarding(orderData.id.toString(), amount, paymentId);
+          } catch (e) {
+            console.log("[DEEP_SEARCH] No se pudo obtener Merchant Order");
+          }
+        }
+
         const poi: any = paymentData.point_of_interaction;
         const pointRefs = poi?.references || [];
-        
-        // Intentamos capturar cualquier ID que parezca el que escaneó la app
         const instoreRef = pointRefs.find((r: any) => r.type === "INSTORE_ORDER")?.id;
-        const transactionRef = poi?.transaction_data?.qr_code_id; // A veces viene aquí en Smart POS
+        const transactionRef = poi?.transaction_data?.qr_code_id;
 
-        console.log(`[MP_MATCH] Buscando coincidencia para Monto: ${amount}`);
-        console.log(`- orderId: ${orderId}`);
-        console.log(`- externalRef: ${externalRef}`);
-        console.log(`- instoreRef: ${instoreRef}`);
-        console.log(`- transactionRef: ${transactionRef}`);
-
+        console.log(`[MP_MATCH] Monto: ${amount} - Buscando en Refs...`);
         if (orderId) await processPointsAwarding(orderId, amount, paymentId);
         if (externalRef) await processPointsAwarding(externalRef, amount, paymentId);
         if (instoreRef) await processPointsAwarding(instoreRef, amount, paymentId);
         if (transactionRef) await processPointsAwarding(transactionRef, amount, paymentId);
       }
-    } 
+    }
 
     // 2. Manejo de Merchant Orders (Estructura Smart POS o Simulación)
     else if (actionOrType === "merchant_order" || actionOrType === "order" || actionOrType === "merchant_order.created" || actionOrType === "merchant_order.updated") {
