@@ -1,6 +1,11 @@
 mybostonclub.com {
-    # Reverse Proxy para el Backend (Mantenemos el prefijo /api)
+    # Reverse Proxy para el Backend
     handle /api/* {
+        reverse_proxy backend:8080
+    }
+
+    # Servir archivos estáticos (videos/imágenes) desde el Backend
+    handle /uploads/* {
         reverse_proxy backend:8080
     }
 

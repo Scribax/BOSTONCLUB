@@ -29,6 +29,13 @@ services:
       - PORT=8080
       - DATABASE_URL=file:./dev.db
       - JWT_SECRET=boston_club_secret_production_key_2026
+      - SMTP_HOST=smtp.gmail.com
+      - SMTP_PORT=587
+      - SMTP_SECURE=false
+      - SMTP_USER=mybostonclub@gmail.com
+      - SMTP_PASS=wdnwarczeomsxhfs
+      - MP_PUBLIC_KEY=APP_USR-fbaff93c-8312-4f79-9fc3-99af512023f4
+      - MP_ACCESS_TOKEN=APP_USR-4294173646691405-042112-5bdeca0eaa1a4e5610e8828877e165b4-305616995
 
   frontend:
     build:

@@ -118,6 +118,36 @@ export const verifyEmail = async (req: any, res: Response): Promise<void> => {
   }
 };
 
+export const resendVerificationCode = async (req: any, res: Response): Promise<void> => {
+  try {
+    const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+
+    if (!user) {
+      res.status(404).json({ message: "Usuario no encontrado" });
+      return;
+    }
+
+    if (user.isEmailVerified) {
+      res.status(400).json({ message: "El email ya está verificado" });
+      return;
+    }
+
+    const verificationCode = generateSixDigitCode();
+    const verificationCodeExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { verificationCode, verificationCodeExpires }
+    });
+
+    sendVerificationEmail(user.email, verificationCode).catch(console.error);
+    res.json({ message: "Nuevo código enviado" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+
 export const login = async (req: Request, res: Response): Promise<void> => {
    try {
     const { email, password } = req.body;
