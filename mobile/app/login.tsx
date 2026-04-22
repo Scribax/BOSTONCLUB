@@ -27,11 +27,13 @@ export default function LoginScreen() {
     if (!url) return null;
     if (url.startsWith('http')) return url;
     
-    // El api.defaults.baseURL suele ser something like http://192.168.1.36:8080/api
-    // Necesitamos el root (sin el /api) para acceder a /uploads
-    const baseUrl = api.defaults.baseURL || 'http://192.168.1.36:8080/api';
+    // Si estamos en producción, usamos el dominio directamente
+    const baseUrl = api.defaults.baseURL || 'https://mybostonclub.com/api';
     const rootUrl = baseUrl.replace(/\/api$/, '');
-    return `${rootUrl}${url}`;
+    
+    // Asegurarnos de que no haya dobles barras
+    const cleanUrl = url.startsWith('/') ? url : `/${url}`;
+    return `${rootUrl}${cleanUrl}`;
   };
 
   const fetchSettings = async () => {

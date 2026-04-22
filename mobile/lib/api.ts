@@ -9,13 +9,29 @@ export const getAuthToken = async () => {
   return await SecureStore.getItemAsync('boston_club_token');
 };
 
+// Sistema simple de eventos para notificar cambios de auth
+type AuthListener = (loggedIn: boolean) => void;
+let authListeners: AuthListener[] = [];
+
+export const onAuthStateChange = (callback: AuthListener) => {
+  authListeners.push(callback);
+  return () => {
+    authListeners = authListeners.filter(l => l !== callback);
+  };
+};
+
+const notifyListeners = (loggedIn: boolean) => {
+  authListeners.forEach(l => l(loggedIn));
+};
+
 export const setAuthToken = async (token: string) => {
   await SecureStore.setItemAsync('boston_club_token', token);
+  notifyListeners(true);
 };
 
 export const logout = async () => {
   await SecureStore.deleteItemAsync('boston_club_token');
-  // En Expo-router el logout se maneja redirigiendo al root (Auth)
+  notifyListeners(false);
 };
 
 const api = axios.create({

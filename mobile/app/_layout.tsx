@@ -8,7 +8,7 @@ import { View, ActivityIndicator, Text, TouchableOpacity } from 'react-native';
 import 'react-native-reanimated';
 
 import { useColorScheme } from '@/components/useColorScheme';
-import { getAuthToken, logout } from '../lib/api';
+import { getAuthToken, logout, onAuthStateChange } from '../lib/api';
 import "../global.css";
 import * as LocalAuthentication from 'expo-local-authentication';
 import * as SecureStore from 'expo-secure-store';
@@ -33,8 +33,13 @@ export default function RootLayout() {
   const router = useRouter();
   const colorScheme = useColorScheme();
 
-  // 1. Carga inicial y Autenticación
+  // 1. Carga inicial y Autenticación reactiva
   useEffect(() => {
+    // Suscribirse a cambios de auth (Login/Logout)
+    const unsubscribe = onAuthStateChange((loggedIn) => {
+      setAuthState({ isLoading: false, isLoggedIn: loggedIn });
+    });
+
     async function init() {
       try {
         const token = await getAuthToken();
@@ -60,6 +65,8 @@ export default function RootLayout() {
       }
     }
     if (loaded) init();
+
+    return () => unsubscribe();
   }, [loaded]);
 
   // 2. Proteger rutas (Solo si no estamos cargando)

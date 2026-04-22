@@ -76,6 +76,7 @@ export default function DashboardScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
   const [showBenefits, setShowBenefits] = useState(false);
+  const [selectedBanner, setSelectedBanner] = useState<BannerEvent | null>(null);
   const [errorStatus, setErrorStatus] = useState<null | 'connection' | 'session'>(null);
 
   const loadProfile = async () => {
