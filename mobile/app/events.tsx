@@ -26,6 +26,15 @@ export default function EventsScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
+  const resolveImageUrl = (url: string | undefined | null) => {
+    if (!url) return null;
+    if (url.startsWith('http') || url.startsWith('data:')) return url;
+    const baseUrl = api.defaults.baseURL || 'https://mybostonclub.com/api';
+    const rootUrl = baseUrl.replace(/\/api$/, '');
+    const cleanUrl = url.startsWith('/') ? url : `/${url}`;
+    return `${rootUrl}${cleanUrl}`;
+  };
+
   const fetchEvents = async () => {
     try {
       const response = await api.get('/events');
@@ -120,7 +129,7 @@ export default function EventsScreen() {
              >
                 {event.imageUrl && (
                   <View className="w-full aspect-[4/3] bg-black relative">
-                     <Image source={{ uri: event.imageUrl }} className="w-full h-full opacity-80" resizeMode="cover" />
+                     <Image source={{ uri: resolveImageUrl(event.imageUrl) || '' }} className="w-full h-full opacity-80" resizeMode="cover" />
                      {/* Gradient Overlay for Text Readability */}
                      <View className="absolute inset-0" style={{ backgroundColor: 'rgba(5,5,5,0.4)' }} />
                      <View className="absolute bottom-0 left-0 right-0 h-40" style={{ backgroundColor: 'transparent' }} />
