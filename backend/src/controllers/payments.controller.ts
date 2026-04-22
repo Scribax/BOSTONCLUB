@@ -110,9 +110,36 @@ export const handleWebhook = async (req: Request, res: Response): Promise<void> 
 
         const poi: any = paymentData.point_of_interaction;
         const pointRefs = poi?.references || [];
+        
+        let found = false;
+        // 1. Intentar por IDs normales
+        if (orderId && await processPointsAwarding(orderId, amount, paymentId)) found = true;
+        if (externalRef && !found && await processPointsAwarding(externalRef, amount, paymentId)) found = true;
+        if (metadataId && !found && await processPointsAwarding(metadataId.toString(), amount, paymentId)) found = true;
+
         for (const ref of pointRefs) {
-          console.log(`[MP_REF] Tipo: ${ref.type}, ID: ${ref.id}`);
-          await processPointsAwarding(ref.id.toString(), amount, paymentId);
+          if (!found && await processPointsAwarding(ref.id.toString(), amount, paymentId)) found = true;
+        }
+
+        // 2. FALLBACK: Vínculo Temporal (Si nada coincidió)
+        if (!found) {
+          console.log(`[FALLBACK] No hay coincidencia de ID. Buscando último escaneo temporal...`);
+          const twoMinutesAgo = new Date(Date.now() - 120 * 1000);
+          
+          const lastPending = await prisma.posTransaction.findFirst({
+            where: {
+              status: "PENDING",
+              createdAt: { gte: twoMinutesAgo }
+            },
+            orderBy: { createdAt: 'desc' }
+          });
+
+          if (lastPending) {
+            console.log(`[FALLBACK_SUCCESS] Vinculando pago ${paymentId} al usuario ${lastPending.userId} por proximidad temporal.`);
+            await processPointsAwarding(lastPending.orderId, amount, paymentId);
+          } else {
+            console.log(`[FALLBACK_FAIL] No se encontró ningún escaneo reciente (2 min).`);
+          }
         }
       }
     }
@@ -141,10 +168,10 @@ export const handleWebhook = async (req: Request, res: Response): Promise<void> 
   }
 };
 
-// Función auxiliar para acreditar puntos
-async function processPointsAwarding(idToSearch: string, amount: number, externalId: string) {
+// Función auxiliar para acreditar puntos (Retorna true si tuvo éxito)
+async function processPointsAwarding(idToSearch: string, amount: number, externalId: string): Promise<boolean> {
   try {
-    // Buscamos la transacción que coincida con el ID escaneado (sea Order o External Ref)
+    // Buscamos la transacción que coincida con el ID escaneado
     const trans = await prisma.posTransaction.findUnique({
       where: { orderId: idToSearch }
     });
@@ -178,8 +205,11 @@ async function processPointsAwarding(idToSearch: string, amount: number, externa
       ]);
 
       console.log(`[POINTS] ✅ ${pointsToAward} puntos acreditados con éxito al socio.`);
+      return true;
     }
+    return false;
   } catch (err) {
     console.error("[PROCESS POINTS ERROR]", err);
+    return false;
   }
 }
