@@ -207,7 +207,7 @@ async function processPointsAwarding(idToSearch: string, amount: number, externa
       console.log(`[POINTS] ✅ ${pointsToAward} puntos acreditados con éxito al socio.`);
       return true;
     }
-    return false;
+    return false; // Asegurar que siempre retorne un booleano
   } catch (err) {
     console.error("[PROCESS POINTS ERROR]", err);
     return false;
