@@ -114,6 +114,16 @@ export default function DashboardScreen() {
     }
   };
 
+  const resolveImageUrl = (url: string | undefined | null) => {
+    if (!url) return null;
+    if (url.startsWith('http') || url.startsWith('data:')) return url;
+    
+    const baseUrl = api.defaults.baseURL || 'https://mybostonclub.com/api';
+    const rootUrl = baseUrl.replace(/\/api$/, '');
+    const cleanUrl = url.startsWith('/') ? url : `/${url}`;
+    return `${rootUrl}${cleanUrl}`;
+  };
+
   const registerForPushNotificationsAsync = async () => {
     let token;
     if (Platform.OS === 'android') {
@@ -359,7 +369,7 @@ export default function DashboardScreen() {
                     <View className={`rounded-[2.5rem] relative overflow-hidden shadow-2xl border border-white/10 ${!slide.imageUrl ? 'bg-[#5a0000]' : 'bg-[#111]'}`}>
                       {slide.imageUrl && (
                         <View className="absolute inset-0">
-                          <Image source={{ uri: slide.imageUrl }} className="w-full h-full opacity-50" resizeMode="cover" />
+                          <Image source={{ uri: resolveImageUrl(slide.imageUrl) || '' }} className="w-full h-full opacity-50" resizeMode="cover" />
                           <View className="absolute inset-0 bg-black/50" />
                         </View>
                       )}
@@ -531,7 +541,7 @@ export default function DashboardScreen() {
           <View className="bg-[#0D0D0D] border border-boston-gold/20 rounded-[40px] overflow-hidden">
             {selectedBanner?.imageUrl && (
               <View className="w-full h-64 relative">
-                <Image source={{ uri: selectedBanner.imageUrl }} className="w-full h-full" resizeMode="cover" />
+                <Image source={{ uri: resolveImageUrl(selectedBanner.imageUrl) || '' }} className="w-full h-full" resizeMode="cover" />
                 <View className="absolute inset-0 bg-black/30" />
               </View>
             )}

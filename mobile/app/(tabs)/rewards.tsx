@@ -48,9 +48,11 @@ export default function RewardsScreen() {
   const resolveImageUrl = (url: string | undefined | null) => {
     if (!url) return null;
     if (url.startsWith('http') || url.startsWith('data:')) return url;
-    const baseUrl = api.defaults.baseURL || 'http://192.168.1.36:8080/api';
+    
+    const baseUrl = api.defaults.baseURL || 'https://mybostonclub.com/api';
     const rootUrl = baseUrl.replace(/\/api$/, '');
-    return `${rootUrl}${url}`;
+    const cleanUrl = url.startsWith('/') ? url : `/${url}`;
+    return `${rootUrl}${cleanUrl}`;
   };
 
   const handleRedeem = async (reward: Reward) => {
