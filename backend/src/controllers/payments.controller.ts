@@ -131,7 +131,7 @@ export const handleWebhook = async (req: Request, res: Response): Promise<void> 
               status: "PENDING",
               createdAt: { gte: twoMinutesAgo }
             },
-            orderBy: { createdAt: 'desc' }
+            orderBy: { createdAt: 'asc' } // El más ANTIGUO = el primero en la cola del POSNET
           });
 
           if (lastPending) {
