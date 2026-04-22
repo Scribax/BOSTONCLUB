@@ -178,7 +178,7 @@ async function processPointsAwarding(idToSearch: string, amount: number, externa
 
     if (trans && !trans.processed) {
       const pointsToAward = Math.floor(amount);
-      if (pointsToAward <= 0) return;
+      if (pointsToAward <= 0) return false;
 
       await prisma.$transaction([
         prisma.user.update({
