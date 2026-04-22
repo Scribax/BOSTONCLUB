@@ -76,11 +76,11 @@ export default function DashboardScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
   const [showBenefits, setShowBenefits] = useState(false);
-  const [selectedBanner, setSelectedBanner] = useState<BannerEvent | null>(null);
-  const router = useRouter();
+  const [errorStatus, setErrorStatus] = useState<null | 'connection' | 'session'>(null);
 
   const loadProfile = async () => {
     try {
+      setErrorStatus(null);
       const token = await getAuthToken();
       if (!token) {
         router.replace('/login');
@@ -97,9 +97,16 @@ export default function DashboardScreen() {
       
       const filteredBanners = (eventsRes.data || []).filter((e: any) => e.type === "BANNER" && e.isActive !== false);
       setBanners(filteredBanners);
-    } catch (err) {
-      console.error('Session error:', err);
-      router.replace('/login');
+    } catch (err: any) {
+      console.error('Load Profile Error:', err);
+      // Solo mandamos al login si es un error de credenciales (401/403)
+      if (err.response?.status === 401 || err.response?.status === 403) {
+        setErrorStatus('session');
+        router.replace('/login');
+      } else {
+        // Es un error de red o de servidor (500, Timeout, etc)
+        setErrorStatus('connection');
+      }
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -199,7 +206,7 @@ export default function DashboardScreen() {
     };
   };
 
-  if (loading || !user) {
+  if (loading || (!user && !errorStatus)) {
     return (
       <View className="flex-1 bg-[#050505] items-center justify-center">
         <ActivityIndicator size="large" color="#D4AF37" />
@@ -207,6 +214,39 @@ export default function DashboardScreen() {
       </View>
     );
   }
+
+  if (errorStatus === 'connection') {
+    return (
+      <View className="flex-1 bg-[#050505] items-center justify-center px-10">
+        <View className="w-20 h-20 bg-white/5 rounded-3xl items-center justify-center border border-white/10 mb-6">
+          <Text className="text-4xl">📡</Text>
+        </View>
+        <Text className="text-white text-xl font-black italic uppercase tracking-tighter text-center mb-2">Error de conexión</Text>
+        <Text className="text-white/40 text-[10px] font-bold text-center mb-10 leading-4 uppercase tracking-widest">
+          No pudimos conectar con los servidores de Boston. Revisa tus datos móviles o WiFi.
+        </Text>
+        
+        <TouchableOpacity 
+          onPress={() => {
+            setLoading(true);
+            loadProfile();
+          }}
+          className="bg-boston-gold py-4 px-10 rounded-2xl shadow-lg shadow-boston-gold/20"
+        >
+          <Text className="text-black font-black uppercase text-xs tracking-widest">Reintentar Conexión</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          onPress={() => router.replace('/login')}
+          className="mt-6"
+        >
+          <Text className="text-white/20 font-bold uppercase text-[9px] tracking-widest underline">Cambiar de cuenta</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  if (!user) return null; // Safety check
 
   const getAuraColor = () => {
     switch (user.membershipLevel) {

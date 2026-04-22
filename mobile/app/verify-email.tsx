@@ -8,6 +8,7 @@ import { StatusBar } from 'expo-status-bar';
 export default function VerifyEmailScreen() {
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
+  const [resending, setResending] = useState(false);
   const router = useRouter();
   const { email } = useLocalSearchParams();
 
@@ -31,6 +32,19 @@ export default function VerifyEmailScreen() {
     }
   };
 
+  const handleResend = async () => {
+    setResending(true);
+    try {
+      await api.post('/auth/resend-verification');
+      Alert.alert('Código Enviado', 'Se ha enviado un nuevo código a tu correo.');
+    } catch (error: any) {
+      const msg = error.response?.data?.message || 'Error al reenviar el código';
+      Alert.alert('Error', msg);
+    } finally {
+      setResending(false);
+    }
+  };
+
   return (
     <KeyboardAvoidingView 
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -44,7 +58,7 @@ export default function VerifyEmailScreen() {
         </View>
         <Text className="text-3xl font-black text-white uppercase italic text-center">Verifica tu Cuenta</Text>
         <Text className="text-white/40 text-center mt-4 px-6 leading-5">
-          Hemos enviado un código de 6 dígitos a su correo electrónico.
+          Hemos enviado un código de 6 dígitos a su correo electrónico {email ? <Text className="text-boston-gold">{email}</Text> : ''}.
         </Text>
       </View>
 
@@ -62,8 +76,8 @@ export default function VerifyEmailScreen() {
 
         <TouchableOpacity 
           onPress={handleVerify}
-          disabled={loading}
-          className="bg-boston-gold py-4 rounded-2xl flex-row items-center justify-center"
+          disabled={loading || resending}
+          className="bg-boston-gold py-4 rounded-2xl flex-row items-center justify-center mb-4"
         >
           {loading ? (
             <ActivityIndicator color="black" />
@@ -72,6 +86,20 @@ export default function VerifyEmailScreen() {
               <Text className="text-black font-black uppercase text-xs tracking-widest mr-2">Verificar Ahora</Text>
               <ArrowRight size={18} color="black" />
             </>
+          )}
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          onPress={handleResend}
+          disabled={loading || resending}
+          className="py-2 items-center"
+        >
+          {resending ? (
+            <ActivityIndicator color="#D4AF37" size="small" />
+          ) : (
+            <Text className="text-boston-gold text-[10px] font-black uppercase tracking-widest">
+              ¿No recibiste el código? Reenviar
+            </Text>
           )}
         </TouchableOpacity>
       </View>
