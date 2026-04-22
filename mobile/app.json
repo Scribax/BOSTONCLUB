@@ -1,8 +1,8 @@
 {
   "expo": {
     "name": "Boston Club",
-    "slug": "boston-club",
-    "version": "1.0.0",
+    "slug": "mobile",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "bostonclub",
@@ -21,7 +21,8 @@
       }
     },
     "android": {
-      "package": "com.bostonclub.app",
+      "package": "com.scribax.mobile",
+      "versionCode": 2,
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",

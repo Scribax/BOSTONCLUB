@@ -1,5 +1,5 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl, Image, Modal, Animated } from 'react-native';
+import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
+import { View, Text, ScrollView, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl, Image, Modal, Animated, useWindowDimensions } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Crown, Star, Flame, Ticket, ArrowRight, User as UserIcon, MapPin, CreditCard, Gift, QrCode, History, X } from 'lucide-react-native';
 import api, { getAuthToken, logout } from '../../lib/api';
@@ -69,6 +69,8 @@ const FadeInView = ({ delay = 0, children, className = "", style = {} }: any) =>
 
 export default function DashboardScreen() {
   const router = useRouter();
+  const { width: SCREEN_WIDTH } = useWindowDimensions();
+  const CAROUSEL_WIDTH = SCREEN_WIDTH - 48; // SCREEN_WIDTH minus px-6 (24px * 2)
   const [user, setUser] = useState<UserData | null>(null);
   const [banners, setBanners] = useState<BannerEvent[]>([]);
   const [currentBannerIdx, setCurrentBannerIdx] = useState(0);
@@ -79,6 +81,14 @@ export default function DashboardScreen() {
   const [showBenefits, setShowBenefits] = useState(false);
   const [selectedBanner, setSelectedBanner] = useState<BannerEvent | null>(null);
   const [errorStatus, setErrorStatus] = useState<null | 'connection' | 'session'>(null);
+
+  // FIX: New Architecture requiere que estas referencias sean estables (no recreadas en cada render)
+  const onViewableItemsChangedRef = useRef(({ viewableItems }: any) => {
+    if (viewableItems.length > 0) {
+      setCurrentBannerIdx(viewableItems[0].index ?? 0);
+    }
+  });
+  const viewabilityConfigRef = useRef({ itemVisiblePercentThreshold: 50 });
 
   const loadProfile = async () => {
     try {
@@ -103,6 +113,8 @@ export default function DashboardScreen() {
       // Solo mandamos al login si es un error de credenciales (401/403)
       if (err.response?.status === 401 || err.response?.status === 403) {
         setErrorStatus('session');
+        // Si la sesión expiró, forzamos el logout global para evitar loops
+        await logout();
       } else {
         // Es un error de red o de servidor (500, Timeout, etc)
         setErrorStatus('connection');
@@ -351,20 +363,28 @@ export default function DashboardScreen() {
 
           {/* Flash Promo Banners Carousel */}
           {banners.length > 0 && (
-            <FadeInView delay={400} className="mt-2 relative">
-              <ScrollView 
-                horizontal 
-                pagingEnabled 
+            <FadeInView delay={400} className="px-6 mt-2">
+              <FlatList
+                data={banners}
+                horizontal
+                pagingEnabled
+                style={{ width: CAROUSEL_WIDTH }}
+                snapToInterval={CAROUSEL_WIDTH}
+                decelerationRate="fast"
+                disableIntervalMomentum={true}
+                snapToAlignment="start"
                 showsHorizontalScrollIndicator={false}
-                onMomentumScrollEnd={(e) => {
-                  const idx = Math.round(e.nativeEvent.contentOffset.x / e.nativeEvent.layoutMeasurement.width);
-                  setCurrentBannerIdx(idx);
-                }}
-              >
-                {banners.map((slide, idx) => (
-                  <TouchableOpacity 
-                    key={slide.id} 
-                    className="w-screen px-6"
+                keyExtractor={(item) => item.id}
+                getItemLayout={(_, index) => ({
+                  length: CAROUSEL_WIDTH,
+                  offset: CAROUSEL_WIDTH * index,
+                  index,
+                })}
+                onViewableItemsChanged={onViewableItemsChangedRef.current}
+                viewabilityConfig={viewabilityConfigRef.current}
+                renderItem={({ item: slide }) => (
+                  <TouchableOpacity
+                    style={{ width: CAROUSEL_WIDTH }}
                     activeOpacity={0.9}
                     onPress={() => setSelectedBanner(slide)}
                   >
@@ -375,7 +395,6 @@ export default function DashboardScreen() {
                           <View className="absolute inset-0 bg-black/50" />
                         </View>
                       )}
-                      
                       <View className="p-8 flex-row justify-between items-center z-10">
                           <View className="flex-1 mr-4">
                             <View className="bg-white/10 self-start px-3 py-1.5 rounded-full mb-3 border border-white/10">
@@ -394,15 +413,20 @@ export default function DashboardScreen() {
                       </View>
                     </View>
                   </TouchableOpacity>
-                ))}
-              </ScrollView>
+                )}
+              />
 
               {banners.length > 1 && (
                 <View className="flex-row justify-center gap-2 mt-4">
                   {banners.map((_, idx) => (
                     <View 
                       key={idx}
-                      className={`h-1.5 rounded-full ${idx === currentBannerIdx ? 'w-6 bg-[#D4AF37] shadow-[0_0_10px_rgba(212,175,55,0.5)]' : 'w-2 bg-white/20'}`}
+                      style={{
+                        height: 6,
+                        width: idx === currentBannerIdx ? 24 : 8,
+                        borderRadius: 3,
+                        backgroundColor: idx === currentBannerIdx ? '#D4AF37' : 'rgba(255,255,255,0.2)',
+                      }}
                     />
                   ))}
                 </View>
@@ -415,7 +439,7 @@ export default function DashboardScreen() {
             <TouchableOpacity 
               activeOpacity={0.8}
               className="bg-white/[0.02] p-6 rounded-3xl flex-row items-center border border-white/5"
-              onPress={() => {}} // No history screen mapped yet on mobile structure
+              onPress={() => router.push('/history')} // FIX: Ahora lleva al historial de puntos
             >
                <View className="w-12 h-12 bg-white/5 rounded-2xl items-center justify-center mr-4">
                  <History size={20} color="rgba(255,255,255,0.4)" />

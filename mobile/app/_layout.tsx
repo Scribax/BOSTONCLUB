@@ -2,6 +2,7 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack, useRouter, useSegments } from 'expo-router';
+import { useRef } from 'react';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState } from 'react';
 import { View, ActivityIndicator, Text, TouchableOpacity } from 'react-native';
@@ -30,12 +31,13 @@ export default function RootLayout() {
   const [authState, setAuthState] = useState({ isLoading: true, isLoggedIn: false });
   const [isLocked, setIsLocked] = useState(false);
   const segments = useSegments();
+  const segmentsRef = useRef(segments);
+  segmentsRef.current = segments;
   const router = useRouter();
   const colorScheme = useColorScheme();
 
   // 1. Carga inicial y Autenticación reactiva
   useEffect(() => {
-    // Suscribirse a cambios de auth (Login/Logout)
     const unsubscribe = onAuthStateChange((loggedIn) => {
       setAuthState({ isLoading: false, isLoggedIn: loggedIn });
     });
@@ -44,8 +46,7 @@ export default function RootLayout() {
       try {
         const token = await getAuthToken();
         const loggedIn = !!token;
-        
-        // Si hay token, chequeamos biometría ANTES de entrar
+
         if (loggedIn) {
           const bioEnabled = await SecureStore.getItemAsync('biometrics_enabled');
           if (bioEnabled === 'true') {
@@ -60,8 +61,6 @@ export default function RootLayout() {
         setAuthState({ isLoading: false, isLoggedIn: loggedIn });
       } catch (e) {
         setAuthState({ isLoading: false, isLoggedIn: false });
-      } finally {
-        if (loaded) await SplashScreen.hideAsync();
       }
     }
     if (loaded) init();
@@ -69,23 +68,56 @@ export default function RootLayout() {
     return () => unsubscribe();
   }, [loaded]);
 
-  // 2. Proteger rutas (Solo si no estamos cargando)
+  // FIX: Ocultar el splash SOLO cuando ambas condiciones estén listas.
+  // En producción el bundle carga muy rápido y el finally del init()
+  // se ejecutaba antes de que `loaded` fuera true, dejando el splash colgado.
+  useEffect(() => {
+    if (loaded && !authState.isLoading) {
+      SplashScreen.hideAsync();
+    }
+  }, [loaded, authState.isLoading]);
+
+  // 2. Proteger rutas
   useEffect(() => {
     if (authState.isLoading || !loaded) return;
 
-    const inAuthGroup = segments[0] === 'login' || 
-                        segments[0] === 'verify-email' || 
-                        segments[0] === 'forgot-password' || 
-                        segments[0] === 'reset-password';
+    const currentSegments = segmentsRef.current;
+    const inAuthGroup =
+      currentSegments[0] === 'login' ||
+      currentSegments[0] === 'verify-email' ||
+      currentSegments[0] === 'forgot-password' ||
+      currentSegments[0] === 'reset-password';
 
-    if (!authState.isLoggedIn && !inAuthGroup) {
-      // Si no estamos logueados y no estamos en auth, vamos al login
-      router.replace('/login');
-    } else if (authState.isLoggedIn && (segments[0] === 'login')) {
-      // Solo sacamos del login si ya estamos logueados
-      router.replace('/(tabs)');
+    // FIX: Pequeño delay para garantizar que el Navigator esté montado
+    // antes de hacer replace(). En producción el bundle es instantáneo
+    // y el router puede no estar listo todavía → flash de pantalla negra.
+    const redirect = () => {
+      if (!authState.isLoggedIn && !inAuthGroup) {
+        router.replace('/login');
+      } else if (authState.isLoggedIn && currentSegments[0] === 'login') {
+        router.replace('/(tabs)');
+      }
+    };
+
+    const timer = setTimeout(redirect, 50);
+    return () => clearTimeout(timer);
+  }, [authState.isLoggedIn, authState.isLoading, loaded]);
+
+  // FIX: Escuchar si el usuario tocó una notificación Push
+  const lastNotificationResponse = Notifications.useLastNotificationResponse();
+  useEffect(() => {
+    if (
+      lastNotificationResponse &&
+      lastNotificationResponse.notification.request.content.data?.type &&
+      lastNotificationResponse.actionIdentifier === Notifications.DEFAULT_ACTION_IDENTIFIER
+    ) {
+      const type = lastNotificationResponse.notification.request.content.data.type;
+      if (type === 'NEW_EVENT' || type === 'NEW_BANNER' || type === 'EVENT_REMINDER') {
+        // Redirigir a la pantalla de eventos si toca la notificación
+        router.push('/events');
+      }
     }
-  }, [authState.isLoggedIn, authState.isLoading, segments, loaded]);
+  }, [lastNotificationResponse, authState.isLoggedIn, authState.isLoading, loaded]);
 
   const handleUnlock = async () => {
     const result = await LocalAuthentication.authenticateAsync({

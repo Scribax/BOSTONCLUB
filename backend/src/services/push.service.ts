@@ -30,19 +30,24 @@ export const sendEventPublishedNotification = async (title: string, description:
     // Customize title based on type
     const noticePrefix = type === 'BANNER' ? '📢 Nueva Promoción: ' : '🎟 Nuevo Evento: ';
 
+    const uniqueTokens = new Set<string>();
     for (const user of users) {
       if (user.expoPushToken && Expo.isExpoPushToken(user.expoPushToken)) {
-        messages.push({
-          to: user.expoPushToken,
-          sound: 'default',
-          priority: 'high',
-          title: `${noticePrefix}${title}`,
-          body: description || 'Toca para ver los detalles en la app.',
-          data: { 
-            type: type === 'BANNER' ? 'NEW_BANNER' : 'NEW_EVENT' 
-          },
-        });
+        uniqueTokens.add(user.expoPushToken);
       }
+    }
+
+    for (const token of uniqueTokens) {
+      messages.push({
+        to: token,
+        sound: 'default',
+        priority: 'high',
+        title: `${noticePrefix}${title}`,
+        body: description || 'Toca para ver los detalles en la app.',
+        data: { 
+          type: type === 'BANNER' ? 'NEW_BANNER' : 'NEW_EVENT' 
+        },
+      });
     }
 
     if (messages.length > 0) {
@@ -63,17 +68,22 @@ export const sendEventReminderNotification = async (eventId: string, title: stri
 
     const messages: ExpoPushMessage[] = [];
     
+    const uniqueTokens = new Set<string>();
     for (const user of users) {
       if (user.expoPushToken && Expo.isExpoPushToken(user.expoPushToken)) {
-        messages.push({
-          to: user.expoPushToken,
-          sound: 'default',
-          priority: 'high',
-          title: `¡Falta poco para ${title}! 🔥`,
-          body: 'Recordá preparar tu código o entrada digital desde la app.',
-          data: { type: 'EVENT_REMINDER', eventId },
-        });
+        uniqueTokens.add(user.expoPushToken);
       }
+    }
+
+    for (const token of uniqueTokens) {
+      messages.push({
+        to: token,
+        sound: 'default',
+        priority: 'high',
+        title: `¡Falta poco para ${title}! 🔥`,
+        body: 'Recordá preparar tu código o entrada digital desde la app.',
+        data: { type: 'EVENT_REMINDER', eventId },
+      });
     }
 
     if (messages.length > 0) {

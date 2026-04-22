@@ -16,6 +16,7 @@ export default function ScannerScreen() {
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
+    let timeout: NodeJS.Timeout;
     if (status === 'pos_waiting' && currentOrderId) {
       interval = setInterval(async () => {
         try {
@@ -24,14 +25,23 @@ export default function ScannerScreen() {
             setStatus('success');
             setMessage(`PAGO REALIZADO\nSe han acreditado ${res.data.amount} puntos en tu cuenta.`);
             clearInterval(interval);
+            clearTimeout(timeout);
           }
         } catch (err) {
           // Ignoramos errores temporales de red para que siga intentando
         }
       }, 3000);
+
+      // FIX: Timeout máximo de 5 minutos para no dejar al usuario colgado infinitamente
+      timeout = setTimeout(() => {
+        clearInterval(interval);
+        setStatus('error');
+        setMessage('No se recibió confirmación del pago. Por favor, revisá tu historial en Mercado Pago.');
+      }, 5 * 60 * 1000);
     }
-    return () => clearInterval(interval);
+    return () => { clearInterval(interval); clearTimeout(timeout); };
   }, [status, currentOrderId]);
+
 
   useFocusEffect(
     useCallback(() => {

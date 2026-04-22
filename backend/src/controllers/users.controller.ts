@@ -152,6 +152,7 @@ export const deleteUser = async (req: Request, res: Response): Promise<void> => 
     await prisma.redemption.deleteMany({ where: { userId: id as string } });
     await prisma.notification.deleteMany({ where: { userId: id as string } });
     await prisma.visit.deleteMany({ where: { userId: id as string } });
+    await prisma.posTransaction.deleteMany({ where: { userId: id as string } }); // FIX: Avoid FK constraint error
     await prisma.user.delete({ where: { id: id as string } });
     res.json({ message: "User deleted" });
   } catch (error) {

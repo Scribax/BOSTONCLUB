@@ -57,10 +57,11 @@ export default function EventsScreen() {
   useFocusEffect(
     useCallback(() => {
       loadInitialEvents();
-      // Auto-refresh en vivo cada 10 segundos mientras la pantalla está abierta
+      // Auto-refresh cada 60 segundos (los eventos no cambian frecuentemente)
+      // El usuario puede hacer pull-to-refresh manualmente si necesita actualizar antes
       const interval = setInterval(() => {
         fetchEvents();
-      }, 10000);
+      }, 60000);
       return () => clearInterval(interval);
     }, [])
   );

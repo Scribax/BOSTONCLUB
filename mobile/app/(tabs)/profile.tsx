@@ -126,6 +126,16 @@ export default function ProfileScreen() {
     );
   }
 
+  // FIX: Guard de seguridad — si user es null pero ya no estamos cargando
+  // (fetchUser falló silenciosamente), no crasheamos, mostramos pantalla vacía
+  if (!user) {
+    return (
+      <View className="flex-1 bg-[#050505] items-center justify-center">
+        <Text className="text-white/20 uppercase font-black tracking-widest text-[10px]">Sin datos de perfil</Text>
+      </View>
+    );
+  }
+
   // Generate Aura color
   const getAuraColor = () => {
     if (!user) return 'bg-[#333]';
