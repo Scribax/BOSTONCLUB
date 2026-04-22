@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl, Image, Modal, Animated } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Crown, Star, Flame, Ticket, ArrowRight, User as UserIcon, MapPin, CreditCard, Gift, QrCode, History, X } from 'lucide-react-native';
-import api, { getAuthToken } from '../../lib/api';
+import api, { getAuthToken, logout } from '../../lib/api';
 import { StatusBar } from 'expo-status-bar';
 import DigitalCard from '../../components/DigitalCard';
 import * as Notifications from 'expo-notifications';
@@ -84,7 +84,6 @@ export default function DashboardScreen() {
       setErrorStatus(null);
       const token = await getAuthToken();
       if (!token) {
-        router.replace('/login');
         return;
       }
       const [userDataRes, eventsRes, settingsRes] = await Promise.all([
@@ -103,7 +102,6 @@ export default function DashboardScreen() {
       // Solo mandamos al login si es un error de credenciales (401/403)
       if (err.response?.status === 401 || err.response?.status === 403) {
         setErrorStatus('session');
-        router.replace('/login');
       } else {
         // Es un error de red o de servidor (500, Timeout, etc)
         setErrorStatus('connection');
@@ -248,7 +246,10 @@ export default function DashboardScreen() {
         </TouchableOpacity>
 
         <TouchableOpacity 
-          onPress={() => router.replace('/login')}
+          onPress={async () => {
+            await api.post('/auth/logout').catch(() => {}); // Intentar avisar al server
+            await logout();
+          }}
           className="mt-6"
         >
           <Text className="text-white/20 font-bold uppercase text-[9px] tracking-widest underline">Cambiar de cuenta</Text>

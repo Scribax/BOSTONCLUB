@@ -41,8 +41,7 @@ export default function ProfileScreen() {
       setUser(response.data);
       setNewWhatsapp(response.data.whatsapp || '');
     } catch (err) {
-      // Redirección directa usando el objeto router global
-      router.replace('/login');
+      // Dejamos que el interceptor de api.ts o el RootLayout manejen la sesión expirada
     } finally {
       setLoading(false);
     }

@@ -71,16 +71,21 @@ export default function RootLayout() {
 
   // 2. Proteger rutas (Solo si no estamos cargando)
   useEffect(() => {
-    if (authState.isLoading) return;
+    if (authState.isLoading || !loaded) return;
 
-    const inAuthGroup = segments[0] === 'login' || segments[0] === 'verify-email' || segments[0] === 'forgot-password' || segments[0] === 'reset-password';
+    const inAuthGroup = segments[0] === 'login' || 
+                        segments[0] === 'verify-email' || 
+                        segments[0] === 'forgot-password' || 
+                        segments[0] === 'reset-password';
 
     if (!authState.isLoggedIn && !inAuthGroup) {
+      // Si no estamos logueados y no estamos en auth, vamos al login
       router.replace('/login');
-    } else if (authState.isLoggedIn && inAuthGroup) {
+    } else if (authState.isLoggedIn && (segments[0] === 'login')) {
+      // Solo sacamos del login si ya estamos logueados
       router.replace('/(tabs)');
     }
-  }, [authState.isLoggedIn, authState.isLoading, segments]);
+  }, [authState.isLoggedIn, authState.isLoading, segments, loaded]);
 
   const handleUnlock = async () => {
     const result = await LocalAuthentication.authenticateAsync({
