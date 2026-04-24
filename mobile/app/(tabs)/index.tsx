@@ -81,7 +81,6 @@ export default function DashboardScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
   const [showBenefits, setShowBenefits] = useState(false);
-  const [selectedBanner, setSelectedBanner] = useState<BannerEvent | null>(null);
   const [errorStatus, setErrorStatus] = useState<null | 'connection' | 'session'>(null);
 
   // FIX: New Architecture requiere que estas referencias sean estables (no recreadas en cada render)
@@ -299,7 +298,6 @@ export default function DashboardScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 100 }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#D4AF37" />}
-        stickyHeaderIndices={[0]}
       >
         {/* Header & Hero Carousel Section */}
         <View className="relative">
@@ -326,7 +324,12 @@ export default function DashboardScreen() {
                 onViewableItemsChanged={onViewableItemsChangedRef.current}
                 viewabilityConfig={viewabilityConfigRef.current}
                 renderItem={({ item }: { item: any }) => (
-                  <View style={{ width: Dimensions.get('window').width, height: '100%' }} className="relative bg-[#0c0c0c]">
+                  <TouchableOpacity 
+                    activeOpacity={0.9} 
+                    onPress={() => item.id !== 'empty' && router.push(`/banner/${item.id}`)}
+                    style={{ width: Dimensions.get('window').width, height: '100%' }} 
+                    className="relative bg-[#0c0c0c]"
+                  >
                     {item.mediaType === 'VIDEO' && item.videoUrl ? (
                       <Video
                         source={{ uri: resolveImageUrl(item.videoUrl) || '' }}
@@ -361,9 +364,12 @@ export default function DashboardScreen() {
                           <Text className="text-white/70 text-sm font-bold uppercase tracking-widest">
                              {item.description}
                           </Text>
+                          <View className="bg-boston-gold/20 self-start px-3 py-1.5 rounded-full mt-4 border border-boston-gold/30">
+                             <Text className="text-boston-gold font-black text-[8px] tracking-widest uppercase">Toca para ver más</Text>
+                          </View>
                        </FadeInView>
                     </View>
-                  </View>
+                  </TouchableOpacity>
                 )}
              />
              
@@ -551,55 +557,7 @@ export default function DashboardScreen() {
         </View>
       </Modal>
 
-      {/* Banner Detail Modal */}
-      <Modal visible={!!selectedBanner} transparent animationType="fade">
-        <View className="flex-1 bg-black/90 justify-center p-6">
-          <View className="bg-[#0D0D0D] border border-boston-gold/20 rounded-[40px] overflow-hidden">
-            {selectedBanner?.imageUrl && (
-              <View className="w-full h-64 relative">
-                <Image source={{ uri: resolveImageUrl(selectedBanner.imageUrl) || '' }} className="w-full h-full" resizeMode="cover" />
-                <View className="absolute inset-0 bg-black/30" />
-              </View>
-            )}
-            
-            <View className="p-8">
-              <View className="flex-row justify-between items-start mb-6">
-                <View className="flex-1 pr-4">
-                  <View className="bg-boston-gold/10 self-start px-3 py-1 rounded-full mb-3 border border-boston-gold/20">
-                    <Text className="text-boston-gold text-[8px] font-black uppercase tracking-widest">Novedad Especial</Text>
-                  </View>
-                  <Text className="text-3xl font-black text-white italic uppercase tracking-tighter">{selectedBanner?.title}</Text>
-                </View>
-                <TouchableOpacity 
-                  onPress={() => setSelectedBanner(null)}
-                  className="w-10 h-10 bg-white/5 rounded-full items-center justify-center border border-white/10"
-                >
-                  <X size={20} color="white" />
-                </TouchableOpacity>
-              </View>
 
-              <ScrollView className="max-h-[250px] mb-8" showsVerticalScrollIndicator={false}>
-                <Text className="text-white/70 text-sm font-medium leading-relaxed uppercase">
-                  {selectedBanner?.description}
-                </Text>
-                {selectedBanner?.benefits && (
-                  <View className="mt-6 p-4 bg-boston-gold/5 border border-boston-gold/10 rounded-2xl">
-                    <Text className="text-boston-gold text-[10px] font-black uppercase tracking-widest mb-2">🎁 Beneficio Club</Text>
-                    <Text className="text-white/90 text-xs italic font-medium">{selectedBanner.benefits}</Text>
-                  </View>
-                )}
-              </ScrollView>
-
-              <TouchableOpacity 
-                onPress={() => setSelectedBanner(null)}
-                className="bg-boston-gold w-full py-5 rounded-[1.5rem] items-center shadow-lg"
-              >
-                <Text className="text-black font-black uppercase text-xs tracking-widest">Entendido</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
     </View>
   );
 }

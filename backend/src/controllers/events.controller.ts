@@ -80,7 +80,9 @@ export const createEvent = async (req: Request, res: Response): Promise<void> =>
       buttonText,
       externalLink,
       isActive,
-      isAdultOnly
+      isAdultOnly,
+      content,
+      gallery
     } = req.body;
     
     const event = await prisma.event.create({
@@ -101,6 +103,8 @@ export const createEvent = async (req: Request, res: Response): Promise<void> =>
         isActive: isActive !== undefined ? isActive : true,
         isAdultOnly: isAdultOnly || false,
         reminderSent: false,
+        content,
+        gallery: gallery ? (typeof gallery === 'string' ? gallery : JSON.stringify(gallery)) : null,
       }
     });
 
@@ -154,7 +158,9 @@ export const updateEvent = async (req: Request, res: Response): Promise<void> =>
       buttonText,
       externalLink,
       isActive,
-      isAdultOnly
+      isAdultOnly,
+      content,
+      gallery
     } = req.body;
 
     const event = await prisma.event.update({
@@ -174,7 +180,9 @@ export const updateEvent = async (req: Request, res: Response): Promise<void> =>
         buttonText,
         externalLink,
         isActive,
-        isAdultOnly
+        isAdultOnly,
+        content,
+        gallery: gallery !== undefined ? (typeof gallery === 'string' ? gallery : JSON.stringify(gallery)) : undefined
       }
     });
 

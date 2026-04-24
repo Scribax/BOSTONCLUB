@@ -86,6 +86,8 @@ model Event {
   mediaType    String   @default("IMAGE")
   order        Int      @default(0)
   benefits     String?
+  content      String?  // Rich text content for dedicated pages
+  gallery      String?  // JSON stringified array of image URLs
   type         String   @default("EVENT")
   buttonText   String?  @default("RESERVAR MESA")
   externalLink String?

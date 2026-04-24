@@ -13,6 +13,8 @@ type Banner = {
   mediaType: string; // 'IMAGE' or 'VIDEO'
   order: number;
   isActive: boolean;
+  content?: string;
+  gallery?: string;
 };
 
 export default function DashboardSettingsPage() {
@@ -28,6 +30,8 @@ export default function DashboardSettingsPage() {
   const [mediaType, setMediaType] = useState("IMAGE");
   const [imageUrl, setImageUrl] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
+  const [content, setContent] = useState("");
+  const [gallery, setGallery] = useState<string[]>([]);
 
   useEffect(() => {
     fetchBanners();
@@ -76,6 +80,43 @@ export default function DashboardSettingsPage() {
     }
   };
 
+  const handleGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setIsUploading(true);
+    
+    try {
+      const token = getAuthToken();
+      const newUrls: string[] = [];
+
+      for (let i = 0; i < files.length; i++) {
+        const formData = new FormData();
+        formData.append("file", files[i]);
+
+        const response = await fetch(`${API_URL}/media/upload`, {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${token}`
+          },
+          body: formData
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          newUrls.push(data.url);
+        }
+      }
+
+      setGallery(prev => [...prev, ...newUrls]);
+    } catch (err) {
+      alert("Error al subir fotos a la galería");
+      console.error(err);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   const handleSave = async () => {
     if (!title || !description) return alert("Título y descripción son obligatorios");
     if (mediaType === "IMAGE" && !imageUrl) return alert("Debes subir una imagen");
@@ -91,7 +132,9 @@ export default function DashboardSettingsPage() {
       videoUrl: mediaType === "VIDEO" ? videoUrl : null,
       type: "BANNER",
       isActive: true,
-      order: editingBanner ? editingBanner.order : banners.length
+      order: editingBanner ? editingBanner.order : banners.length,
+      content,
+      gallery
     };
 
     try {
@@ -156,6 +199,8 @@ export default function DashboardSettingsPage() {
     setMediaType("IMAGE");
     setImageUrl("");
     setVideoUrl("");
+    setContent("");
+    setGallery([]);
   };
 
   const openEdit = (banner: Banner) => {
@@ -165,6 +210,12 @@ export default function DashboardSettingsPage() {
     setMediaType(banner.mediaType);
     setImageUrl(banner.imageUrl || "");
     setVideoUrl(banner.videoUrl || "");
+    setContent(banner.content || "");
+    try {
+      setGallery(banner.gallery ? JSON.parse(banner.gallery) : []);
+    } catch {
+      setGallery([]);
+    }
     setShowModal(true);
   };
 
@@ -374,6 +425,51 @@ export default function DashboardSettingsPage() {
                     <p className="text-[9px] text-white/20 italic font-medium uppercase text-center tracking-widest">
                        {mediaType === 'IMAGE' ? "Recomendado: Vertical (1080x1920)" : "Máximo: 150MB - Formato: MP4"}
                     </p>
+                 </div>
+
+                 {/* Advanced Content Settings */}
+                 <div className="pt-4 border-t border-white/10 space-y-6">
+                    <h3 className="text-white font-black text-sm uppercase italic tracking-widest flex items-center gap-2">
+                      <Layout className="w-4 h-4 text-boston-gold" /> Página Dedicada (Opcional)
+                    </h3>
+                    
+                    <div>
+                       <label className="text-[10px] text-white/40 uppercase font-black tracking-[0.2em] mb-3 block">Contenido Extendido</label>
+                       <textarea 
+                         value={content} 
+                         onChange={(e) => setContent(e.target.value)} 
+                         placeholder="Escribe el texto detallado que aparecerá cuando el cliente abra este banner..." 
+                         className="w-full bg-black/50 text-white border border-white/10 rounded-2xl py-4 px-6 focus:border-boston-gold transition-all outline-none text-sm min-h-[120px] resize-y"
+                       />
+                    </div>
+
+                    <div>
+                       <label className="text-[10px] text-white/40 uppercase font-black tracking-[0.2em] mb-3 flex justify-between items-center">
+                         <span>Galería de Fotos ({gallery.length})</span>
+                         {gallery.length > 0 && (
+                           <button onClick={() => setGallery([])} className="text-boston-red-glow hover:text-red-400 text-[9px]">Borrar Galería</button>
+                         )}
+                       </label>
+                       
+                       <div className="flex flex-wrap gap-4 mb-4">
+                         {gallery.map((img, idx) => (
+                           <div key={idx} className="w-20 h-20 bg-white/5 rounded-xl border border-white/10 overflow-hidden relative group">
+                             <img src={img.startsWith('http') ? img : `https://mybostonclub.com${img}`} className="w-full h-full object-cover" />
+                             <button 
+                               onClick={() => setGallery(gallery.filter((_, i) => i !== idx))}
+                               className="absolute top-1 right-1 bg-black/80 w-6 h-6 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                             >
+                               <X size={12} color="white" />
+                             </button>
+                           </div>
+                         ))}
+                         
+                         <label className={`w-20 h-20 border-2 border-dashed border-white/10 rounded-xl flex items-center justify-center cursor-pointer hover:bg-white/5 transition-all ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}>
+                            <input type="file" accept="image/*" multiple className="hidden" onChange={handleGalleryUpload} />
+                            {isUploading ? <Loader2 className="w-5 h-5 text-boston-gold animate-spin" /> : <Plus className="w-6 h-6 text-white/20" />}
+                         </label>
+                       </div>
+                    </div>
                  </div>
 
                  <div className="pt-6">
