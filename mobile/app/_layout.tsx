@@ -5,7 +5,12 @@ import { Stack, useRouter, useSegments } from 'expo-router';
 import { useRef } from 'react';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState } from 'react';
-import { View, ActivityIndicator, Text, TouchableOpacity } from 'react-native';
+import { View, ActivityIndicator, Text, TouchableOpacity, LogBox } from 'react-native';
+
+LogBox.ignoreLogs([
+  '[Reanimated] Reading from `value` during component render',
+  '[Reanimated] Writing to `value` during component render'
+]);
 import 'react-native-reanimated';
 
 import { useColorScheme } from '@/components/useColorScheme';

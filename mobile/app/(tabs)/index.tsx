@@ -1,14 +1,21 @@
 import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { View, Text, ScrollView, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl, Image, Modal, Animated, useWindowDimensions } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { Crown, Star, Flame, Ticket, ArrowRight, User as UserIcon, MapPin, CreditCard, Gift, QrCode, History, X } from 'lucide-react-native';
+import { Crown, Star, Flame, Ticket, ArrowRight, User as UserIcon, MapPin, CreditCard, Gift, QrCode, History, X, Calendar, TrendingUp } from 'lucide-react-native';
 import api, { getAuthToken, logout } from '../../lib/api';
 import { StatusBar } from 'expo-status-bar';
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import Constants from 'expo-constants';
-import { Platform, Dimensions } from 'react-native';
-import { Video, ResizeMode } from 'expo-av';
+import { Platform, Dimensions, LogBox } from 'react-native';
+import { VideoPlayer } from '../../components/VideoPlayer';
+import { FadeInView } from '../../components/FadeInView';
+import { LinearGradient } from 'expo-linear-gradient';
+
+LogBox.ignoreLogs([
+  '[Reanimated] Reading from `value` during component render',
+  '[Reanimated] Writing to `value` during component render'
+]);
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -37,37 +44,7 @@ type BannerEvent = {
   mediaType: 'IMAGE' | 'VIDEO';
 };
 
-// Componente helper para animaciones optimizadas
-const FadeInView = ({ delay = 0, children, className = "", style = {} }: any) => {
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(20)).current;
-
-  useEffect(() => {
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 400,
-        delay: delay,
-        useNativeDriver: true, // Optimizado para celulares papa
-      }),
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 400,
-        delay: delay,
-        useNativeDriver: true, // Optimizado para celulares papa
-      })
-    ]).start();
-  }, []);
-
-  return (
-    <Animated.View 
-      className={className}
-      style={[style, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}
-    >
-      {children}
-    </Animated.View>
-  );
-};
+// Componente helper para animaciones optimizadas removido de acá y movido a components/FadeInView.tsx
 
 export default function DashboardScreen() {
   const router = useRouter();
@@ -75,7 +52,9 @@ export default function DashboardScreen() {
   const CAROUSEL_WIDTH = SCREEN_WIDTH - 48; // SCREEN_WIDTH minus px-6 (24px * 2)
   const [user, setUser] = useState<UserData | null>(null);
   const [banners, setBanners] = useState<BannerEvent[]>([]);
+  const [promoBanners, setPromoBanners] = useState<BannerEvent[]>([]);
   const [currentBannerIdx, setCurrentBannerIdx] = useState(0);
+  const [currentPromoIdx, setCurrentPromoIdx] = useState(0);
   const [settings, setSettings] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -107,8 +86,12 @@ export default function DashboardScreen() {
       setUser(userDataRes.data);
       setSettings(settingsRes.data);
       
-      const filteredBanners = (eventsRes.data || []).filter((e: any) => e.type === "BANNER" && e.isActive !== false);
-      setBanners(filteredBanners);
+      const allEvents = eventsRes.data || [];
+      const topBanners = allEvents.filter((e: any) => e.type === "BANNER" && e.isActive !== false);
+      const bottomPromos = allEvents.filter((e: any) => e.type === "PROMO" && e.isActive !== false);
+      
+      setBanners(topBanners);
+      setPromoBanners(bottomPromos);
     } catch (err: any) {
       console.error('Load Profile Error:', err);
       // Solo mandamos al login si es un error de credenciales (401/403)
@@ -331,13 +314,9 @@ export default function DashboardScreen() {
                     className="relative bg-[#0c0c0c]"
                   >
                     {item.mediaType === 'VIDEO' && item.videoUrl ? (
-                      <Video
-                        source={{ uri: resolveImageUrl(item.videoUrl) || '' }}
+                      <VideoPlayer
+                        uri={resolveImageUrl(item.videoUrl) || ''}
                         style={{ width: '100%', height: '100%' }}
-                        resizeMode={ResizeMode.COVER}
-                        shouldPlay
-                        isLooping
-                        isMuted
                       />
                     ) : (
                       <Image 
@@ -381,72 +360,260 @@ export default function DashboardScreen() {
              </View>
           </View>
 
-          {/* Floating Tier Card - Mostaza Style */}
-          <FadeInView delay={500} className="px-6 -mt-10 z-50">
+          {/* Floating Tier Card - New Skeuomorphic Style */}
+          <FadeInView delay={500} className="px-6 -mt-12 z-50">
              <TouchableOpacity 
-              activeOpacity={0.9}
-              onPress={() => setShowBenefits(true)}
-              className="bg-boston-red shadow-2xl shadow-boston-red/40 rounded-[2.5rem] p-6 border border-white/10"
+               activeOpacity={0.9}
+               onPress={() => setShowBenefits(true)}
+               style={{
+                 shadowColor: '#ff0000',
+                 shadowOffset: { width: 0, height: 10 },
+                 shadowOpacity: 0.2,
+                 shadowRadius: 20,
+                 elevation: 10
+               }}
+               className="bg-[#0a0a0a] rounded-[2.5rem] p-6 border border-white/5"
              >
-                <View className="flex-row justify-between items-center mb-6">
-                   <Text className="text-white font-black uppercase text-sm italic tracking-widest">Nivel {user.membershipLevel}</Text>
-                   <View className="bg-black/20 px-3 py-1 rounded-full flex-row items-center">
-                      <Text className="text-white font-black text-[10px]">{user.points} PUNTOS</Text>
-                      <ArrowRight size={10} color="white" className="ml-2" />
+                {/* Header Section */}
+                <View className="flex-row justify-between items-start mb-6">
+                   <View className="flex-row items-center">
+                      {/* Round Logo Placeholder */}
+                      <View className="w-14 h-14 rounded-full bg-black border-2 border-white/10 items-center justify-center mr-4">
+                         <View className="items-center justify-center">
+                            <Text className="text-white text-[8px] font-black italic tracking-tighter leading-none">BOSTON</Text>
+                            <View className="h-[1px] w-8 bg-boston-red my-0.5" />
+                            <Crown size={12} color="#D4AF37" />
+                         </View>
+                      </View>
+                      
+                      <View>
+                         <Text className="text-white/40 font-black text-[10px] uppercase tracking-widest mb-1 italic">NIVEL</Text>
+                         <Text className="text-white text-3xl font-black uppercase italic tracking-tighter leading-none">
+                            {user.membershipLevel.toUpperCase()}
+                         </Text>
+                         <View className="flex-row items-center mt-2">
+                            <View className="h-[1px] flex-1 bg-boston-red/30" />
+                            <Star size={8} color="white" fill="white" className="mx-2" />
+                            <View className="h-[1px] flex-1 bg-boston-red/30" />
+                         </View>
+                      </View>
+                   </View>
+
+                   {/* Points Pill */}
+                   <View className="bg-black border border-boston-red/30 rounded-2xl p-2 flex-row items-center px-4 shadow-lg shadow-boston-red/20">
+                      <View className="w-8 h-8 bg-boston-red rounded-full items-center justify-center mr-3">
+                         <Star size={14} color="white" fill="white" />
+                      </View>
+                      <View>
+                         <Text className="text-white font-black text-xl italic tracking-tighter leading-none">{user.points}</Text>
+                         <Text className="text-boston-red font-black text-[8px] uppercase tracking-widest mt-0.5">PUNTOS</Text>
+                      </View>
+                      <ArrowRight size={12} color="white" className="ml-3 opacity-30" />
                    </View>
                 </View>
 
-                {/* Progress Bar */}
-                <View className="relative h-1.5 bg-black/20 rounded-full w-full mb-2">
+                {/* New 3D Progress Bar */}
+                <View className="relative mb-6">
+                   <View className="h-4 bg-black rounded-full w-full border border-white/5 overflow-hidden">
+                      {/* Track Background Texture */}
+                      <View className="absolute inset-0 opacity-20 flex-row">
+                         {[...Array(20)].map((_, i) => (
+                           <View key={i} className="w-1 h-full bg-white/20 mr-4 -rotate-45" />
+                         ))}
+                      </View>
+                      
+                      {/* Progress Fill with Gloss */}
+                      <View 
+                        style={{ width: `${calculateNextTier()?.currentProgress || 100}%` }} 
+                        className="absolute top-0 left-0 h-full"
+                      >
+                         <LinearGradient
+                           colors={['#ff4d4d', '#cc0000', '#990000']}
+                           start={{ x: 0, y: 0 }}
+                           end={{ x: 0, y: 1 }}
+                           style={{ flex: 1, borderRadius: 10 }}
+                         />
+                         {/* Gloss Overlay */}
+                         <View className="absolute top-0 left-0 right-0 h-[40%] bg-white/20 rounded-full mx-1 mt-0.5" />
+                      </View>
+                   </View>
+                   
+                   {/* Progress Thumb - Burger Icon Style */}
                    <View 
-                    style={{ width: `${calculateNextTier()?.currentProgress || 100}%` }} 
-                    className="absolute top-0 left-0 h-full bg-white rounded-full" 
-                   />
+                     style={{ left: `${(calculateNextTier()?.currentProgress || 100) - 2}%` }}
+                     className="absolute top-[-4px] w-6 h-6 rounded-full bg-boston-red border-2 border-[#1a1a1a] items-center justify-center shadow-xl shadow-boston-red/50"
+                   >
+                      <View className="w-2.5 h-0.5 bg-white rounded-full mb-0.5" />
+                      <View className="w-3.5 h-1 bg-boston-gold rounded-sm mb-0.5" />
+                      <View className="w-3 h-0.5 bg-white rounded-full" />
+                   </View>
                 </View>
                 
-                <View className="flex-row justify-between">
-                   <Text className="text-white/40 text-[8px] font-black uppercase">Clásico</Text>
-                   <Text className="text-white/40 text-[8px] font-black uppercase">Fan</Text>
-                   <Text className="text-white/40 text-[8px] font-black uppercase">Mega Fan</Text>
+                {/* Milestones */}
+                <View className="flex-row justify-between px-2">
+                   <View className="items-center">
+                      <Star size={10} color={user.points >= 0 ? '#D4AF37' : '#333'} fill={user.points >= 0 ? '#D4AF37' : 'transparent'} className="mb-2" />
+                      <Text className={`text-[10px] font-black uppercase italic ${user.points >= 0 ? 'text-white' : 'text-white/20'}`}>CLÁSICO</Text>
+                   </View>
+                   <View className="items-center">
+                      <Star size={10} color={user.points >= 5000 ? '#D4AF37' : '#333'} fill={user.points >= 5000 ? '#D4AF37' : 'transparent'} className="mb-2" />
+                      <Text className={`text-[10px] font-black uppercase italic ${user.points >= 5000 ? 'text-white' : 'text-white/20'}`}>FAN</Text>
+                   </View>
+                   <View className="items-center">
+                      <Star size={10} color={user.points >= 20000 ? '#D4AF37' : '#333'} fill={user.points >= 20000 ? '#D4AF37' : 'transparent'} className="mb-2" />
+                      <Text className={`text-[10px] font-black uppercase italic ${user.points >= 20000 ? 'text-white' : 'text-white/20'}`}>MEGA FAN</Text>
+                   </View>
                 </View>
              </TouchableOpacity>
           </FadeInView>
-        </View>
-
-        {/* Action Grid */}
-        <View className="px-6 mt-8 flex-col gap-6">
-           <Text className="text-white font-black uppercase tracking-[0.3em] text-[10px] ml-2">Menú Boston VIP</Text>
+          {/* New Premium Action Grid */}
+        <View className="px-6 mt-12">
+           <View className="flex-row items-center justify-center mb-8">
+              <View className="h-[1px] w-8 bg-white/10" />
+              <Star size={8} color="#FF3B30" fill="#FF3B30" className="mx-3" />
+              <Text className="text-white font-black uppercase tracking-[0.3em] text-[10px]">Menú Boston VIP</Text>
+              <Star size={8} color="#FF3B30" fill="#FF3B30" className="mx-3" />
+              <View className="h-[1px] w-8 bg-white/10" />
+           </View>
            
-           <View className="flex-row flex-wrap gap-4">
+           <View className="flex-row justify-between">
+              {/* Rewards Card */}
               <TouchableOpacity 
                 onPress={() => router.push('/rewards')}
-                className="w-[47%] aspect-square bg-white/[0.03] border border-white/5 rounded-[2.5rem] p-6 items-center justify-center"
+                activeOpacity={0.8}
+                className="w-[31%] aspect-[0.7] bg-[#0c0c0c] border border-white/5 rounded-[2.5rem] p-4 items-center justify-between shadow-2xl shadow-black"
               >
-                 <Gift size={32} color="#D4AF37" className="mb-3" />
-                 <Text className="text-white font-black uppercase text-[10px] tracking-widest">Premios</Text>
+                 <View className="w-12 h-12 rounded-2xl border border-[#FF3B30]/30 items-center justify-center bg-white/5">
+                    <Gift size={24} color="#FF3B30" />
+                 </View>
+                 <View className="items-center">
+                    <Text className="text-white font-black uppercase text-[10px] tracking-wider mb-1">Premios</Text>
+                    <Text className="text-white/30 font-bold uppercase text-[7px] text-center">Canjea tus puntos</Text>
+                 </View>
+                 <View className="w-8 h-8 rounded-full bg-boston-red items-center justify-center">
+                    <ArrowRight size={14} color="white" />
+                 </View>
               </TouchableOpacity>
 
+              {/* Agenda Card */}
               <TouchableOpacity 
                 onPress={() => router.push('/events')}
-                className="w-[47%] aspect-square bg-white/[0.03] border border-white/5 rounded-[2.5rem] p-6 items-center justify-center"
+                activeOpacity={0.8}
+                className="w-[31%] aspect-[0.7] bg-[#0c0c0c] border border-white/5 rounded-[2.5rem] p-4 items-center justify-between shadow-2xl shadow-black"
               >
-                 <Ticket size={32} color="#22D3EE" className="mb-3" />
-                 <Text className="text-white font-black uppercase text-[10px] tracking-widest">Agenda</Text>
+                 <View className="w-12 h-12 rounded-2xl border border-[#FF3B30]/30 items-center justify-center bg-white/5 relative">
+                    <Calendar size={24} color="#FF3B30" />
+                    <View className="absolute top-1 right-1">
+                       <Star size={8} color="#FF3B30" fill="#FF3B30" />
+                    </View>
+                 </View>
+                 <View className="items-center">
+                    <Text className="text-white font-black uppercase text-[10px] tracking-wider mb-1">Agenda</Text>
+                    <Text className="text-white/30 font-bold uppercase text-[7px] text-center">Eventos y promos</Text>
+                 </View>
+                 <View className="w-8 h-8 rounded-full bg-boston-red items-center justify-center">
+                    <ArrowRight size={14} color="white" />
+                 </View>
               </TouchableOpacity>
 
+              {/* Activity Card */}
               <TouchableOpacity 
                 onPress={() => router.push('/history')}
-                className="w-full flex-row bg-white/[0.03] border border-white/5 rounded-[2rem] p-6 items-center"
+                activeOpacity={0.8}
+                className="w-[31%] aspect-[0.7] bg-[#0c0c0c] border border-white/5 rounded-[2.5rem] p-4 items-center justify-between shadow-2xl shadow-black"
               >
-                 <View className="w-12 h-12 bg-white/5 rounded-2xl items-center justify-center mr-4">
-                   <History size={24} color="rgba(255,255,255,0.4)" />
+                 <View className="w-12 h-12 rounded-2xl border border-[#FF3B30]/30 items-center justify-center bg-white/5">
+                    <TrendingUp size={24} color="#FF3B30" />
                  </View>
-                 <View className="flex-1">
-                    <Text className="text-white font-black uppercase text-xs tracking-widest">Actividad</Text>
-                    <Text className="text-white/30 font-bold uppercase text-[8px]">Tus puntos y movimientos</Text>
+                 <View className="items-center">
+                    <Text className="text-white font-black uppercase text-[10px] tracking-wider mb-1">Actividad</Text>
+                    <Text className="text-white/30 font-bold uppercase text-[7px] text-center">Tus movimientos</Text>
                  </View>
-                 <ArrowRight size={16} color="rgba(255,255,255,0.2)" />
+                 <View className="w-8 h-8 rounded-full bg-boston-red items-center justify-center">
+                    <ArrowRight size={14} color="white" />
+                 </View>
               </TouchableOpacity>
+           </View>
+        </View>
+        {/* Promos Destacadas Section - Bottom Placement */}
+        <View className="mt-12 mb-8">
+           <View className="px-6 flex-row justify-between items-end mb-6">
+              <View>
+                 <Text className="text-white/20 font-black text-[8px] uppercase tracking-[0.4em] mb-1">Especiales de hoy</Text>
+                 <Text className="text-white text-2xl font-black uppercase italic tracking-tighter">Promos Destacadas</Text>
+              </View>
+              <TouchableOpacity className="flex-row items-center bg-white/5 px-4 py-2 rounded-full border border-white/10">
+                 <Text className="text-boston-red font-black text-[9px] uppercase tracking-widest mr-2">Ver Todas</Text>
+                 <ArrowRight size={10} color="#FF3B30" />
+              </TouchableOpacity>
+           </View>
+
+           <View style={{ height: 180 }}>
+              <FlatList
+                 data={promoBanners.length > 0 ? promoBanners : [{ id: 'empty', title: '2X1', description: 'En Hamburguesas', condition: 'TODOS LOS MARTES', mediaType: 'IMAGE' } as any]}
+                 horizontal
+                 showsHorizontalScrollIndicator={false}
+                 contentContainerStyle={{ paddingHorizontal: 24, gap: 16 }}
+                 snapToInterval={SCREEN_WIDTH * 0.85 + 16}
+                 decelerationRate="fast"
+                 onScroll={(e) => {
+                    const x = e.nativeEvent.contentOffset.x;
+                    const idx = Math.round(x / (SCREEN_WIDTH * 0.85 + 16));
+                    setCurrentPromoIdx(idx);
+                 }}
+                 renderItem={({ item }: { item: any }) => (
+                   <TouchableOpacity 
+                     activeOpacity={0.9} 
+                     onPress={() => item.id !== 'empty' && router.push(`/banner/${item.id}`)}
+                     style={{ width: SCREEN_WIDTH * 0.85, height: 160 }} 
+                     className="relative bg-[#0c0c0c] rounded-[2.5rem] border border-white/5 overflow-hidden shadow-2xl"
+                   >
+                     {/* Card Content Layout */}
+                     <View className="flex-1 flex-row">
+                        {/* Text Content (Left) */}
+                        <View className="flex-1 p-6 justify-center">
+                           <Text className="text-white text-4xl font-black uppercase italic tracking-tighter mb-1">
+                              {item.title}
+                           </Text>
+                           <Text className="text-white/80 font-black uppercase text-[10px] tracking-widest mb-4">
+                              {item.description}
+                           </Text>
+                           <View className="bg-white/10 self-start px-2 py-1 rounded-md">
+                              <Text className="text-white/40 font-bold uppercase text-[7px] tracking-widest">
+                                 {item.condition || 'Válido hoy'}
+                              </Text>
+                           </View>
+                        </View>
+
+                        {/* Image Content (Right) */}
+                        <View className="w-[45%] h-full">
+                           <Image 
+                             source={{ uri: resolveImageUrl(item.imageUrl) || 'https://images.unsplash.com/photo-1550547660-d9450f859349?q=80&w=500' }} 
+                             className="w-full h-full"
+                             resizeMode="cover"
+                           />
+                           {/* Gradient to blend image with text area */}
+                           <LinearGradient
+                              colors={['#0c0c0c', 'transparent']}
+                              start={{ x: 0, y: 0.5 }}
+                              end={{ x: 0.8, y: 0.5 }}
+                              style={{ position: 'absolute', top: 0, left: 0, bottom: 0, width: '40%' }}
+                           />
+                        </View>
+                     </View>
+                   </TouchableOpacity>
+                 )}
+              />
+           </View>
+           
+           {/* Pagination Dots - Redesigned */}
+           <View className="flex-row justify-center gap-2 mt-4">
+              {promoBanners.map((_, idx) => (
+                <View 
+                  key={idx} 
+                  className={`h-1.5 rounded-full transition-all ${idx === currentPromoIdx ? 'w-8 bg-boston-red' : 'w-2 bg-white/10'}`} 
+                />
+              ))}
            </View>
         </View>
       </ScrollView>

@@ -5,11 +5,11 @@ import { View, Text, Platform, Animated } from 'react-native';
 
 // Animated Icon Wrapper for smooth feedback
 const AnimatedTabIcon = ({ focused, color, Icon, label }: any) => {
-  const scaleAnim = useRef(new Animated.Value(focused ? 1.15 : 1)).current;
+  const scaleAnim = useRef(new Animated.Value(focused ? 1.1 : 1)).current;
 
   useEffect(() => {
     Animated.spring(scaleAnim, {
-      toValue: focused ? 1.15 : 1,
+      toValue: focused ? 1.1 : 1,
       friction: 8,
       tension: 100,
       useNativeDriver: true,
@@ -20,22 +20,23 @@ const AnimatedTabIcon = ({ focused, color, Icon, label }: any) => {
     <Animated.View 
       style={{ 
         alignItems: 'center', 
-        justifyContent: 'center', 
-        minWidth: 65,
+        justifyContent: 'center',
+        height: '100%',
+        width: 70,
+        paddingTop: 10,
         transform: [{ scale: scaleAnim }]
       }}
     >
-      <Icon size={20} color={color} />
+      <Icon size={22} color={color} />
       <Text 
         numberOfLines={1}
-        ellipsizeMode="tail"
         style={{ 
           color, 
-          fontSize: 7, 
+          fontSize: 8, 
           fontWeight: '900', 
           marginTop: 4, 
-          letterSpacing: 0.2,
-          opacity: focused ? 1 : 0.6
+          letterSpacing: 0.5,
+          opacity: focused ? 1 : 0.5
         }}
       >
         {label}
@@ -49,9 +50,7 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        // Prevenir flashes al cambiar: seteamos el fondo del contenedor
         sceneContainerStyle: { backgroundColor: '#050505' },
-        // Animación fluida de desplazamiento y fundido estilo nativo
         animation: 'shift',
         tabBarStyle: {
           position: 'absolute',
@@ -59,19 +58,22 @@ export default function TabLayout() {
           left: 20,
           right: 20,
           elevation: 0,
-          backgroundColor: 'rgba(10, 10, 10, 0.95)',
-          borderRadius: 30,
-          height: 65,
-          borderTopWidth: 0,
-          paddingBottom: 0,
-          shadowColor: '#000',
+          backgroundColor: '#000000',
+          borderRadius: 35,
+          height: 75,
+          borderTopWidth: 1,
+          borderTopColor: 'rgba(255, 255, 255, 0.05)',
+          borderWidth: 1,
+          borderColor: 'rgba(255, 255, 255, 0.1)',
+          paddingBottom: Platform.OS === 'ios' ? 20 : 0,
+          shadowColor: '#FF3B30',
           shadowOffset: { width: 0, height: 10 },
-          shadowOpacity: 0.5,
+          shadowOpacity: 0.15,
           shadowRadius: 20,
         },
         tabBarShowLabel: false,
-        tabBarActiveTintColor: '#D4AF37',
-        tabBarInactiveTintColor: 'rgba(255,255,255,0.3)',
+        tabBarActiveTintColor: '#FF3B30',
+        tabBarInactiveTintColor: 'rgba(255,255,255,0.4)',
       }}>
       <Tabs.Screen
         name="index"
@@ -95,25 +97,25 @@ export default function TabLayout() {
           tabBarIcon: ({ focused }) => (
             <View 
               style={{
-                top: -12,
-                width: 60,
-                height: 60,
-                borderRadius: 30,
-                backgroundColor: '#D4AF37',
+                top: -15,
+                width: 68,
+                height: 68,
+                borderRadius: 34,
+                backgroundColor: '#FF3B30',
                 justifyContent: 'center',
                 alignItems: 'center',
-                borderWidth: 4,
+                borderWidth: 5,
                 borderColor: '#000',
-                shadowColor: '#D4AF37',
-                shadowOffset: { width: 0, height: 6 },
-                shadowOpacity: 0.4,
-                shadowRadius: 10,
-                elevation: 8,
-                transform: [{ scale: focused ? 1.1 : 1 }]
+                shadowColor: '#FF3B30',
+                shadowOffset: { width: 0, height: 8 },
+                shadowOpacity: 0.6,
+                shadowRadius: 12,
+                elevation: 10,
+                transform: [{ scale: focused ? 1.15 : 1 }]
               }}
             >
-              <ScanLine size={24} color="#000" strokeWidth={3} />
-              <Text style={{ color: '#000', fontSize: 7, fontWeight: '900', marginTop: -2 }}>SCAN</Text>
+              <ScanLine size={28} color="#000" strokeWidth={3} />
+              <Text style={{ color: '#000', fontSize: 8, fontStyle: 'italic', fontWeight: '900', marginTop: -2 }}>SCAN</Text>
             </View>
           ),
         }}

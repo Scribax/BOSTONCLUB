@@ -175,7 +175,7 @@ export default function AdminEventsPage() {
                    <label className="text-[10px] text-white/40 uppercase font-black tracking-[0.2em] mb-2 block">Tipo</label>
                    <select value={type} onChange={(e) => setType(e.target.value)} className="w-full bg-[#0a0a0a] text-white border border-white/10 rounded-2xl py-4 px-5 focus:border-boston-gold transition-all outline-none text-sm">
                      <option value="EVENTO">Evento</option>
-                     <option value="BANNER">Banner</option>
+                     <option value="PROMO">Promoción (Card Inferior)</option>
                    </select>
                  </div>
                  <div className="md:col-span-1">
@@ -261,7 +261,7 @@ export default function AdminEventsPage() {
                <tr key={ev.id} className="border-b border-white/5 last:border-0 hover:bg-white/5 transition-colors">
                   <td className="py-4 pl-4">
                      <div className="flex flex-col gap-1 items-start">
-                       <span className={`text-[10px] font-black px-2 py-1 rounded-sm uppercase ${ev.type === 'BANNER' ? 'bg-boston-red-glow text-white' : 'bg-boston-gold/20 text-boston-gold'}`}>
+                       <span className={`text-[10px] font-black px-2 py-1 rounded-sm uppercase ${ev.type === 'PROMO' ? 'bg-boston-red-glow text-white' : 'bg-boston-gold/20 text-boston-gold'}`}>
                           {ev.type}
                        </span>
                        {ev.isAdultOnly && (

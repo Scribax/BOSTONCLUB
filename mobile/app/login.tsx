@@ -1,10 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, Alert, ActivityIndicator, StyleSheet } from 'react-native';
-import { Video, ResizeMode } from 'expo-av';
+import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, Alert, ActivityIndicator, StyleSheet, LogBox } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Mail, Lock, LogIn, ChevronRight, Crown, ArrowRight, User as UserIcon, Phone } from 'lucide-react-native';
 import api, { setAuthToken } from '../lib/api';
 import { StatusBar } from 'expo-status-bar';
+import { VideoPlayer } from '../components/VideoPlayer';
+
+LogBox.ignoreLogs([
+  '[Reanimated] Reading from `value` during component render',
+  '[Reanimated] Writing to `value` during component render'
+]);
 
 export default function LoginScreen() {
   const [isLogin, setIsLogin] = useState(true);
@@ -124,13 +129,9 @@ export default function LoginScreen() {
       
       {/* Dynamic Video Background */}
       {videoUrl && (
-        <Video
-          source={{ uri: resolveVideoUrl(videoUrl) || '' }}
+        <VideoPlayer
+          uri={resolveVideoUrl(videoUrl) || ''}
           style={StyleSheet.absoluteFill}
-          resizeMode={ResizeMode.COVER}
-          shouldPlay
-          isLooping
-          isMuted
         />
       )}
       

@@ -1,17 +1,46 @@
-import { View, Text, ScrollView, Image, TouchableOpacity, Dimensions } from 'react-native';
+import { View, Text, ScrollView, Image, TouchableOpacity, Dimensions, Animated, Linking, ActivityIndicator, LogBox } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useState, useEffect } from 'react';
-import { apiFetch, resolveImageUrl } from '../../lib/api';
-import { ArrowLeft, Gift, AlertCircle } from 'lucide-react-native';
-import { Video, ResizeMode } from 'expo-av';
+import { useState, useEffect, useRef } from 'react';
+import api from '../../lib/api';
+import { ArrowLeft, Gift, AlertCircle, Share2, Sparkles, ChevronDown, ArrowRight } from 'lucide-react-native';
+import { VideoPlayer } from '../../components/VideoPlayer';
 import { LinearGradient } from 'expo-linear-gradient';
 import { FadeInView } from '../../components/FadeInView';
+import { StatusBar } from 'expo-status-bar';
+import { BlurView } from 'expo-blur';
+
+LogBox.ignoreLogs([
+  '[Reanimated] Reading from `value` during component render',
+  '[Reanimated] Writing to `value` during component render'
+]);
+
+const resolveImageUrl = (url: string) => {
+  if (!url) return '';
+  if (url.startsWith('http')) return url;
+  return `https://mybostonclub.com${url}`;
+};
 
 export default function BannerDetailScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
   const [banner, setBanner] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  
+  const scrollY = useRef(new Animated.Value(0)).current;
+  const HEADER_HEIGHT = 100;
+  const HERO_HEIGHT = Dimensions.get('window').height * 0.65;
+
+  const headerOpacity = scrollY.interpolate({
+    inputRange: [0, HEADER_HEIGHT],
+    outputRange: [0, 1],
+    extrapolate: 'clamp',
+  });
+
+  const headerScale = scrollY.interpolate({
+    inputRange: [-100, 0],
+    outputRange: [1.2, 1],
+    extrapolate: 'clamp',
+  });
 
   useEffect(() => {
     fetchBanner();
@@ -20,7 +49,8 @@ export default function BannerDetailScreen() {
   const fetchBanner = async () => {
     try {
       setLoading(true);
-      const events = await apiFetch('/events');
+      const response = await api.get('/events');
+      const events = response.data;
       const found = events.find((e: any) => e.id === id);
       if (found) {
         if (found.gallery) {
@@ -38,117 +68,181 @@ export default function BannerDetailScreen() {
   if (loading) {
     return (
       <View className="flex-1 bg-[#050505] items-center justify-center">
-        <Text className="text-boston-gold uppercase font-black tracking-widest text-xs">Cargando...</Text>
+        <Sparkles color="#D4AF37" size={32} className="mb-4" />
+        <ActivityIndicator color="white" />
       </View>
     );
   }
 
   if (!banner) {
     return (
-      <View className="flex-1 bg-[#050505] items-center justify-center px-6">
+      <View className="flex-1 bg-white items-center justify-center px-6">
         <AlertCircle color="#ff4d4d" size={40} className="mb-4" />
-        <Text className="text-white text-xl font-black uppercase italic mb-2">Contenido no encontrado</Text>
-        <TouchableOpacity onPress={() => router.back()} className="mt-4 bg-white/10 px-6 py-3 rounded-full">
-          <Text className="text-white font-bold uppercase text-xs">Volver al Inicio</Text>
+        <Text className="text-black text-xl font-black uppercase italic mb-2">Ups! No hay nada aquí</Text>
+        <TouchableOpacity onPress={() => router.back()} className="mt-4 bg-boston-red px-8 py-4 rounded-2xl">
+          <Text className="text-white font-black uppercase text-xs tracking-widest">VOLVER AL CLUB</Text>
         </TouchableOpacity>
       </View>
     );
   }
 
   return (
-    <View className="flex-1 bg-[#050505]">
-      {/* Header Button (Absolute) */}
+    <View className="flex-1 bg-white">
+      <StatusBar style="light" />
+      
+      {/* Dynamic Floating Header */}
+      <Animated.View 
+        style={{ 
+          opacity: headerOpacity,
+          height: HEADER_HEIGHT,
+        }}
+        className="absolute top-0 left-0 right-0 z-50 overflow-hidden"
+      >
+        <BlurView intensity={80} tint="dark" style={StyleSheet.absoluteFill} />
+        <View className="flex-1 pt-12 px-6 flex-row items-center justify-between">
+           <Text className="text-white text-lg font-black italic tracking-tighter uppercase">
+            BOSTON <Text className="text-boston-red">CLUB</Text>
+           </Text>
+           <TouchableOpacity className="w-10 h-10 bg-white/10 rounded-full items-center justify-center">
+              <Share2 color="white" size={18} />
+           </TouchableOpacity>
+        </View>
+      </Animated.View>
+
+      {/* Back Button (Always visible but styled) */}
       <TouchableOpacity 
         onPress={() => router.back()}
-        className="absolute top-14 left-6 z-50 w-12 h-12 bg-black/50 rounded-full items-center justify-center border border-white/10 backdrop-blur-md"
+        className="absolute top-12 left-6 z-[60] w-12 h-12 bg-black/30 rounded-full items-center justify-center border border-white/20"
       >
         <ArrowLeft color="white" size={24} />
       </TouchableOpacity>
 
-      <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
-        {/* Parallax Hero */}
-        <View style={{ height: Dimensions.get('window').height * 0.55 }} className="relative">
-          {banner.mediaType === 'VIDEO' && banner.videoUrl ? (
-            <Video
-              source={{ uri: resolveImageUrl(banner.videoUrl) || '' }}
-              style={{ width: '100%', height: '100%' }}
-              resizeMode={ResizeMode.COVER}
-              shouldPlay
-              isLooping
-              isMuted
-            />
-          ) : (
-            <Image 
-              source={{ uri: resolveImageUrl(banner.imageUrl) || '' }} 
-              className="w-full h-full"
-              resizeMode="cover"
-            />
-          )}
+      <Animated.ScrollView 
+        showsVerticalScrollIndicator={false}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: true }
+        )}
+        scrollEventThrottle={16}
+        className="flex-1"
+      >
+        {/* Cinematic Hero */}
+        <View style={{ height: HERO_HEIGHT }} className="relative bg-black overflow-hidden">
+          <Animated.View style={{ transform: [{ scale: headerScale }], flex: 1 }}>
+            {banner.mediaType === 'VIDEO' && banner.videoUrl ? (
+              <VideoPlayer
+                uri={resolveImageUrl(banner.videoUrl) || ''}
+                style={{ width: '100%', height: '100%' }}
+              />
+            ) : (
+              <Image 
+                source={{ uri: resolveImageUrl(banner.imageUrl) || '' }} 
+                className="w-full h-full opacity-90"
+                resizeMode="cover"
+              />
+            )}
+          </Animated.View>
+
+          {/* New Modern Gradient: Protects text without blocking center */}
           <LinearGradient
-            colors={['transparent', 'rgba(5,5,5,0.8)', '#050505']}
-            className="absolute inset-0 top-1/2"
+            colors={['rgba(0,0,0,0.6)', 'transparent', 'rgba(0,0,0,0.95)']}
+            className="absolute inset-0"
           />
           
-          <View className="absolute bottom-0 w-full px-6 pb-8">
-             <FadeInView delay={100}>
-                {banner.type === 'BANNER' && (
-                  <View className="bg-boston-gold/10 self-start px-3 py-1.5 rounded-full mb-4 border border-boston-gold/20">
-                    <Text className="text-boston-gold text-[9px] font-black uppercase tracking-widest">Contenido Exclusivo</Text>
-                  </View>
-                )}
-                <Text className="text-white text-4xl font-black uppercase italic tracking-tighter leading-none mb-3">
+          {/* Title moved to BOTTOM for a cleaner center look */}
+          <View className="absolute bottom-16 w-full px-8">
+             <FadeInView delay={200}>
+                <View className="flex-row items-center mb-2">
+                   <View className="h-[2px] w-8 bg-boston-red mr-3" />
+                   <Text className="text-boston-red font-black text-[10px] uppercase tracking-[0.4em]">EXCLUSIVO</Text>
+                </View>
+                <Text className="text-white text-5xl font-black uppercase italic tracking-tighter leading-[48px]">
                   {banner.title}
                 </Text>
-                <Text className="text-white/70 text-sm font-bold uppercase tracking-widest leading-relaxed">
+                <Text className="text-white/60 text-base font-bold uppercase tracking-widest mt-2 leading-relaxed">
                   {banner.description}
                 </Text>
              </FadeInView>
           </View>
+
+          {/* Hint to scroll */}
+          <View className="absolute bottom-6 w-full items-center">
+             <ChevronDown color="white" size={20} className="opacity-30" />
+          </View>
         </View>
 
-        {/* Content Section */}
-        <View className="px-6 py-4">
-           {banner.benefits && (
-             <FadeInView delay={200} className="bg-boston-gold/5 border border-boston-gold/10 rounded-3xl p-6 mb-8">
-                <View className="flex-row items-center gap-3 mb-3">
-                   <Gift color="#D4AF37" size={20} />
-                   <Text className="text-boston-gold font-black uppercase tracking-widest text-xs">Beneficio VIP</Text>
+        {/* Content Section - White, Clean, Spaced */}
+        <View className="bg-white rounded-t-[40px] -mt-8 p-8 min-h-[500px] shadow-2xl">
+           <FadeInView delay={300}>
+              <View className="flex-row items-center justify-between mb-8">
+                 <Text className="text-black text-2xl font-black uppercase italic tracking-tighter">
+                   Detalles
+                 </Text>
+                 <View className="bg-black/5 px-4 py-2 rounded-full">
+                    <Text className="text-black/40 font-black text-[8px] uppercase tracking-widest">
+                       Ref: #{id.toString().slice(-4)}
+                    </Text>
+                 </View>
+              </View>
+              
+              <Text className="text-black/80 text-lg font-medium leading-8 mb-10">
+                {banner.content || 'Viví la experiencia definitiva en Boston Club. Un espacio diseñado para los que buscan lo mejor en gastronomía, eventos y beneficios exclusivos.'}
+              </Text>
+
+              {banner.benefits && (
+                <View className="bg-boston-red rounded-[2.5rem] p-8 mb-12 shadow-xl shadow-boston-red/20">
+                   <View className="flex-row items-center mb-4">
+                      <View className="w-10 h-10 bg-white/20 rounded-full items-center justify-center mr-4">
+                         <Sparkles color="white" size={20} />
+                      </View>
+                      <Text className="text-white font-black text-xs uppercase tracking-[0.2em]">Puntos & Beneficios</Text>
+                   </View>
+                   <Text className="text-white font-bold text-xl italic leading-7">{banner.benefits}</Text>
                 </View>
-                <Text className="text-white/90 font-medium italic text-sm">{banner.benefits}</Text>
-             </FadeInView>
+              )}
+           </FadeInView>
+
+           {/* Gallery - Grid Style (Modern) */}
+           {banner.gallery && Array.isArray(banner.gallery) && banner.gallery.length > 0 && (
+             <View className="mt-4">
+                <View className="flex-row items-center mb-8">
+                   <Text className="text-black font-black uppercase text-sm tracking-widest italic">GALERÍA</Text>
+                   <View className="flex-1 h-[1px] bg-black/5 ml-4" />
+                </View>
+                
+                <View className="flex-row flex-wrap justify-between">
+                   {banner.gallery.map((img: string, idx: number) => (
+                     <FadeInView key={idx} delay={400 + (idx * 100)} className={`${idx % 3 === 0 ? 'w-full' : 'w-[48%]'} mb-4`}>
+                        <TouchableOpacity 
+                          activeOpacity={0.9}
+                          className="h-64 rounded-[2rem] overflow-hidden bg-[#F5F5F5] border border-black/5"
+                        >
+                           <Image 
+                             source={{ uri: resolveImageUrl(img) }} 
+                             className="w-full h-full"
+                             resizeMode="cover"
+                           />
+                        </TouchableOpacity>
+                     </FadeInView>
+                   ))}
+                </View>
+             </View>
            )}
-
-           {banner.content ? (
-             <FadeInView delay={300} className="mb-10">
-               {banner.content.split('\n').map((paragraph: string, index: number) => (
-                 paragraph.trim() !== '' && (
-                   <Text key={index} className="text-white/60 text-base mb-4 leading-[28px]">
-                     {paragraph}
-                   </Text>
-                 )
-               ))}
-             </FadeInView>
-           ) : null}
+           
+           <View className="h-40" />
         </View>
+      </Animated.ScrollView>
 
-        {/* Horizontal Gallery */}
-        {banner.gallery && Array.isArray(banner.gallery) && banner.gallery.length > 0 && (
-          <FadeInView delay={400} className="mb-20">
-             <Text className="text-white font-black uppercase tracking-widest text-xs px-6 mb-6 italic">Galería</Text>
-             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 24, gap: 16 }}>
-                {banner.gallery.map((img: string, idx: number) => (
-                  <View key={idx} className="w-64 h-80 rounded-[2rem] overflow-hidden border border-white/5 bg-white/5">
-                    <Image 
-                      source={{ uri: resolveImageUrl(img) }} 
-                      className="w-full h-full"
-                      resizeMode="cover"
-                    />
-                  </View>
-                ))}
-             </ScrollView>
-          </FadeInView>
-        )}
-      </ScrollView>
     </View>
   );
 }
+
+const StyleSheet = {
+  absoluteFill: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+  }
+} as const;
