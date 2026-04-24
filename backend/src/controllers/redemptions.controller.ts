@@ -37,7 +37,8 @@ export const generateRedemptionQR = async (req: any, res: Response): Promise<voi
         data: { userId, rewardId, qrToken, expiresAt, status: "PENDING" }
       });
 
-      return res.json({ redemptionId: redemption.id, qrToken, expiresAt });
+      res.json({ redemptionId: redemption.id, qrToken, expiresAt });
+      return;
     }
 
     if (eventId) {
@@ -77,7 +78,8 @@ export const generateRedemptionQR = async (req: any, res: Response): Promise<voi
         data: { userId, eventId, qrToken, expiresAt, status: "PENDING" }
       });
 
-      return res.json({ redemptionId: redemption.id, qrToken, expiresAt });
+      res.json({ redemptionId: redemption.id, qrToken, expiresAt });
+      return;
     }
   } catch (error) {
     console.error(error);

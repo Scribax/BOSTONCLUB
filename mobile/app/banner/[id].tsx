@@ -361,9 +361,9 @@ export default function BannerDetailScreen() {
                                </Text>
                             </View>
                          </View>
-                      </>
-                    )}
-                  </View>
+                      </View>
+                    </>
+                  )}
                </View>
 
                {redemptionStatus !== 'COMPLETED' && (

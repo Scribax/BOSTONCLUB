@@ -18,7 +18,7 @@ export const getAdminStats = async (req: Request, res: Response): Promise<void> 
       }
     });
     
-    const totalPointsUsed = allRedemptions.reduce((sum, r) => sum + r.reward.pointsRequired, 0);
+    const totalPointsUsed = allRedemptions.reduce((sum, r) => sum + (r.reward?.pointsRequired || 0), 0);
 
     // 3. Latest Activity (All point movements: Redemptions, Promos, Admin additions)
     const latestActivity = await prisma.pointHistory.findMany({
