@@ -4,10 +4,10 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import { Crown, Star, Flame, Ticket, ArrowRight, User as UserIcon, MapPin, CreditCard, Gift, QrCode, History, X, Calendar, TrendingUp } from 'lucide-react-native';
 import api, { getAuthToken, logout } from '../../lib/api';
 import { StatusBar } from 'expo-status-bar';
-import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import Constants from 'expo-constants';
 import { Platform, Dimensions, LogBox } from 'react-native';
+import { initNotifications, registerForPushNotificationsAsync } from '../../lib/notificationHelper';
 import { VideoPlayer } from '../../components/VideoPlayer';
 import { FadeInView } from '../../components/FadeInView';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -17,14 +17,8 @@ LogBox.ignoreLogs([
   '[Reanimated] Writing to `value` during component render'
 ]);
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowBanner: true,
-    shouldShowList: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-  }),
-});
+// Initialize notifications configuration
+initNotifications();
 
 type UserData = {
   id: string;
@@ -119,57 +113,10 @@ export default function DashboardScreen() {
     return `${rootUrl}${cleanUrl}`;
   };
 
-  const registerForPushNotificationsAsync = async () => {
-    // IMPORTANTE: SDK 53 eliminó el soporte de notificaciones push en Expo Go.
-    // Solo permitimos el registro si NO estamos en Expo Go.
-    if (Constants.appOwnership === 'expo') {
-      console.log('Push Notifications: Saltando registro en Expo Go (No soportado en SDK 53)');
-      return;
-    }
-
-    let token;
-    if (Platform.OS === 'android') {
-      await Notifications.setNotificationChannelAsync('default', {
-        name: 'default',
-        importance: Notifications.AndroidImportance.MAX,
-        vibrationPattern: [0, 250, 250, 250],
-        lightColor: '#FF231F7C',
-      });
-    }
-
-    if (Device.isDevice) {
-      const { status: existingStatus } = await Notifications.getPermissionsAsync();
-      let finalStatus = existingStatus;
-      if (existingStatus !== 'granted') {
-        const { status } = await Notifications.requestPermissionsAsync();
-        finalStatus = status;
-      }
-      if (finalStatus !== 'granted') {
-        console.log('Permisos de notificaciones no otorgados');
-        return;
-      }
-      try {
-        const projectId = Constants.expoConfig?.extra?.eas?.projectId ?? '3c50dc68-3e19-4218-a359-aca0431d7233'; // Expo EAS project ID
-        const pushTokenData = await Notifications.getExpoPushTokenAsync({
-           projectId
-        });
-        token = pushTokenData.data;
-        
-        // Save to backend
-        if (token) {
-           await api.patch('/auth/push-token', { token }).catch(() => {});
-        }
-      } catch (e) {
-        console.log('Error obteniendo Push Token:', e);
-      }
-    }
-    return token;
-  };
-
   useFocusEffect(
     useCallback(() => {
       loadProfile().then(() => {
-        // Ejecutar petición de notificaciones luego de cargar usuario
+        // Ejecutar petición de notificaciones luego de cargar usuario (si no es Expo Go)
         registerForPushNotificationsAsync();
       });
     }, [])

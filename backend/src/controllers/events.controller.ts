@@ -82,7 +82,11 @@ export const createEvent = async (req: Request, res: Response): Promise<void> =>
       isActive,
       isAdultOnly,
       content,
-      gallery
+      gallery,
+      isRedeemable,
+      redemptionPolicy,
+      benefitType,
+      benefitValue
     } = req.body;
     
     const event = await prisma.event.create({
@@ -105,6 +109,10 @@ export const createEvent = async (req: Request, res: Response): Promise<void> =>
         reminderSent: false,
         content,
         gallery: gallery ? (typeof gallery === 'string' ? gallery : JSON.stringify(gallery)) : null,
+        isRedeemable: isRedeemable || false,
+        redemptionPolicy: redemptionPolicy || "ONCE_TOTAL",
+        benefitType: benefitType || null,
+        benefitValue: benefitValue || null
       }
     });
 
@@ -160,7 +168,11 @@ export const updateEvent = async (req: Request, res: Response): Promise<void> =>
       isActive,
       isAdultOnly,
       content,
-      gallery
+      gallery,
+      isRedeemable,
+      redemptionPolicy,
+      benefitType,
+      benefitValue
     } = req.body;
 
     const event = await prisma.event.update({
@@ -182,7 +194,11 @@ export const updateEvent = async (req: Request, res: Response): Promise<void> =>
         isActive,
         isAdultOnly,
         content,
-        gallery: gallery !== undefined ? (typeof gallery === 'string' ? gallery : JSON.stringify(gallery)) : undefined
+        gallery: gallery !== undefined ? (typeof gallery === 'string' ? gallery : JSON.stringify(gallery)) : undefined,
+        isRedeemable,
+        redemptionPolicy,
+        benefitType,
+        benefitValue
       }
     });
 

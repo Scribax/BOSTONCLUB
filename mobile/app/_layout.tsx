@@ -19,7 +19,7 @@ import "../global.css";
 import * as LocalAuthentication from 'expo-local-authentication';
 import * as SecureStore from 'expo-secure-store';
 import { Lock } from 'lucide-react-native';
-import * as Notifications from 'expo-notifications';
+import { useLastNotificationResponse, DEFAULT_ACTION_IDENTIFIER } from '../lib/notificationHelper';
 
 export {
   ErrorBoundary,
@@ -109,12 +109,12 @@ export default function RootLayout() {
   }, [authState.isLoggedIn, authState.isLoading, loaded]);
 
   // FIX: Escuchar si el usuario tocó una notificación Push
-  const lastNotificationResponse = Notifications.useLastNotificationResponse();
+  const lastNotificationResponse = useLastNotificationResponse();
   useEffect(() => {
     if (
       lastNotificationResponse &&
       lastNotificationResponse.notification.request.content.data?.type &&
-      lastNotificationResponse.actionIdentifier === Notifications.DEFAULT_ACTION_IDENTIFIER
+      lastNotificationResponse.actionIdentifier === DEFAULT_ACTION_IDENTIFIER
     ) {
       const type = lastNotificationResponse.notification.request.content.data.type;
       if (type === 'NEW_EVENT' || type === 'NEW_BANNER' || type === 'EVENT_REMINDER') {
