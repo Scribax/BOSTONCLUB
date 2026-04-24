@@ -119,7 +119,7 @@ export default function VipSettingsPage() {
             <ArrowLeft className="w-6 h-6 text-white" />
           </Link>
           <div>
-            <h1 className="text-3xl font-black text-white italic uppercase tracking-tighter">Rangos y Estatus</h1>
+            <h1 className="text-3xl font-black text-white italic uppercase tracking-tighter">Rangos y Niveles</h1>
             <p className="text-white/40 font-bold uppercase tracking-[0.3em] text-[10px] mt-1">Define las metas de puntos para cada nivel de membresía</p>
           </div>
         </div>
@@ -201,57 +201,7 @@ export default function VipSettingsPage() {
             </div>
           </motion.div>
 
-          {/* Video Background Section (Moved up) */}
-          <motion.div 
-            initial={{ x: 20, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ delay: 0.1 }}
-            className="glass-panel p-8 rounded-[2.5rem] border border-white/5 bg-gradient-to-br from-[#0c0c0c] to-black"
-          >
-            <div className="flex items-center gap-4 mb-8">
-              <div className="w-12 h-12 bg-boston-gold/10 rounded-2xl flex items-center justify-center border border-boston-gold/20 shadow-[0_0_20px_rgba(204,166,80,0.1)]">
-                <Video className="w-6 h-6 text-boston-gold" />
-              </div>
-              <div>
-                <h3 className="text-lg font-black text-white uppercase italic tracking-tight">Video de Inicio</h3>
-                <p className="text-[10px] text-white/30 font-bold uppercase tracking-widest leading-none">Fondo animado para el Login móvil</p>
-              </div>
-            </div>
 
-            <div className="space-y-6">
-              {settings.loginVideoUrl ? (
-                <div className="relative aspect-video rounded-2xl overflow-hidden border border-white/10 group">
-                  <video 
-                    src={getFullUrl(settings.loginVideoUrl)} 
-                    className="w-full h-full object-cover"
-                    muted
-                    loop
-                    autoPlay
-                    playsInline
-                  />
-                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center gap-4">
-                    <button 
-                      onClick={() => setSettings({ ...settings, loginVideoUrl: "" })}
-                      className="p-3 bg-red-500/20 text-red-500 rounded-full hover:bg-red-500 hover:text-white transition-all"
-                    >
-                      <Trash2 className="w-5 h-5" />
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <label className="border-2 border-dashed border-white/5 rounded-[2rem] p-12 flex flex-col items-center justify-center gap-4 cursor-pointer hover:border-boston-gold/50 hover:bg-boston-gold/5 transition-all group h-full">
-                  <input type="file" accept="video/mp4" className="hidden" onChange={handleVideoUpload} disabled={uploadingVideo} />
-                  <div className="w-16 h-16 bg-white/5 rounded-3xl flex items-center justify-center group-hover:scale-110 transition-all">
-                    {uploadingVideo ? <Loader2 className="w-8 h-8 text-boston-gold animate-spin" /> : <Upload className="w-8 h-8 text-white/20" />}
-                  </div>
-                  <div className="text-center">
-                    <p className="text-sm font-bold text-white mb-1">Subir Video</p>
-                    <p className="text-[10px] text-white/20 font-medium uppercase tracking-widest">Máx 20MB</p>
-                  </div>
-                </label>
-              )}
-            </div>
-          </motion.div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

@@ -1,6 +1,6 @@
 "use client";
 
-import { ShieldCheck, Users, QrCode, LayoutDashboard, CalendarPlus, Gift, Zap, Monitor, Settings } from "lucide-react";
+import { ShieldCheck, Users, QrCode, LayoutDashboard, CalendarPlus, Gift, Zap, Monitor, Settings, Smartphone } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -43,9 +43,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
            <span className="text-[10px] md:text-sm font-bold uppercase tracking-wider">Usuarios</span>
         </Link>
         
-        <Link href="/admin/events" className="flex flex-col md:flex-row items-center gap-2 md:gap-4 p-3 md:px-4 md:py-3 rounded-xl hover:bg-white/5 transition-colors text-white/70 hover:text-white">
-           <CalendarPlus className="w-5 h-5" />
-           <span className="text-[10px] md:text-sm font-bold uppercase tracking-wider">Eventos / PROMOS</span>
+        <Link href="/admin/content" className="flex flex-col md:flex-row items-center gap-2 md:gap-4 p-3 md:px-4 md:py-3 rounded-xl hover:bg-white/5 transition-colors text-white/70 hover:text-white">
+           <Smartphone className="w-5 h-5 text-boston-gold" />
+           <span className="text-[10px] md:text-sm font-bold uppercase tracking-wider">Gestión de Inicio</span>
         </Link>
 
         <Link href="/admin/rewards" className="flex flex-col md:flex-row items-center gap-2 md:gap-4 p-3 md:px-4 md:py-3 rounded-xl hover:bg-white/5 transition-colors text-white/70 hover:text-white">
@@ -58,10 +58,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
            <span className="text-[10px] md:text-sm font-bold uppercase tracking-wider">Regalos QR</span>
         </Link>
 
-        <Link href="/admin/settings/dashboard" className="flex flex-col md:flex-row items-center gap-2 md:gap-4 p-3 md:px-4 md:py-3 rounded-xl hover:bg-white/5 transition-colors text-white/70 hover:text-white">
-           <LayoutDashboard className="w-5 h-5 text-boston-gold" />
-           <span className="text-[10px] md:text-sm font-bold uppercase tracking-wider">Configuración Dashboard</span>
-        </Link>
+
 
         <Link href="/admin/display" className="flex flex-col md:flex-row items-center gap-2 md:gap-4 p-3 md:px-4 md:py-3 rounded-xl hover:bg-white/5 transition-colors text-white/70 hover:text-white">
            <Monitor className="w-5 h-5 text-boston-gold" />
