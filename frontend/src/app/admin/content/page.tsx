@@ -586,6 +586,16 @@ export default function AppContentManager() {
                             )
                           )}
                         </label>
+                        <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
+                           <p className="text-[9px] text-white/40 font-black uppercase tracking-widest mb-2 flex items-center gap-2">
+                              <Sparkles className="w-3 h-3 text-boston-gold" /> Tamaños Recomendados
+                           </p>
+                           <ul className="space-y-1">
+                              <li className="text-[8px] text-white/20 uppercase font-bold">• Banners Hero: 1080x1920 (Vertical)</li>
+                              <li className="text-[8px] text-white/20 uppercase font-bold">• Promos/Eventos: 1080x1350 (Vertical 4:5)</li>
+                              <li className="text-[8px] text-white/20 uppercase font-bold">• Videos: MP4 • Máx 20MB</li>
+                           </ul>
+                        </div>
                     </div>
                   </div>
 

@@ -79,10 +79,17 @@ export const generateRedemptionQR = async (req: any, res: Response): Promise<voi
       // Check redemption policy
       if (event.redemptionPolicy === "ONCE_TOTAL") {
         const existing = await prisma.redemption.findFirst({
-          where: { userId, eventId, status: { in: ["PENDING", "COMPLETED"] } }
+          where: { 
+            userId, 
+            eventId, 
+            OR: [
+              { status: "COMPLETED" },
+              { status: "PENDING", expiresAt: { gt: new Date() } }
+            ]
+          }
         });
         if (existing) {
-          res.status(400).json({ message: "Ya has canjeado esta promoción" });
+          res.status(400).json({ message: "Ya has canjeado esta promoción o tienes un código activo" });
           return;
         }
       } else if (event.redemptionPolicy === "ONCE_PER_NIGHT") {
@@ -93,11 +100,14 @@ export const generateRedemptionQR = async (req: any, res: Response): Promise<voi
             userId, 
             eventId, 
             createdAt: { gte: today },
-            status: { in: ["PENDING", "COMPLETED"] } 
+            OR: [
+              { status: "COMPLETED" },
+              { status: "PENDING", expiresAt: { gt: new Date() } }
+            ]
           }
         });
         if (existing) {
-          res.status(400).json({ message: "Ya has canjeado esta promoción hoy" });
+          res.status(400).json({ message: "Ya has canjeado esta promoción hoy o tienes un código activo" });
           return;
         }
       }
