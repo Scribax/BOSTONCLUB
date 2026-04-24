@@ -120,6 +120,13 @@ export default function DashboardScreen() {
   };
 
   const registerForPushNotificationsAsync = async () => {
+    // IMPORTANTE: SDK 53 eliminó el soporte de notificaciones push en Expo Go.
+    // Solo permitimos el registro si NO estamos en Expo Go.
+    if (Constants.appOwnership === 'expo') {
+      console.log('Push Notifications: Saltando registro en Expo Go (No soportado en SDK 53)');
+      return;
+    }
+
     let token;
     if (Platform.OS === 'android') {
       await Notifications.setNotificationChannelAsync('default', {
@@ -153,7 +160,7 @@ export default function DashboardScreen() {
            await api.patch('/auth/push-token', { token }).catch(() => {});
         }
       } catch (e) {
-        console.log('Error obteniendo Push Token (Normal en Expo Go):', e);
+        console.log('Error obteniendo Push Token:', e);
       }
     }
     return token;
@@ -359,8 +366,9 @@ export default function DashboardScreen() {
                 ))}
              </View>
           </View>
+        </View>
 
-          {/* Floating Tier Card - New Skeuomorphic Style */}
+        {/* Floating Tier Card - New Skeuomorphic Style */}
           <FadeInView delay={500} className="px-6 -mt-12 z-50">
              <TouchableOpacity 
                activeOpacity={0.9}
@@ -535,87 +543,90 @@ export default function DashboardScreen() {
               </TouchableOpacity>
            </View>
         </View>
-        {/* Promos Destacadas Section - Bottom Placement */}
-        <View className="mt-12 mb-8">
-           <View className="px-6 flex-row justify-between items-end mb-6">
-              <View>
-                 <Text className="text-white/20 font-black text-[8px] uppercase tracking-[0.4em] mb-1">Especiales de hoy</Text>
-                 <Text className="text-white text-2xl font-black uppercase italic tracking-tighter">Promos Destacadas</Text>
-              </View>
-              <TouchableOpacity className="flex-row items-center bg-white/5 px-4 py-2 rounded-full border border-white/10">
-                 <Text className="text-boston-red font-black text-[9px] uppercase tracking-widest mr-2">Ver Todas</Text>
-                 <ArrowRight size={10} color="#FF3B30" />
-              </TouchableOpacity>
-           </View>
 
-           <View style={{ height: 180 }}>
-              <FlatList
-                 data={promoBanners.length > 0 ? promoBanners : [{ id: 'empty', title: '2X1', description: 'En Hamburguesas', condition: 'TODOS LOS MARTES', mediaType: 'IMAGE' } as any]}
-                 horizontal
-                 showsHorizontalScrollIndicator={false}
-                 contentContainerStyle={{ paddingHorizontal: 24, gap: 16 }}
-                 snapToInterval={SCREEN_WIDTH * 0.85 + 16}
-                 decelerationRate="fast"
-                 onScroll={(e) => {
-                    const x = e.nativeEvent.contentOffset.x;
-                    const idx = Math.round(x / (SCREEN_WIDTH * 0.85 + 16));
-                    setCurrentPromoIdx(idx);
-                 }}
-                 renderItem={({ item }: { item: any }) => (
-                   <TouchableOpacity 
-                     activeOpacity={0.9} 
-                     onPress={() => item.id !== 'empty' && router.push(`/banner/${item.id}`)}
-                     style={{ width: SCREEN_WIDTH * 0.85, height: 160 }} 
-                     className="relative bg-[#0c0c0c] rounded-[2.5rem] border border-white/5 overflow-hidden shadow-2xl"
-                   >
-                     {/* Card Content Layout */}
-                     <View className="flex-1 flex-row">
-                        {/* Text Content (Left) */}
-                        <View className="flex-1 p-6 justify-center">
-                           <Text className="text-white text-4xl font-black uppercase italic tracking-tighter mb-1">
-                              {item.title}
-                           </Text>
-                           <Text className="text-white/80 font-black uppercase text-[10px] tracking-widest mb-4">
-                              {item.description}
-                           </Text>
-                           <View className="bg-white/10 self-start px-2 py-1 rounded-md">
-                              <Text className="text-white/40 font-bold uppercase text-[7px] tracking-widest">
-                                 {item.condition || 'Válido hoy'}
+        {/* Promos Destacadas Section - Bottom Placement */}
+        {promoBanners.length > 0 && (
+           <View className="mt-12 mb-8">
+              <View className="px-6 flex-row justify-between items-end mb-6">
+                 <View>
+                    <Text className="text-white/20 font-black text-[8px] uppercase tracking-[0.4em] mb-1">Especiales de hoy</Text>
+                    <Text className="text-white text-2xl font-black uppercase italic tracking-tighter">Promos Destacadas</Text>
+                 </View>
+                 <TouchableOpacity className="flex-row items-center bg-white/5 px-4 py-2 rounded-full border border-white/10">
+                    <Text className="text-boston-red font-black text-[9px] uppercase tracking-widest mr-2">Ver Todas</Text>
+                    <ArrowRight size={10} color="#FF3B30" />
+                 </TouchableOpacity>
+              </View>
+
+              <View style={{ height: 180 }}>
+                 <FlatList
+                    data={promoBanners}
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={{ paddingHorizontal: 24, gap: 16 }}
+                    snapToInterval={SCREEN_WIDTH * 0.85 + 16}
+                    decelerationRate="fast"
+                    onScroll={(e) => {
+                       const x = e.nativeEvent.contentOffset.x;
+                       const idx = Math.round(x / (SCREEN_WIDTH * 0.85 + 16));
+                       setCurrentPromoIdx(idx);
+                    }}
+                    renderItem={({ item }: { item: any }) => (
+                      <TouchableOpacity 
+                        activeOpacity={0.9} 
+                        onPress={() => item.id !== 'empty' && router.push(`/banner/${item.id}`)}
+                        style={{ width: SCREEN_WIDTH * 0.85, height: 160 }} 
+                        className="relative bg-[#0c0c0c] rounded-[2.5rem] border border-white/5 overflow-hidden shadow-2xl"
+                      >
+                        {/* Card Content Layout */}
+                        <View className="flex-1 flex-row">
+                           {/* Text Content (Left) */}
+                           <View className="flex-1 p-6 justify-center">
+                              <Text className="text-white text-4xl font-black uppercase italic tracking-tighter mb-1">
+                                 {item.title}
                               </Text>
+                              <Text className="text-white/80 font-black uppercase text-[10px] tracking-widest mb-4">
+                                 {item.description}
+                              </Text>
+                              <View className="bg-white/10 self-start px-2 py-1 rounded-md">
+                                 <Text className="text-white/40 font-bold uppercase text-[7px] tracking-widest">
+                                    {item.condition || 'Válido hoy'}
+                                 </Text>
+                              </View>
+                           </View>
+
+                           {/* Image Content (Right) */}
+                           <View className="w-[45%] h-full">
+                              <Image 
+                                source={{ uri: resolveImageUrl(item.imageUrl) || 'https://images.unsplash.com/photo-1550547660-d9450f859349?q=80&w=500' }} 
+                                className="w-full h-full"
+                                resizeMode="cover"
+                              />
+                              {/* Gradient to blend image with text area */}
+                              <LinearGradient
+                                 colors={['#0c0c0c', 'transparent']}
+                                 start={{ x: 0, y: 0.5 }}
+                                 end={{ x: 0.8, y: 0.5 }}
+                                 style={{ position: 'absolute', top: 0, left: 0, bottom: 0, width: '40%' }}
+                              />
                            </View>
                         </View>
-
-                        {/* Image Content (Right) */}
-                        <View className="w-[45%] h-full">
-                           <Image 
-                             source={{ uri: resolveImageUrl(item.imageUrl) || 'https://images.unsplash.com/photo-1550547660-d9450f859349?q=80&w=500' }} 
-                             className="w-full h-full"
-                             resizeMode="cover"
-                           />
-                           {/* Gradient to blend image with text area */}
-                           <LinearGradient
-                              colors={['#0c0c0c', 'transparent']}
-                              start={{ x: 0, y: 0.5 }}
-                              end={{ x: 0.8, y: 0.5 }}
-                              style={{ position: 'absolute', top: 0, left: 0, bottom: 0, width: '40%' }}
-                           />
-                        </View>
-                     </View>
-                   </TouchableOpacity>
-                 )}
-              />
+                      </TouchableOpacity>
+                    )}
+                 />
+              </View>
+              
+              {/* Pagination Dots - Redesigned */}
+              <View className="flex-row justify-center gap-2 mt-4">
+                 {promoBanners.map((_, idx) => (
+                   <View 
+                     key={idx} 
+                     className={`h-1.5 rounded-full transition-all ${idx === currentPromoIdx ? 'w-8 bg-boston-red' : 'w-2 bg-white/10'}`} 
+                   />
+                 ))}
+              </View>
            </View>
-           
-           {/* Pagination Dots - Redesigned */}
-           <View className="flex-row justify-center gap-2 mt-4">
-              {promoBanners.map((_, idx) => (
-                <View 
-                  key={idx} 
-                  className={`h-1.5 rounded-full transition-all ${idx === currentPromoIdx ? 'w-8 bg-boston-red' : 'w-2 bg-white/10'}`} 
-                />
-              ))}
-           </View>
-        </View>
+        )}
       </ScrollView>
 
       {/* Guide Modal Modal */}

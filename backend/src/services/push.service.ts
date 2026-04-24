@@ -28,7 +28,19 @@ export const sendEventPublishedNotification = async (title: string, description:
     const messages: ExpoPushMessage[] = [];
     
     // Customize title based on type
-    const noticePrefix = type === 'BANNER' ? '📢 Nueva Promoción: ' : '🎟 Nuevo Evento: ';
+    let noticePrefix = '🎟 Nuevo Evento: ';
+    let dataType = 'NEW_EVENT';
+
+    if (type === 'BANNER') {
+      noticePrefix = '📢 Novedad: ';
+      dataType = 'NEW_BANNER';
+    } else if (type === 'PROMO') {
+      noticePrefix = '🔥 Nueva Promo: ';
+      dataType = 'NEW_PROMO';
+    } else if (type === 'EVENTO' || type === 'EVENT') {
+      noticePrefix = '🎟 Nuevo Evento: ';
+      dataType = 'NEW_EVENT';
+    }
 
     const uniqueTokens = new Set<string>();
     for (const user of users) {
@@ -45,7 +57,7 @@ export const sendEventPublishedNotification = async (title: string, description:
         title: `${noticePrefix}${title}`,
         body: description || 'Toca para ver los detalles en la app.',
         data: { 
-          type: type === 'BANNER' ? 'NEW_BANNER' : 'NEW_EVENT' 
+          type: dataType 
         },
       });
     }
