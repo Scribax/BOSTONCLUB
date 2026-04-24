@@ -20,6 +20,25 @@ export const generateRedemptionQR = async (req: any, res: Response): Promise<voi
 
     const qrToken = crypto.randomBytes(32).toString("hex");
 
+    // Fetch user for age validation
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      res.status(404).json({ message: "User not found" });
+      return;
+    }
+
+    let isAdult = false;
+    if (user.birthDate) {
+      const today = new Date();
+      const birthDate = new Date(user.birthDate);
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const m = today.getMonth() - birthDate.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+      if (age >= 18) isAdult = true;
+    }
+
     if (rewardId) {
       const reward = await prisma.reward.findUnique({ where: { id: rewardId } });
       if (!reward) {
@@ -27,8 +46,12 @@ export const generateRedemptionQR = async (req: any, res: Response): Promise<voi
         return;
       }
 
-      const user = await prisma.user.findUnique({ where: { id: userId } });
-      if (!user || user.points < reward.pointsRequired) {
+      if (reward.isAdultOnly && !isAdult) {
+        res.status(403).json({ message: "Esta recompensa es solo para mayores de 18 años" });
+        return;
+      }
+
+      if (user.points < reward.pointsRequired) {
         res.status(400).json({ message: "Not enough points" });
         return;
       }
@@ -45,6 +68,11 @@ export const generateRedemptionQR = async (req: any, res: Response): Promise<voi
       const event = await prisma.event.findUnique({ where: { id: eventId } });
       if (!event || !event.isRedeemable) {
         res.status(404).json({ message: "Promotion not redeemable or not found" });
+        return;
+      }
+
+      if (event.isAdultOnly && !isAdult) {
+        res.status(403).json({ message: "Esta promoción es solo para mayores de 18 años" });
         return;
       }
 
