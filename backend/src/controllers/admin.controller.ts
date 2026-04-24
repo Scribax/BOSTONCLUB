@@ -34,9 +34,19 @@ export const getAdminStats = async (req: Request, res: Response): Promise<void> 
       }
     });
 
+    // 4. Total Points in Circulation (Unredeemed)
+    const pointsAggregation = await prisma.user.aggregate({
+      _sum: {
+        points: true
+      },
+      where: { role: "CUSTOMER" }
+    });
+    const totalPointsBalance = pointsAggregation._sum.points || 0;
+
     res.json({
       totalUsers,
       totalPointsUsed,
+      totalPointsBalance,
       latestRedemptions: latestActivity.map(h => ({
         id: h.id,
         rewardName: h.description,

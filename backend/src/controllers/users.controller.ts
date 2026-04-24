@@ -159,3 +159,27 @@ export const deleteUser = async (req: Request, res: Response): Promise<void> => 
     res.status(500).json({ message: "Server Error" });
   }
 };
+export const getUserHistory = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    
+    const [history, redemptions] = await Promise.all([
+      prisma.pointHistory.findMany({
+        where: { userId: id as string },
+        orderBy: { createdAt: "desc" }
+      }),
+      prisma.redemption.findMany({
+        where: { userId: id as string },
+        orderBy: { createdAt: "desc" },
+        include: {
+          reward: { select: { name: true } },
+          event: { select: { title: true } }
+        }
+      })
+    ]);
+
+    res.json({ history, redemptions });
+  } catch (error) {
+    res.status(500).json({ message: "Server Error" });
+  }
+};

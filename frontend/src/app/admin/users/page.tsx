@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, UserCog, UserMinus, ShieldAlert, Award, ArrowUpDown, Trash2, Ban, CheckCircle2, Crown, MessageCircle, Download, CheckSquare, Square } from "lucide-react";
+import { Search, UserCog, UserMinus, ShieldAlert, Award, ArrowUpDown, Trash2, Ban, CheckCircle2, Crown, MessageCircle, Download, CheckSquare, Square, History, Clock, Ticket, Star, X } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 import { motion, AnimatePresence } from "framer-motion";
 import * as XLSX from 'xlsx';
@@ -19,6 +19,22 @@ type User = {
   membershipLevel: string;
   vipRewardSentAt: string | null;
   birthDate: string | null;
+};
+
+type HistoryItem = {
+  id: string;
+  pointsGained: number;
+  description: string;
+  source: string;
+  createdAt: string;
+};
+
+type RedemptionItem = {
+  id: string;
+  status: string;
+  createdAt: string;
+  reward?: { name: string };
+  event?: { title: string };
 };
 
 const calculateAge = (birthDateString: string | null) => {
@@ -48,6 +64,11 @@ export default function AdminUsersPage() {
   const [pointReason, setPointReason] = useState("");
   const [isAdjusting, setIsAdjusting] = useState(false);
 
+  // History States
+  const [historyUser, setHistoryUser] = useState<User | null>(null);
+  const [historyData, setHistoryData] = useState<{ history: HistoryItem[], redemptions: RedemptionItem[] } | null>(null);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+
   // Selection State
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
@@ -68,6 +89,19 @@ export default function AdminUsersPage() {
       console.error("Error fetching data", err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchHistory = async (user: User) => {
+    setHistoryUser(user);
+    setLoadingHistory(true);
+    try {
+      const data = await apiFetch(`/users/${user.id}/history`);
+      setHistoryData(data);
+    } catch (err) {
+      console.error("Error fetching history", err);
+    } finally {
+      setLoadingHistory(false);
     }
   };
 
@@ -108,7 +142,7 @@ export default function AdminUsersPage() {
           mode: pointMode
         })
       });
-      setUsers(users.map(u => u.id === selectedUser.id ? { ...u, points: data.points } : u));
+      setUsers(users.map(u => u.id === selectedUser.id ? { ...u, points: data.points, membershipLevel: data.level } : u));
       setSelectedUser(null);
       setPointsDelta("");
       setPointMode("increment");
@@ -135,7 +169,6 @@ export default function AdminUsersPage() {
   };
 
   const exportToExcel = () => {
-    // Determine which users to export
     const usersToExport = selectedIds.length > 0 
       ? users.filter(u => selectedIds.includes(u.id))
       : users;
@@ -154,14 +187,9 @@ export default function AdminUsersPage() {
       "ID Sistema": u.id
     }));
 
-    // Create workbook
     const wb = XLSX.utils.book_new();
-    
-    // Sheet 1: Master List
     const wsAll = XLSX.utils.json_to_sheet(data);
     XLSX.utils.book_append_sheet(wb, wsAll, "TODOS LOS SOCIOS");
-
-    // Additional Sheets: Divided by Classification (Level)
     const levels = ["BRONCE", "ORO", "PLATINO", "DIAMANTE", "SÚPER VIP"];
     levels.forEach(level => {
       const levelData = data.filter(d => d.Rango === level);
@@ -170,8 +198,6 @@ export default function AdminUsersPage() {
         XLSX.utils.book_append_sheet(wb, wsLevel, level);
       }
     });
-
-    // Write and download
     const fileName = `BostonClub_Socios_${new Date().toISOString().split('T')[0]}.xlsx`;
     XLSX.writeFile(wb, fileName);
   };
@@ -236,32 +262,32 @@ export default function AdminUsersPage() {
         </div>
       </header>
 
-      <div className="flex gap-4 mb-4">
+      <div className="flex gap-4 mb-4 overflow-x-auto pb-2">
         <button 
           onClick={() => setSort("name")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold uppercase transition-colors ${sort === "name" ? "bg-boston-gold text-black" : "bg-white/5 text-white/50 hover:bg-white/10"}`}
+          className={`flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold uppercase transition-colors ${sort === "name" ? "bg-boston-gold text-black" : "bg-white/5 text-white/50 hover:bg-white/10"}`}
         >
           <ArrowUpDown className="w-3 h-3" /> Por Nombre A-Z
         </button>
         <button 
           onClick={() => setSort("points")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold uppercase transition-colors ${sort === "points" ? "bg-boston-gold text-black" : "bg-white/5 text-white/50 hover:bg-white/10"}`}
+          className={`flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold uppercase transition-colors ${sort === "points" ? "bg-boston-gold text-black" : "bg-white/5 text-white/50 hover:bg-white/10"}`}
         >
           <Crown className="w-3 h-3" /> Top Puntos
         </button>
         <button 
           onClick={() => setSort("dni")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold uppercase transition-colors ${sort === "dni" ? "bg-boston-gold text-black" : "bg-white/5 text-white/50 hover:bg-white/10"}`}
+          className={`flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold uppercase transition-colors ${sort === "dni" ? "bg-boston-gold text-black" : "bg-white/5 text-white/50 hover:bg-white/10"}`}
         >
           <ArrowUpDown className="w-3 h-3" /> Por DNI
         </button>
       </div>
 
-      <div className="glass-panel p-4 rounded-2xl border border-white/5 overflow-x-auto min-h-[400px]">
+      <div className="glass-panel p-4 rounded-3xl border border-white/5 overflow-x-auto min-h-[400px]">
         {loading ? (
           <div className="flex items-center justify-center h-48 text-white/30 animate-pulse">Cargando base de datos...</div>
         ) : (
-          <table className="w-full text-left min-w-[800px]">
+          <table className="w-full text-left min-w-[900px]">
             <thead>
               <tr className="border-b border-white/5 text-white/40 text-[10px] font-bold uppercase tracking-[0.2em]">
                 <th className="pb-4 pl-4 w-10">
@@ -288,16 +314,12 @@ export default function AdminUsersPage() {
                 
                 const sendWhatsAppReward = async () => {
                   if (!vipSettings) return;
-                  
-                  // Encode message professionally for WhatsApp
                   const message = vipSettings.vipMessageTemplate
                     .replace("{name}", u.firstName)
                     .replace("{points}", u.points.toString()) + "\n\n" + vipSettings.rewardListText;
-                  
                   const encodedMsg = encodeURIComponent(message);
                   window.open(`https://wa.me/${u.whatsapp}?text=${encodedMsg}`, "_blank");
 
-                  // Automatically mark as sent in the DB
                   if (!wasSent) {
                     try {
                       const res = await apiFetch(`/users/${u.id}/reward-status`, {
@@ -395,6 +417,13 @@ export default function AdminUsersPage() {
                     </td>
                     <td className="py-5 pr-4 text-right">
                       <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button 
+                          onClick={() => fetchHistory(u)}
+                          title="Ver Historial"
+                          className="bg-white/5 text-white/50 hover:bg-white/10 hover:text-white p-2 rounded-lg transition-all"
+                        >
+                          <History className="w-4 h-4" />
+                        </button>
                         {isVip && (
                           <div className="flex items-center gap-1">
                             <button 
@@ -445,7 +474,7 @@ export default function AdminUsersPage() {
 
               {(!loading && filteredUsers.length === 0) && (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-white/20 uppercase font-black tracking-widest text-xs">
+                  <td colSpan={7} className="py-12 text-center text-white/20 uppercase font-black tracking-widest text-xs">
                     No se encontraron usuarios bajo este filtro
                   </td>
                 </tr>
@@ -470,7 +499,7 @@ export default function AdminUsersPage() {
               initial={{ scale: 0.9, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              className="relative w-full max-w-md bg-[#0c0c0c] border border-white/10 p-8 rounded-[2rem] shadow-2xl"
+              className="relative w-full max-w-md bg-[#0c0c0c] border border-white/10 p-8 rounded-[2.5rem] shadow-2xl"
             >
               <h3 className="text-xl font-black text-white uppercase tracking-widest mb-2">Ajustar Puntos</h3>
               <p className="text-white/50 text-xs mb-6 uppercase tracking-widest font-bold">
@@ -547,6 +576,120 @@ export default function AdminUsersPage() {
                     {isAdjusting ? "Procesando..." : "Confirmar"}
                   </button>
                 </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* History Modal */}
+      <AnimatePresence>
+        {historyUser && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 sm:p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setHistoryUser(null)}
+              className="absolute inset-0 bg-black/90 backdrop-blur-md"
+            />
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0, y: 30 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 30 }}
+              className="relative w-full max-w-2xl bg-[#0c0c0c] border border-white/10 rounded-[3rem] shadow-2xl overflow-hidden flex flex-col max-h-[85vh]"
+            >
+              <div className="p-10 pb-6">
+                <div className="flex justify-between items-start mb-6">
+                  <div>
+                    <h3 className="text-2xl font-black text-white uppercase tracking-tighter italic mb-1">Actividad del Socio</h3>
+                    <p className="text-white/40 text-[10px] font-black uppercase tracking-[0.2em]">Socio: <span className="text-boston-gold">{historyUser.firstName} {historyUser.lastName}</span> • {historyUser.dni}</p>
+                  </div>
+                  <button onClick={() => setHistoryUser(null)} className="p-2 bg-white/5 rounded-full hover:bg-white/10 transition-all">
+                    <X className="w-5 h-5 text-white/50" />
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 mb-8">
+                  <div className="bg-white/[0.02] border border-white/5 p-5 rounded-3xl">
+                    <p className="text-[9px] text-white/20 font-black uppercase tracking-widest mb-1">Saldo Actual</p>
+                    <p className="text-2xl font-black text-boston-gold italic tracking-tighter">{historyUser.points} PTS</p>
+                  </div>
+                  <div className="bg-white/[0.02] border border-white/5 p-5 rounded-3xl">
+                    <p className="text-[9px] text-white/20 font-black uppercase tracking-widest mb-1">Categoría</p>
+                    <p className="text-2xl font-black text-white italic tracking-tighter uppercase">{historyUser.membershipLevel}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex-1 overflow-y-auto px-10 pb-10 space-y-8 scrollbar-hide">
+                {loadingHistory ? (
+                   <div className="py-20 flex flex-col items-center justify-center gap-4">
+                      <div className="w-8 h-8 border-2 border-boston-gold border-t-transparent rounded-full animate-spin" />
+                      <p className="text-[10px] text-white/20 font-black uppercase tracking-[0.3em]">Consultando historial...</p>
+                   </div>
+                ) : (
+                  <>
+                    {/* Section: Canjes */}
+                    <div>
+                      <h4 className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
+                        <Ticket className="w-3 h-3 text-boston-red-glow" /> Canjes de Beneficios
+                      </h4>
+                      <div className="space-y-3">
+                        {historyData?.redemptions && historyData.redemptions.length > 0 ? (
+                          historyData.redemptions.map(r => (
+                            <div key={r.id} className="bg-white/[0.03] border border-white/5 p-4 rounded-2xl flex justify-between items-center group hover:bg-white/[0.05] transition-all">
+                              <div className="flex items-center gap-4">
+                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${r.status === 'COMPLETED' ? 'bg-green-500/10 text-green-500' : 'bg-white/5 text-white/20'}`}>
+                                  <CheckSquare className="w-5 h-5" />
+                                </div>
+                                <div>
+                                  <p className="text-white text-xs font-black uppercase italic tracking-tight">{r.reward?.name || r.event?.title || 'Canje Desconocido'}</p>
+                                  <p className="text-white/20 text-[9px] font-black uppercase tracking-widest mt-1">Estado: <span className={r.status === 'COMPLETED' ? 'text-green-500/50' : 'text-white/40'}>{r.status}</span></p>
+                                </div>
+                              </div>
+                              <p className="text-white/20 text-[9px] font-black uppercase">{new Date(r.createdAt).toLocaleDateString()}</p>
+                            </div>
+                          ))
+                        ) : (
+                          <p className="text-[9px] text-white/10 uppercase font-black tracking-widest text-center py-4">No hay canjes registrados</p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Section: Historial de Puntos */}
+                    <div>
+                      <h4 className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
+                        <Clock className="w-3 h-3 text-boston-gold" /> Movimientos de Puntos
+                      </h4>
+                      <div className="space-y-3">
+                        {historyData?.history && historyData.history.length > 0 ? (
+                          historyData.history.map(h => (
+                            <div key={h.id} className="bg-white/[0.02] border border-white/5 p-4 rounded-2xl flex justify-between items-center group hover:bg-white/[0.04] transition-all">
+                              <div className="flex items-center gap-4">
+                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${h.pointsGained > 0 ? 'bg-green-500/10 text-green-500' : 'bg-boston-red/10 text-boston-red-glow'}`}>
+                                  <Star className="w-5 h-5" />
+                                </div>
+                                <div>
+                                  <p className="text-white text-xs font-black uppercase italic tracking-tight">{h.description}</p>
+                                  <p className="text-white/20 text-[9px] font-black uppercase tracking-widest mt-1">Origen: {h.source}</p>
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <p className={`text-xs font-black tracking-tighter ${h.pointsGained > 0 ? 'text-green-500' : 'text-boston-red-glow'}`}>
+                                  {h.pointsGained > 0 ? '+' : ''}{h.pointsGained} PTS
+                                </p>
+                                <p className="text-white/20 text-[8px] uppercase mt-1">{new Date(h.createdAt).toLocaleDateString()}</p>
+                              </div>
+                            </div>
+                          ))
+                        ) : (
+                          <p className="text-[9px] text-white/10 uppercase font-black tracking-widest text-center py-4">Sin movimientos de puntos</p>
+                        )}
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             </motion.div>
           </div>
