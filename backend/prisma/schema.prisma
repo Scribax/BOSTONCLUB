@@ -64,13 +64,15 @@ model Reward {
 model Redemption {
   id        String    @id @default(uuid())
   userId    String
-  rewardId  String
+  rewardId  String?
+  eventId   String?
   status    String    @default("PENDING")
   qrToken   String?   @unique
   expiresAt DateTime?
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
-  reward    Reward    @relation(fields: [rewardId], references: [id])
+  reward    Reward?   @relation(fields: [rewardId], references: [id])
+  event     Event?    @relation(fields: [eventId], references: [id])
   user      User      @relation(fields: [userId], references: [id])
 }
 
@@ -94,8 +96,16 @@ model Event {
   isActive     Boolean  @default(true)
   isAdultOnly  Boolean  @default(false)
   reminderSent Boolean  @default(false)
+  
+  // Promotion Redemption Logic
+  isRedeemable     Boolean  @default(false)
+  redemptionPolicy String   @default("ONCE_TOTAL") // ONCE_TOTAL, ONCE_PER_NIGHT, UNLIMITED
+  benefitType      String?  // PERCENTAGE, FIXED, FREE, TWO_FOR_ONE
+  benefitValue     String?  // e.g., "10", "500", "Bebida Gratis"
+
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+  redemptions  Redemption[]
 }
 
 model Notification {

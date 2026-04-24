@@ -21,7 +21,11 @@ import {
   Eye,
   Ticket,
   Save,
-  LogIn
+  LogIn,
+  QrCode,
+  ShieldCheck,
+  RefreshCcw,
+  Zap
 } from "lucide-react";
 import { apiFetch, API_URL, getAuthToken } from "@/lib/api";
 import { motion, AnimatePresence } from "framer-motion";
@@ -45,6 +49,11 @@ type ContentItem = {
   isAdultOnly: boolean;
   content?: string;
   gallery?: string;
+  // Redemption Logic
+  isRedeemable: boolean;
+  redemptionPolicy: string;
+  benefitType: string | null;
+  benefitValue: string | null;
 };
 
 export default function AppContentManager() {
@@ -72,6 +81,11 @@ export default function AppContentManager() {
   const [isAdultOnly, setIsAdultOnly] = useState(false);
   const [content, setContent] = useState("");
   const [gallery, setGallery] = useState<string[]>([]);
+  // Redemption Form State
+  const [isRedeemable, setIsRedeemable] = useState(false);
+  const [redemptionPolicy, setRedemptionPolicy] = useState("ONCE_TOTAL");
+  const [benefitType, setBenefitType] = useState<string>("TWO_FOR_ONE");
+  const [benefitValue, setBenefitValue] = useState("");
 
   useEffect(() => {
     fetchContent();
@@ -184,7 +198,12 @@ export default function AppContentManager() {
       content,
       gallery: JSON.stringify(gallery),
       isActive: true,
-      order: editingItem ? editingItem.order : items.filter(i => i.type === activeTab).length
+      order: editingItem ? editingItem.order : items.filter(i => i.type === activeTab).length,
+      // Redemption Logic
+      isRedeemable,
+      redemptionPolicy,
+      benefitType: isRedeemable ? benefitType : null,
+      benefitValue: isRedeemable ? benefitValue : null
     };
 
     try {
@@ -245,6 +264,10 @@ export default function AppContentManager() {
     setIsAdultOnly(false);
     setContent("");
     setGallery([]);
+    setIsRedeemable(false);
+    setRedemptionPolicy("ONCE_TOTAL");
+    setBenefitType("TWO_FOR_ONE");
+    setBenefitValue("");
   };
 
   const openEdit = (item: ContentItem) => {
@@ -267,6 +290,11 @@ export default function AppContentManager() {
     } catch {
       setGallery([]);
     }
+    // Redemption Logic
+    setIsRedeemable(item.isRedeemable);
+    setRedemptionPolicy(item.redemptionPolicy || "ONCE_TOTAL");
+    setBenefitType(item.benefitType || "TWO_FOR_ONE");
+    setBenefitValue(item.benefitValue || "");
     setShowModal(true);
   };
 
@@ -398,6 +426,7 @@ export default function AppContentManager() {
                             <div className="flex items-center gap-2 mb-1">
                               <h3 className="text-white font-black text-sm uppercase italic tracking-tighter">{item.title}</h3>
                               {item.isActive && <Check className="w-3 h-3 text-green-500" />}
+                              {item.isRedeemable && <QrCode className="w-3 h-3 text-boston-gold" />}
                             </div>
                             <p className="text-white/30 text-[9px] font-bold uppercase tracking-widest line-clamp-1">{item.description}</p>
                             <div className="flex items-center gap-3 mt-3">
@@ -405,6 +434,7 @@ export default function AppContentManager() {
                                 <span className="bg-white/5 px-2 py-1 rounded text-[8px] text-white/50 font-black uppercase">{item.eventDate ? new Date(item.eventDate).toLocaleDateString() : 'Sin Fecha'}</span>
                               )}
                               <span className={`text-[8px] font-black px-2 py-1 rounded uppercase ${item.mediaType === 'VIDEO' ? 'bg-boston-red text-white' : 'bg-white/10 text-white/40'}`}>{item.mediaType}</span>
+                              {item.isRedeemable && <span className="bg-boston-gold/10 text-boston-gold px-2 py-1 rounded text-[8px] font-black uppercase">REDEEMABLE</span>}
                             </div>
                         </div>
 
@@ -505,7 +535,7 @@ export default function AppContentManager() {
         {showModal && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-black/95 backdrop-blur-md" onClick={() => setShowModal(false)} />
-            <motion.div initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 20 }} className="glass-panel w-full max-w-4xl p-10 rounded-[3rem] border border-white/10 relative z-10 shadow-2xl max-h-[90vh] overflow-y-auto" >
+            <motion.div initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 20 }} className="glass-panel w-full max-w-5xl p-10 rounded-[3rem] border border-white/10 relative z-10 shadow-2xl max-h-[90vh] overflow-y-auto" >
                <div className="flex justify-between items-center mb-10">
                   <div>
                     <h2 className="text-2xl font-black text-white italic uppercase tracking-tighter">{editingItem ? 'Editar Contenido' : `Nuevo ${activeTab}`}</h2>
@@ -514,7 +544,8 @@ export default function AppContentManager() {
                   <button onClick={() => setShowModal(false)} className="p-2 hover:bg-white/5 rounded-full transition-all"><X className="w-6 h-6 text-white/40" /></button>
                </div>
 
-               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+               <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+                  {/* Left Column: Basic Info */}
                   <div className="space-y-6">
                     <div>
                         <label className="text-[10px] text-white/40 uppercase font-black tracking-[0.2em] mb-3 block">Título</label>
@@ -557,10 +588,12 @@ export default function AppContentManager() {
                         </label>
                     </div>
                   </div>
+
+                  {/* Middle Column: Detailed Content */}
                   <div className="space-y-6">
                     <div>
                         <label className="text-[10px] text-white/40 uppercase font-black tracking-[0.2em] mb-3 block">Contenido Detallado (Página Interior)</label>
-                        <textarea value={content} onChange={(e) => setContent(e.target.value)} placeholder="Explica los detalles de la promo o evento..." className="w-full bg-black/50 text-white border border-white/10 rounded-2xl py-4 px-6 focus:border-boston-gold transition-all outline-none text-sm min-h-[150px] resize-none" />
+                        <textarea value={content} onChange={(e) => setContent(e.target.value)} placeholder="Explica los detalles de la promo o evento..." className="w-full bg-black/50 text-white border border-white/10 rounded-2xl py-4 px-6 focus:border-boston-gold transition-all outline-none text-sm min-h-[250px] resize-none leading-relaxed" />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
@@ -579,9 +612,85 @@ export default function AppContentManager() {
                        </div>
                        <button onClick={() => setIsAdultOnly(!isAdultOnly)} className={`w-12 h-6 rounded-full relative transition-all ${isAdultOnly ? 'bg-boston-red' : 'bg-white/10'}`}><div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${isAdultOnly ? 'right-1' : 'left-1'}`} /></button>
                     </div>
-                    <button onClick={handleSave} disabled={isSubmitting || isUploading} className="w-full bg-boston-gold text-black py-5 rounded-[1.5rem] font-black uppercase text-xs tracking-[0.2em] shadow-xl shadow-boston-gold/20 hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-50 mt-4">
-                      {isSubmitting ? "Guardando..." : (editingItem ? 'Guardar Cambios' : 'Crear Publicación')}
-                    </button>
+                  </div>
+
+                  {/* Right Column: Redemption Logic */}
+                  <div className="space-y-6">
+                     <div className={`p-6 rounded-[2rem] border transition-all ${isRedeemable ? 'bg-boston-gold/5 border-boston-gold/20 shadow-lg shadow-boston-gold/5' : 'bg-white/5 border-white/5 opacity-40'}`}>
+                        <div className="flex items-center justify-between mb-6">
+                           <div className="flex items-center gap-3">
+                              <QrCode className={`w-6 h-6 ${isRedeemable ? 'text-boston-gold' : 'text-white/20'}`} />
+                              <div>
+                                 <h3 className="text-white font-black text-[11px] uppercase tracking-widest italic">Sistema de Canje</h3>
+                                 <p className="text-[8px] text-white/30 uppercase font-bold">Activar código QR único</p>
+                              </div>
+                           </div>
+                           <button onClick={() => setIsRedeemable(!isRedeemable)} className={`w-14 h-7 rounded-full relative transition-all ${isRedeemable ? 'bg-boston-gold' : 'bg-white/10'}`}>
+                              <div className={`absolute top-1 w-5 h-5 rounded-full bg-white transition-all ${isRedeemable ? 'right-1' : 'left-1'}`} />
+                           </button>
+                        </div>
+
+                        {isRedeemable && (
+                          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+                             <div>
+                                <label className="text-[9px] text-white/40 uppercase font-black tracking-widest mb-3 block">Política de Redención</label>
+                                <div className="grid grid-cols-1 gap-2">
+                                   {[
+                                     { id: 'ONCE_TOTAL', label: 'Una sola vez', icon: ShieldCheck },
+                                     { id: 'ONCE_PER_NIGHT', label: 'Una vez por noche', icon: RefreshCcw },
+                                     { id: 'UNLIMITED', label: 'Ilimitado', icon: Zap }
+                                   ].map(policy => (
+                                     <button 
+                                       key={policy.id} 
+                                       onClick={() => setRedemptionPolicy(policy.id)}
+                                       className={`flex items-center gap-3 p-3 rounded-xl border transition-all text-left ${redemptionPolicy === policy.id ? 'bg-white text-black border-white' : 'bg-black/20 text-white/40 border-white/5 hover:border-white/20'}`}
+                                     >
+                                        <policy.icon className="w-4 h-4" />
+                                        <span className="text-[9px] font-black uppercase tracking-widest">{policy.label}</span>
+                                     </button>
+                                   ))}
+                                </div>
+                             </div>
+
+                             <div>
+                                <label className="text-[9px] text-white/40 uppercase font-black tracking-widest mb-3 block">Tipo de Beneficio</label>
+                                <select 
+                                  value={benefitType} 
+                                  onChange={(e) => setBenefitType(e.target.value)}
+                                  className="w-full bg-black/50 text-white border border-white/10 rounded-xl py-3 px-4 focus:border-boston-gold outline-none text-[10px] font-black uppercase tracking-widest"
+                                >
+                                   <option value="TWO_FOR_ONE">2x1 (Double)</option>
+                                   <option value="PERCENTAGE">% de Descuento</option>
+                                   <option value="FIXED">Monto Fijo ($)</option>
+                                   <option value="FREE">Gratis / Consumición</option>
+                                </select>
+                             </div>
+
+                             <div>
+                                <label className="text-[9px] text-white/40 uppercase font-black tracking-widest mb-3 block">Valor del Beneficio</label>
+                                <input 
+                                  type="text" 
+                                  value={benefitValue} 
+                                  onChange={(e) => setBenefitValue(e.target.value)} 
+                                  placeholder="Ej: 2x1 en Gin, 20%, Fernet Gratis..." 
+                                  className="w-full bg-black/50 text-white border border-white/10 rounded-xl py-3 px-4 focus:border-boston-gold outline-none text-[10px] font-bold uppercase" 
+                                />
+                             </div>
+                          </motion.div>
+                        )}
+                     </div>
+
+                     <button 
+                       onClick={handleSave} 
+                       disabled={isSubmitting || isUploading} 
+                       className="w-full bg-boston-gold text-black py-6 rounded-[2rem] font-black uppercase text-[11px] tracking-[0.2em] shadow-xl shadow-boston-gold/20 hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-50"
+                     >
+                        {isSubmitting ? "Guardando..." : (editingItem ? 'Guardar Cambios' : 'Crear Publicación')}
+                     </button>
+                     
+                     <p className="text-[8px] text-white/20 font-medium text-center uppercase tracking-widest leading-relaxed px-4">
+                        Al activar el canje, los usuarios verán un botón para generar un código QR único que el staff deberá escanear.
+                     </p>
                   </div>
                </div>
             </motion.div>

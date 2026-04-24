@@ -1,13 +1,14 @@
-import { View, Text, ScrollView, Image, TouchableOpacity, Dimensions, Animated, Linking, ActivityIndicator, LogBox } from 'react-native';
+import { View, Text, ScrollView, Image, TouchableOpacity, Dimensions, Animated, Linking, ActivityIndicator, LogBox, Modal } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState, useEffect, useRef } from 'react';
 import api from '../../lib/api';
-import { ArrowLeft, Gift, AlertCircle, Share2, Sparkles, ChevronDown, ArrowRight } from 'lucide-react-native';
+import { ArrowLeft, Gift, AlertCircle, Share2, Sparkles, ChevronDown, ArrowRight, QrCode, X, CheckCircle2, ShieldAlert } from 'lucide-react-native';
 import { VideoPlayer } from '../../components/VideoPlayer';
 import { LinearGradient } from 'expo-linear-gradient';
 import { FadeInView } from '../../components/FadeInView';
 import { StatusBar } from 'expo-status-bar';
 import { BlurView } from 'expo-blur';
+import QRCode from 'react-native-qrcode-svg';
 
 LogBox.ignoreLogs([
   '[Reanimated] Reading from `value` during component render',
@@ -17,7 +18,12 @@ LogBox.ignoreLogs([
 const resolveImageUrl = (url: string) => {
   if (!url) return '';
   if (url.startsWith('http')) return url;
-  return `https://mybostonclub.com${url}`;
+  
+  // Clean potential /api at the end of baseURL if present
+  const baseURL = api.defaults.baseURL || 'https://mybostonclub.com/api';
+  const rootURL = baseURL.replace(/\/api$/, '');
+  const cleanUrl = url.startsWith('/') ? url : `/${url}`;
+  return `${rootURL}${cleanUrl}`;
 };
 
 export default function BannerDetailScreen() {
@@ -25,6 +31,10 @@ export default function BannerDetailScreen() {
   const router = useRouter();
   const [banner, setBanner] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [redemptionLoading, setRedemptionLoading] = useState(false);
+  const [qrToken, setQrToken] = useState<string | null>(null);
+  const [showQRModal, setShowQRModal] = useState(false);
+  const [redemptionStatus, setRedemptionStatus] = useState<'PENDING' | 'COMPLETED' | 'CANCELLED' | null>(null);
   
   const scrollY = useRef(new Animated.Value(0)).current;
   const HEADER_HEIGHT = 100;
@@ -46,6 +56,25 @@ export default function BannerDetailScreen() {
     fetchBanner();
   }, [id]);
 
+  // Polling for redemption status
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (showQRModal && qrToken && redemptionStatus !== 'COMPLETED') {
+      interval = setInterval(async () => {
+        try {
+          const res = await api.get(`/redemptions/status/${qrToken}`);
+          if (res.data.status === 'COMPLETED') {
+            setRedemptionStatus('COMPLETED');
+            clearInterval(interval);
+          }
+        } catch (e) {
+          console.log('Polling error:', e);
+        }
+      }, 3000);
+    }
+    return () => clearInterval(interval);
+  }, [showQRModal, qrToken, redemptionStatus]);
+
   const fetchBanner = async () => {
     try {
       setLoading(true);
@@ -62,6 +91,20 @@ export default function BannerDetailScreen() {
       console.error(err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleRedeem = async () => {
+    try {
+      setRedemptionLoading(true);
+      const res = await api.post('/redemptions/generate', { eventId: id });
+      setQrToken(res.data.qrToken);
+      setRedemptionStatus('PENDING');
+      setShowQRModal(true);
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Error al generar cupón');
+    } finally {
+      setRedemptionLoading(false);
     }
   };
 
@@ -95,11 +138,15 @@ export default function BannerDetailScreen() {
         style={{ 
           opacity: headerOpacity,
           height: HEADER_HEIGHT,
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 50
         }}
-        className="absolute top-0 left-0 right-0 z-50 overflow-hidden"
       >
-        <BlurView intensity={80} tint="dark" style={StyleSheet.absoluteFill} />
-        <View className="flex-1 pt-12 px-6 flex-row items-center justify-between">
+        <BlurView intensity={80} tint="dark" style={{ flex: 1 }} />
+        <View className="absolute inset-0 pt-12 px-6 flex-row items-center justify-between">
            <Text className="text-white text-lg font-black italic tracking-tighter uppercase">
             BOSTON <Text className="text-boston-red">CLUB</Text>
            </Text>
@@ -202,6 +249,33 @@ export default function BannerDetailScreen() {
               )}
            </FadeInView>
 
+           {/* New Redemption Button Section */}
+           {banner.isRedeemable && (
+             <FadeInView delay={400} className="mb-12">
+               <TouchableOpacity 
+                 activeOpacity={0.9}
+                 onPress={handleRedeem}
+                 disabled={redemptionLoading}
+                 className="bg-black py-6 rounded-[2rem] flex-row items-center justify-center shadow-2xl shadow-black/40 border border-white/10"
+               >
+                 {redemptionLoading ? (
+                   <ActivityIndicator color="white" />
+                 ) : (
+                   <>
+                     <QrCode color="#D4AF37" size={24} className="mr-3" />
+                     <Text className="text-white font-black text-sm uppercase tracking-[0.2em]">
+                        {banner.buttonText || '¡LO QUIERO!'}
+                     </Text>
+                   </>
+                 )}
+               </TouchableOpacity>
+               <Text className="text-center text-[10px] text-black/20 font-bold uppercase mt-4 tracking-widest leading-relaxed">
+                  {banner.redemptionPolicy === 'ONCE_PER_NIGHT' ? 'Válido una vez por noche' : 
+                   banner.redemptionPolicy === 'ONCE_TOTAL' ? 'Un solo canje por socio' : 'Canje ilimitado disponible'}
+               </Text>
+             </FadeInView>
+           )}
+
            {/* Gallery - Grid Style (Modern) */}
            {banner.gallery && Array.isArray(banner.gallery) && banner.gallery.length > 0 && (
              <View className="mt-4">
@@ -233,16 +307,77 @@ export default function BannerDetailScreen() {
         </View>
       </Animated.ScrollView>
 
+      {/* Redemption QR Modal */}
+      <Modal visible={showQRModal} transparent animationType="slide">
+         <View className="flex-1 justify-end bg-black/80">
+            <TouchableOpacity 
+              activeOpacity={1} 
+              onPress={() => setShowQRModal(false)} 
+              className="absolute inset-0"
+            />
+            
+            <View className="bg-[#0c0c0c] rounded-t-[3rem] p-10 border-t border-white/10 shadow-2xl">
+               <View className="items-center mb-8">
+                  <View className="w-12 h-1.5 bg-white/10 rounded-full mb-8" />
+                  
+                  {redemptionStatus === 'COMPLETED' ? (
+                    <FadeInView className="items-center py-10">
+                       <View className="w-24 h-24 bg-green-500/20 rounded-full items-center justify-center mb-6">
+                          <CheckCircle2 color="#22C55E" size={60} />
+                       </View>
+                       <Text className="text-white text-3xl font-black uppercase italic tracking-tighter text-center mb-2">¡CANJEADO!</Text>
+                       <Text className="text-white/40 text-sm font-bold uppercase tracking-widest text-center">Promoción validada correctamente</Text>
+                       <TouchableOpacity 
+                         onPress={() => { setShowQRModal(false); router.back(); }}
+                         className="mt-10 bg-white/5 border border-white/10 px-8 py-4 rounded-2xl"
+                       >
+                          <Text className="text-white font-black uppercase text-xs">LISTO</Text>
+                       </TouchableOpacity>
+                    </FadeInView>
+                  ) : (
+                    <>
+                      <View className="bg-white p-8 rounded-[2.5rem] shadow-2xl">
+                        {qrToken ? (
+                           <QRCode value={qrToken} size={200} backgroundColor="white" />
+                        ) : (
+                           <ActivityIndicator color="black" />
+                        )}
+                      </View>
+                      
+                      <View className="mt-10 items-center">
+                         <Text className="text-boston-gold text-2xl font-black uppercase italic tracking-tighter mb-2">
+                            {banner.benefitValue || 'Canje de Promoción'}
+                         </Text>
+                         <Text className="text-white/40 text-[10px] font-black uppercase tracking-[0.2em] mb-8">
+                            Mostrá este código al staff
+                         </Text>
+                         
+                         <View className="bg-white/5 border border-white/5 p-6 rounded-3xl flex-row items-center gap-4 w-full">
+                            <ShieldAlert color="#555" size={24} />
+                            <View className="flex-1">
+                               <Text className="text-white/60 font-bold text-[10px] uppercase mb-1">Protección de Canje</Text>
+                               <Text className="text-white/20 text-[9px] uppercase leading-relaxed">
+                                  Este código es de un solo uso y expira en 15 minutos. No compartas capturas de pantalla.
+                               </Text>
+                            </View>
+                         </View>
+                      </>
+                    )}
+                  </View>
+               </View>
+
+               {redemptionStatus !== 'COMPLETED' && (
+                 <TouchableOpacity 
+                   onPress={() => setShowQRModal(false)}
+                   className="w-full py-4 items-center"
+                 >
+                    <Text className="text-white/20 font-black uppercase text-[10px] tracking-widest">Cerrar</Text>
+                 </TouchableOpacity>
+               )}
+            </View>
+         </View>
+      </Modal>
+
     </View>
   );
 }
-
-const StyleSheet = {
-  absoluteFill: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    top: 0,
-    bottom: 0,
-  }
-} as const;
