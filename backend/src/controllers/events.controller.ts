@@ -45,10 +45,18 @@ export const getAllEvents = async (req: Request, res: Response): Promise<void> =
         whereClause.isAdultOnly = false;
      }
 
-    const events = await prisma.event.findMany({
-      where: whereClause,
-      orderBy: { eventDate: "asc" }
-    });
+     const { type } = req.query;
+     if (type) {
+        whereClause.type = type;
+     }
+
+     const events = await prisma.event.findMany({
+       where: whereClause,
+       orderBy: [
+         { order: "asc" },
+         { eventDate: "asc" }
+       ]
+     });
     res.json(events);
   } catch (error) {
     res.status(500).json({ message: "Server Error" });
@@ -64,6 +72,9 @@ export const createEvent = async (req: Request, res: Response): Promise<void> =>
       location,
       eventDate, 
       imageUrl, 
+      videoUrl,
+      mediaType,
+      order,
       benefits, 
       type,
       buttonText,
@@ -78,8 +89,11 @@ export const createEvent = async (req: Request, res: Response): Promise<void> =>
         description,
         details,
         location: location || "Boston Club",
-        eventDate: new Date(eventDate),
+        eventDate: eventDate ? new Date(eventDate) : new Date(),
         imageUrl,
+        videoUrl,
+        mediaType: mediaType || "IMAGE",
+        order: order ? parseInt(order.toString()) : 0,
         benefits,
         type: type || "EVENT",
         buttonText: buttonText || "RESERVAR MESA",
@@ -117,6 +131,54 @@ export const notifyEvent = async (req: Request, res: Response): Promise<void> =>
     sendEventPublishedNotification(event.title, event.description, event.type).catch(console.error);
 
     res.json({ message: "Notification dispatched manually" });
+  } catch (error) {
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+
+export const updateEvent = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { 
+      title, 
+      description, 
+      details,
+      location,
+      eventDate, 
+      imageUrl, 
+      videoUrl,
+      mediaType,
+      order,
+      benefits, 
+      type,
+      buttonText,
+      externalLink,
+      isActive,
+      isAdultOnly
+    } = req.body;
+
+    const event = await prisma.event.update({
+      where: { id: id as string },
+      data: {
+        title,
+        description,
+        details,
+        location,
+        eventDate: eventDate ? new Date(eventDate) : undefined,
+        imageUrl,
+        videoUrl,
+        mediaType,
+        order: order !== undefined ? parseInt(order.toString()) : undefined,
+        benefits,
+        type,
+        buttonText,
+        externalLink,
+        isActive,
+        isAdultOnly
+      }
+    });
+
+    res.json(event);
   } catch (error) {
     res.status(500).json({ message: "Server Error" });
   }

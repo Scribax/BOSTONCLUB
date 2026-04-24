@@ -82,6 +82,9 @@ model Event {
   location     String?  @default("Boston Club")
   eventDate    DateTime
   imageUrl     String?
+  videoUrl     String?
+  mediaType    String   @default("IMAGE")
+  order        Int      @default(0)
   benefits     String?
   type         String   @default("EVENT")
   buttonText   String?  @default("RESERVAR MESA")

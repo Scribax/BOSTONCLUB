@@ -3,13 +3,18 @@ import { authenticate, requireAdmin } from "../middlewares/auth";
 import { addPoints, getMyPointsHistory } from "../controllers/points.controller";
 import { getAllRewards, createReward, deleteReward, updateReward } from "../controllers/rewards.controller";
 import { generateRedemptionQR, confirmRedemption, getRedemptionStatus } from "../controllers/redemptions.controller";
-import { getAllEvents, createEvent, deleteEvent, notifyEvent } from "../controllers/events.controller";
+import { getAllEvents, createEvent, deleteEvent, notifyEvent, updateEvent } from "../controllers/events.controller";
 import { getAllUsers, adjustPoints, toggleBlockUser, deleteUser, toggleVipRewardStatus } from "../controllers/users.controller";
 import { getAdminStats } from "../controllers/admin.controller";
 import { generatePromoToken, claimPromoToken } from "../controllers/promo.controller";
 import { getSettings, updateSettings, uploadVideo, upload } from "../controllers/settings.controller";
+import { handleMediaUpload, uploadMedia } from "../controllers/media.controller";
 
 const router = Router();
+
+
+// Media Upload
+router.post("/media/upload", authenticate, requireAdmin, uploadMedia.single("file"), handleMediaUpload);
 
 
 // Points
@@ -31,6 +36,7 @@ router.get("/redemptions/status/:qrToken", getRedemptionStatus);
 // Events
 router.get("/events", getAllEvents);
 router.post("/events", authenticate, requireAdmin, createEvent);
+router.patch("/events/:id", authenticate, requireAdmin, updateEvent);
 router.post("/events/:id/notify", authenticate, requireAdmin, notifyEvent);
 router.delete("/events/:id", authenticate, requireAdmin, deleteEvent);
 

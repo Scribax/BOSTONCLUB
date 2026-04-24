@@ -4,11 +4,11 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import { Crown, Star, Flame, Ticket, ArrowRight, User as UserIcon, MapPin, CreditCard, Gift, QrCode, History, X } from 'lucide-react-native';
 import api, { getAuthToken, logout } from '../../lib/api';
 import { StatusBar } from 'expo-status-bar';
-import DigitalCard from '../../components/DigitalCard';
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import Constants from 'expo-constants';
-import { Platform } from 'react-native';
+import { Platform, Dimensions } from 'react-native';
+import { Video, ResizeMode } from 'expo-av';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -33,6 +33,8 @@ type BannerEvent = {
   description: string;
   benefits?: string;
   imageUrl?: string;
+  videoUrl?: string;
+  mediaType: 'IMAGE' | 'VIDEO';
 };
 
 // Componente helper para animaciones optimizadas
@@ -293,165 +295,153 @@ export default function DashboardScreen() {
       <View className={`absolute top-0 right-0 w-80 h-80 rounded-full opacity-10 blur-[100px] ${getAuraColor()}`} />
 
       <ScrollView 
-        className="flex-1"
+        className="flex-1 bg-[#050505]"
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 120 }}
+        contentContainerStyle={{ paddingBottom: 100 }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#D4AF37" />}
+        stickyHeaderIndices={[0]}
       >
-        {/* Header */}
-        <FadeInView delay={0} className="px-6 pt-20 pb-8 flex-row justify-between items-center z-10">
-          <View>
-            <Text className="text-white/40 text-[9px] font-black uppercase tracking-[0.4em] mb-1">Membresía Premium</Text>
-            <Text className="text-3xl font-black text-white italic uppercase tracking-tighter" numberOfLines={1}>{user.firstName}</Text>
+        {/* Header & Hero Carousel Section */}
+        <View className="relative">
+          {/* Top Bar Overlay */}
+          <View className="absolute top-0 w-full z-50 flex-row justify-between items-center px-6 pt-16">
+            <View className="bg-black/30 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10">
+               <Text className="text-white font-black text-[10px] tracking-widest uppercase italic">Boston Club</Text>
+            </View>
+            <TouchableOpacity 
+              onPress={() => router.push('/profile')}
+              className="w-11 h-11 rounded-full bg-black/40 border border-white/10 items-center justify-center shadow-2xl backdrop-blur-md"
+            >
+              <UserIcon size={18} color="white" />
+            </TouchableOpacity>
           </View>
-          <TouchableOpacity 
-            onPress={() => router.push('/profile')}
-            className="w-12 h-12 rounded-[1.2rem] bg-white/5 border border-white/10 items-center justify-center shadow-xl"
-          >
-            <UserIcon size={20} color="rgba(255,255,255,0.6)" />
-          </TouchableOpacity>
-        </FadeInView>
 
-        <View className="px-6 flex-col gap-8 z-10">
-          
-          <FadeInView delay={100}>
-            <DigitalCard 
-               name={`${user.firstName} ${user.lastName}`}
-               qrValue={user.id}
-               points={user.points}
-               level={user.membershipLevel}
-               nextTier={calculateNextTier()}
-               onPress={() => setShowBenefits(true)}
-            />
-          </FadeInView>
-
-          {/* Info Blocks Row */}
-          <FadeInView delay={200} className="flex-col gap-3">
-             <Text className="text-[10px] font-black text-white/40 uppercase tracking-[0.4em] ml-2">
-                Experiencia VIP Boston
-             </Text>
-             <View className="flex-row justify-between gap-3">
-                <TouchableOpacity 
-                   onPress={() => setShowGuide(true)}
-                   className="flex-1 bg-white/[0.03] border border-white/5 py-5 px-2 rounded-[2rem] items-center justify-center"
-                >
-                   <Flame size={20} color="#ff4d4d" className="mb-2" />
-                   <Text className="text-[10px] font-black text-white uppercase tracking-widest text-center">Niveles</Text>
-                   <Text className="text-[7px] text-white/40 font-bold uppercase mt-1 tracking-widest">Saber más</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity 
-                   onPress={() => router.push('/events')}
-                   className="flex-1 bg-white/[0.03] border border-white/5 py-5 px-2 rounded-[2rem] items-center justify-center"
-                >
-                   <Ticket size={20} color="#22D3EE" className="mb-2" />
-                   <Text className="text-[10px] font-black text-white uppercase tracking-widest text-center">Próximos</Text>
-                   <Text className="text-[7px] text-white/40 font-bold uppercase mt-1 tracking-widest">Cartelera</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity 
-                  activeOpacity={0.8}
-                  onPress={() => router.push('/rewards')}
-                  className="flex-1 bg-white/[0.03] border border-white/5 py-5 px-2 rounded-[2rem] items-center justify-center"
-                >
-                  <Gift size={20} color="#D4AF37" className="mb-2" />
-                  <Text className="text-[10px] font-black text-white uppercase tracking-widest text-center">Premios</Text>
-                  <Text className="text-[7px] text-white/40 font-bold uppercase mt-1 tracking-widest">Ver Canjes</Text>
-                </TouchableOpacity>
-             </View>
-          </FadeInView>
-
-          {/* Flash Promo Banners Carousel */}
-          {banners.length > 0 && (
-            <FadeInView delay={400} className="px-6 mt-2">
-              <FlatList
-                data={banners}
+          {/* Hero Carousel */}
+          <View style={{ height: Dimensions.get('window').height * 0.75 }}>
+             <FlatList
+                data={banners.length > 0 ? banners : [{ id: 'empty', title: 'Bienvenido', description: 'Cargando novedades...', mediaType: 'IMAGE' } as any]}
                 horizontal
                 pagingEnabled
-                style={{ width: CAROUSEL_WIDTH }}
-                snapToInterval={CAROUSEL_WIDTH}
-                decelerationRate="fast"
-                disableIntervalMomentum={true}
-                snapToAlignment="start"
                 showsHorizontalScrollIndicator={false}
-                keyExtractor={(item) => item.id}
-                getItemLayout={(_, index) => ({
-                  length: CAROUSEL_WIDTH,
-                  offset: CAROUSEL_WIDTH * index,
-                  index,
-                })}
                 onViewableItemsChanged={onViewableItemsChangedRef.current}
                 viewabilityConfig={viewabilityConfigRef.current}
-                renderItem={({ item: slide }) => (
-                  <TouchableOpacity
-                    style={{ width: CAROUSEL_WIDTH }}
-                    activeOpacity={0.9}
-                    onPress={() => setSelectedBanner(slide)}
-                  >
-                    <View className={`rounded-[2.5rem] relative overflow-hidden shadow-2xl border border-white/10 ${!slide.imageUrl ? 'bg-[#5a0000]' : 'bg-[#111]'}`}>
-                      {slide.imageUrl && (
-                        <View className="absolute inset-0">
-                          <Image source={{ uri: resolveImageUrl(slide.imageUrl) || '' }} className="w-full h-full opacity-50" resizeMode="cover" />
-                          <View className="absolute inset-0 bg-black/50" />
-                        </View>
-                      )}
-                      <View className="p-8 flex-row justify-between items-center z-10">
-                          <View className="flex-1 mr-4">
-                            <View className="bg-white/10 self-start px-3 py-1.5 rounded-full mb-3 border border-white/10">
-                              <Text className="text-white/80 text-[7px] font-black uppercase tracking-[0.2em]">Novedades</Text>
-                            </View>
-                            <Text className="text-white font-black text-2xl italic tracking-tighter mb-1.5 uppercase drop-shadow-2xl" numberOfLines={2}>
-                              {slide.title}
-                            </Text>
-                            <Text className="text-white/60 text-[10px] font-medium leading-4" numberOfLines={2}>
-                              {slide.description}
-                            </Text>
+                renderItem={({ item }: { item: any }) => (
+                  <View style={{ width: Dimensions.get('window').width, height: '100%' }} className="relative bg-[#0c0c0c]">
+                    {item.mediaType === 'VIDEO' && item.videoUrl ? (
+                      <Video
+                        source={{ uri: resolveImageUrl(item.videoUrl) || '' }}
+                        style={{ width: '100%', height: '100%' }}
+                        resizeMode={ResizeMode.COVER}
+                        shouldPlay
+                        isLooping
+                        isMuted
+                      />
+                    ) : (
+                      <Image 
+                        source={{ uri: resolveImageUrl(item.imageUrl) || 'https://images.unsplash.com/photo-1514525253361-bee8718a300a?q=80&w=1000' }} 
+                        className="w-full h-full opacity-70"
+                        resizeMode="cover"
+                      />
+                    )}
+                    
+                    {/* Gradient Overlay */}
+                    <View className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-black/30" />
+
+                    {/* Banner Content Overlay */}
+                    <View className="absolute bottom-24 left-0 right-0 px-8">
+                       <FadeInView delay={300}>
+                          <View className="bg-white px-4 py-2 rounded-sm self-start mb-4 shadow-2xl">
+                             <Text className="text-black font-black text-xs uppercase italic tracking-tighter">
+                               ¡HOLA, {user.firstName.toUpperCase()}!
+                             </Text>
                           </View>
-                          <View className="w-14 h-14 bg-white/10 rounded-[1.2rem] items-center justify-center border border-white/10 flex-shrink-0">
-                            <Flame size={24} color="white" />
-                          </View>
-                      </View>
+                          <Text className="text-white text-5xl font-black uppercase italic tracking-tighter leading-[42px] mb-2 drop-shadow-2xl">
+                             {item.title}
+                          </Text>
+                          <Text className="text-white/70 text-sm font-bold uppercase tracking-widest">
+                             {item.description}
+                          </Text>
+                       </FadeInView>
                     </View>
-                  </TouchableOpacity>
+                  </View>
                 )}
-              />
+             />
+             
+             {/* Pagination Dots */}
+             <View className="absolute bottom-16 w-full flex-row justify-center gap-2">
+                {banners.map((_, idx) => (
+                  <View key={idx} className={`h-1 rounded-full transition-all ${idx === currentBannerIdx ? 'w-8 bg-white' : 'w-2 bg-white/20'}`} />
+                ))}
+             </View>
+          </View>
 
-              {banners.length > 1 && (
-                <View className="flex-row justify-center gap-2 mt-4">
-                  {banners.map((_, idx) => (
-                    <View 
-                      key={idx}
-                      style={{
-                        height: 6,
-                        width: idx === currentBannerIdx ? 24 : 8,
-                        borderRadius: 3,
-                        backgroundColor: idx === currentBannerIdx ? '#D4AF37' : 'rgba(255,255,255,0.2)',
-                      }}
-                    />
-                  ))}
+          {/* Floating Tier Card - Mostaza Style */}
+          <FadeInView delay={500} className="px-6 -mt-10 z-50">
+             <TouchableOpacity 
+              activeOpacity={0.9}
+              onPress={() => setShowBenefits(true)}
+              className="bg-boston-red shadow-2xl shadow-boston-red/40 rounded-[2.5rem] p-6 border border-white/10"
+             >
+                <View className="flex-row justify-between items-center mb-6">
+                   <Text className="text-white font-black uppercase text-sm italic tracking-widest">Nivel {user.membershipLevel}</Text>
+                   <View className="bg-black/20 px-3 py-1 rounded-full flex-row items-center">
+                      <Text className="text-white font-black text-[10px]">{user.points} PUNTOS</Text>
+                      <ArrowRight size={10} color="white" className="ml-2" />
+                   </View>
                 </View>
-              )}
-            </FadeInView>
-          )}
 
-          {/* History Link */}
-          <FadeInView delay={500}>
-            <TouchableOpacity 
-              activeOpacity={0.8}
-              className="bg-white/[0.02] p-6 rounded-3xl flex-row items-center border border-white/5"
-              onPress={() => router.push('/history')} // FIX: Ahora lleva al historial de puntos
-            >
-               <View className="w-12 h-12 bg-white/5 rounded-2xl items-center justify-center mr-4">
-                 <History size={20} color="rgba(255,255,255,0.4)" />
-               </View>
-               <View className="flex-1">
-                  <Text className="text-xs font-black text-white uppercase tracking-[0.3em] mb-1">Actividad</Text>
-                  <Text className="text-[9px] text-white/30 font-bold uppercase">Tus puntos y recompensas</Text>
-               </View>
-               <ArrowRight size={18} color="rgba(255,255,255,0.2)" />
-            </TouchableOpacity>
+                {/* Progress Bar */}
+                <View className="relative h-1.5 bg-black/20 rounded-full w-full mb-2">
+                   <View 
+                    style={{ width: `${calculateNextTier()?.currentProgress || 100}%` }} 
+                    className="absolute top-0 left-0 h-full bg-white rounded-full" 
+                   />
+                </View>
+                
+                <View className="flex-row justify-between">
+                   <Text className="text-white/40 text-[8px] font-black uppercase">Clásico</Text>
+                   <Text className="text-white/40 text-[8px] font-black uppercase">Fan</Text>
+                   <Text className="text-white/40 text-[8px] font-black uppercase">Mega Fan</Text>
+                </View>
+             </TouchableOpacity>
           </FadeInView>
+        </View>
 
+        {/* Action Grid */}
+        <View className="px-6 mt-8 flex-col gap-6">
+           <Text className="text-white font-black uppercase tracking-[0.3em] text-[10px] ml-2">Menú Boston VIP</Text>
+           
+           <View className="flex-row flex-wrap gap-4">
+              <TouchableOpacity 
+                onPress={() => router.push('/rewards')}
+                className="w-[47%] aspect-square bg-white/[0.03] border border-white/5 rounded-[2.5rem] p-6 items-center justify-center"
+              >
+                 <Gift size={32} color="#D4AF37" className="mb-3" />
+                 <Text className="text-white font-black uppercase text-[10px] tracking-widest">Premios</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity 
+                onPress={() => router.push('/events')}
+                className="w-[47%] aspect-square bg-white/[0.03] border border-white/5 rounded-[2.5rem] p-6 items-center justify-center"
+              >
+                 <Ticket size={32} color="#22D3EE" className="mb-3" />
+                 <Text className="text-white font-black uppercase text-[10px] tracking-widest">Agenda</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity 
+                onPress={() => router.push('/history')}
+                className="w-full flex-row bg-white/[0.03] border border-white/5 rounded-[2rem] p-6 items-center"
+              >
+                 <View className="w-12 h-12 bg-white/5 rounded-2xl items-center justify-center mr-4">
+                   <History size={24} color="rgba(255,255,255,0.4)" />
+                 </View>
+                 <View className="flex-1">
+                    <Text className="text-white font-black uppercase text-xs tracking-widest">Actividad</Text>
+                    <Text className="text-white/30 font-bold uppercase text-[8px]">Tus puntos y movimientos</Text>
+                 </View>
+                 <ArrowRight size={16} color="rgba(255,255,255,0.2)" />
+              </TouchableOpacity>
+           </View>
         </View>
       </ScrollView>
 
