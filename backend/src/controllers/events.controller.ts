@@ -86,7 +86,9 @@ export const createEvent = async (req: Request, res: Response): Promise<void> =>
       isRedeemable,
       redemptionPolicy,
       benefitType,
-      benefitValue
+      benefitValue,
+      secondaryImageUrl,
+      secondaryMediaType
     } = req.body;
     
     const event = await prisma.event.create({
@@ -112,7 +114,9 @@ export const createEvent = async (req: Request, res: Response): Promise<void> =>
         isRedeemable: isRedeemable || false,
         redemptionPolicy: redemptionPolicy || "ONCE_TOTAL",
         benefitType: benefitType || null,
-        benefitValue: benefitValue || null
+        benefitValue: benefitValue || null,
+        secondaryImageUrl: secondaryImageUrl || null,
+        secondaryMediaType: secondaryMediaType || "IMAGE"
       }
     });
 
@@ -172,7 +176,9 @@ export const updateEvent = async (req: Request, res: Response): Promise<void> =>
       isRedeemable,
       redemptionPolicy,
       benefitType,
-      benefitValue
+      benefitValue,
+      secondaryImageUrl,
+      secondaryMediaType
     } = req.body;
 
     const event = await prisma.event.update({
@@ -198,7 +204,9 @@ export const updateEvent = async (req: Request, res: Response): Promise<void> =>
         isRedeemable,
         redemptionPolicy,
         benefitType,
-        benefitValue
+        benefitValue,
+        secondaryImageUrl,
+        secondaryMediaType
       }
     });
 

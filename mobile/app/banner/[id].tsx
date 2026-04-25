@@ -176,7 +176,20 @@ export default function BannerDetailScreen() {
         {/* Cinematic Hero */}
         <View style={{ height: HERO_HEIGHT }} className="relative bg-black overflow-hidden">
           <Animated.View style={{ transform: [{ scale: headerScale }], flex: 1 }}>
-            {banner.mediaType === 'VIDEO' && banner.videoUrl ? (
+            {banner.secondaryImageUrl ? (
+              banner.secondaryMediaType === 'VIDEO' ? (
+                <VideoPlayer
+                  uri={resolveImageUrl(banner.secondaryImageUrl) || ''}
+                  style={{ width: '100%', height: '100%' }}
+                />
+              ) : (
+                <Image 
+                  source={{ uri: resolveImageUrl(banner.secondaryImageUrl) }} 
+                  className="w-full h-full opacity-90"
+                  resizeMode="cover"
+                />
+              )
+            ) : banner.mediaType === 'VIDEO' && banner.videoUrl ? (
               <VideoPlayer
                 uri={resolveImageUrl(banner.videoUrl) || ''}
                 style={{ width: '100%', height: '100%' }}
@@ -252,23 +265,23 @@ export default function BannerDetailScreen() {
            {/* New Redemption Button Section */}
            {banner.isRedeemable && (
              <FadeInView delay={400} className="mb-12">
-               <TouchableOpacity 
-                 activeOpacity={0.9}
-                 onPress={handleRedeem}
-                 disabled={redemptionLoading}
-                 className="bg-black py-6 rounded-[2rem] flex-row items-center justify-center shadow-2xl shadow-black/40 border border-white/10"
-               >
-                 {redemptionLoading ? (
-                   <ActivityIndicator color="white" />
-                 ) : (
-                   <>
-                     <QrCode color="#D4AF37" size={24} className="mr-3" />
-                     <Text className="text-white font-black text-sm uppercase tracking-[0.2em]">
-                        {banner.buttonText || '¡LO QUIERO!'}
-                     </Text>
-                   </>
-                 )}
-               </TouchableOpacity>
+                <TouchableOpacity 
+                  activeOpacity={0.9}
+                  onPress={handleRedeem}
+                  disabled={redemptionLoading}
+                  className="bg-black py-6 rounded-[2rem] flex-row items-center justify-center shadow-2xl shadow-black/40 border border-white/10"
+                >
+                  {redemptionLoading ? (
+                    <ActivityIndicator color="white" />
+                  ) : (
+                    <>
+                      <QrCode color="#D4AF37" size={24} className="mr-3" />
+                      <Text className="text-white font-black text-sm uppercase tracking-[0.2em]">
+                         {banner.buttonText || '¡LO QUIERO!'}
+                      </Text>
+                    </>
+                  )}
+                </TouchableOpacity>
                <Text className="text-center text-[10px] text-black/20 font-bold uppercase mt-4 tracking-widest leading-relaxed">
                   {banner.redemptionPolicy === 'ONCE_PER_NIGHT' ? 'Válido una vez por noche' : 
                    banner.redemptionPolicy === 'ONCE_TOTAL' ? 'Un solo canje por socio' : 'Canje ilimitado disponible'}

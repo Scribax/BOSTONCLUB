@@ -25,7 +25,8 @@ import {
   QrCode,
   ShieldCheck,
   RefreshCcw,
-  Zap
+  Zap,
+  PlayCircle
 } from "lucide-react";
 import { apiFetch, API_URL, getAuthToken } from "@/lib/api";
 import { motion, AnimatePresence } from "framer-motion";
@@ -54,6 +55,8 @@ type ContentItem = {
   redemptionPolicy: string;
   benefitType: string | null;
   benefitValue: string | null;
+  secondaryImageUrl?: string;
+  secondaryMediaType?: 'IMAGE' | 'VIDEO';
 };
 
 export default function AppContentManager() {
@@ -81,6 +84,8 @@ export default function AppContentManager() {
   const [isAdultOnly, setIsAdultOnly] = useState(false);
   const [content, setContent] = useState("");
   const [gallery, setGallery] = useState<string[]>([]);
+  const [secondaryImageUrl, setSecondaryImageUrl] = useState("");
+  const [secondaryMediaType, setSecondaryMediaType] = useState<'IMAGE' | 'VIDEO'>("IMAGE");
   // Redemption Form State
   const [isRedeemable, setIsRedeemable] = useState(false);
   const [redemptionPolicy, setRedemptionPolicy] = useState("ONCE_TOTAL");
@@ -121,17 +126,18 @@ export default function AppContentManager() {
         return a.order - b.order;
     });
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, isGlobal: boolean = false) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, isGlobal: boolean = false, isSecondary: boolean = false) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setIsUploading(true);
     const formData = new FormData();
-    formData.append(isGlobal && activeTab === 'GLOBAL' ? "video" : "file", file);
+    const isVideo = (isGlobal && activeTab === 'GLOBAL') || (isSecondary ? secondaryMediaType === 'VIDEO' : mediaType === 'VIDEO');
+    formData.append(isVideo ? "video" : "file", file);
 
     try {
       const token = getAuthToken();
-      const endpoint = isGlobal && activeTab === 'GLOBAL' ? `${API_URL}/settings/upload-video` : `${API_URL}/media/upload`;
+      const endpoint = (isGlobal && activeTab === 'GLOBAL') || (isSecondary ? secondaryMediaType === 'VIDEO' : mediaType === 'VIDEO') ? `${API_URL}/settings/upload-video` : `${API_URL}/media/upload`;
       
       const response = await fetch(endpoint, {
         method: "POST",
@@ -148,6 +154,8 @@ export default function AppContentManager() {
       if (isGlobal && activeTab === 'GLOBAL') {
         setGlobalSettings({ ...globalSettings, loginVideoUrl: data.url });
         alert("¡Video de Login cargado!");
+      } else if (isSecondary) {
+        setSecondaryImageUrl(data.url);
       } else {
         if (mediaType === "IMAGE") {
           setImageUrl(data.url);
@@ -203,7 +211,9 @@ export default function AppContentManager() {
       isRedeemable,
       redemptionPolicy,
       benefitType: isRedeemable ? benefitType : null,
-      benefitValue: isRedeemable ? benefitValue : null
+      benefitValue: isRedeemable ? benefitValue : null,
+      secondaryImageUrl,
+      secondaryMediaType
     };
 
     try {
@@ -268,6 +278,8 @@ export default function AppContentManager() {
     setRedemptionPolicy("ONCE_TOTAL");
     setBenefitType("TWO_FOR_ONE");
     setBenefitValue("");
+    setSecondaryImageUrl("");
+    setSecondaryMediaType("IMAGE");
   };
 
   const openEdit = (item: ContentItem) => {
@@ -295,6 +307,8 @@ export default function AppContentManager() {
     setRedemptionPolicy(item.redemptionPolicy || "ONCE_TOTAL");
     setBenefitType(item.benefitType || "TWO_FOR_ONE");
     setBenefitValue(item.benefitValue || "");
+    setSecondaryImageUrl(item.secondaryImageUrl || "");
+    setSecondaryMediaType((item.secondaryMediaType as 'IMAGE' | 'VIDEO') || "IMAGE");
     setShowModal(true);
   };
 
@@ -576,16 +590,27 @@ export default function AppContentManager() {
                     </div>
                     <div className="space-y-4">
                         <label className="text-[10px] text-white/40 uppercase font-black tracking-[0.2em] mb-3 block">Multimedia Principal</label>
-                        <label className={`w-full border-2 border-dashed border-white/10 rounded-3xl py-12 flex flex-col items-center justify-center cursor-pointer hover:bg-white/5 transition-all relative overflow-hidden ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}>
-                          <input type="file" accept={mediaType === 'IMAGE' ? "image/*" : "video/mp4"} className="hidden" onChange={handleFileUpload} />
-                          {isUploading ? <Loader2 className="w-10 h-10 text-boston-gold animate-spin" /> : (
-                            (mediaType === 'IMAGE' ? imageUrl : videoUrl) ? (
-                              <div className="flex flex-col items-center gap-2"><Check className="w-8 h-8 text-green-500" /><span className="text-[8px] text-white/30 truncate max-w-[200px]">{(mediaType === 'IMAGE' ? imageUrl : videoUrl)}</span></div>
-                            ) : (
-                              <><Upload className="w-8 h-8 text-white/10 mb-2" /><span className="text-[10px] font-black text-white/40 uppercase">Subir Archivo</span></>
-                            )
+                        <div className="relative group">
+                          <label className={`w-full border-2 border-dashed border-white/10 rounded-3xl py-12 flex flex-col items-center justify-center cursor-pointer hover:bg-white/5 transition-all relative overflow-hidden ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}>
+                            <input type="file" accept={mediaType === 'IMAGE' ? "image/*" : "video/mp4"} className="hidden" onChange={handleFileUpload} />
+                            {isUploading ? <Loader2 className="w-10 h-10 text-boston-gold animate-spin" /> : (
+                              (mediaType === 'IMAGE' ? imageUrl : videoUrl) ? (
+                                <div className="flex flex-col items-center gap-2"><Check className="w-8 h-8 text-green-500" /><span className="text-[8px] text-white/30 truncate max-w-[200px]">{(mediaType === 'IMAGE' ? imageUrl : videoUrl)}</span></div>
+                              ) : (
+                                <><Upload className="w-8 h-8 text-white/10 mb-2" /><span className="text-[10px] font-black text-white/40 uppercase">Subir Archivo</span></>
+                              )
+                            )}
+                          </label>
+                          {(mediaType === 'IMAGE' ? imageUrl : videoUrl) && (
+                            <button 
+                              onClick={() => mediaType === 'IMAGE' ? setImageUrl("") : setVideoUrl("")}
+                              className="absolute top-2 right-2 p-2 bg-red-500/20 text-red-500 rounded-full hover:bg-red-500 hover:text-white transition-all z-20"
+                              title="Eliminar Multimedia"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
                           )}
-                        </label>
+                        </div>
                         <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
                            <p className="text-[9px] text-white/40 font-black uppercase tracking-widest mb-2 flex items-center gap-2">
                               <Sparkles className="w-3 h-3 text-boston-gold" /> Tamaños Recomendados
@@ -601,6 +626,37 @@ export default function AppContentManager() {
 
                   {/* Middle Column: Detailed Content */}
                   <div className="space-y-6">
+                    <div className="space-y-4">
+                        <div className="flex items-center justify-between mb-1">
+                            <label className="text-[10px] text-white/40 uppercase font-black tracking-[0.2em]">Multimedia Secundaria (Interior)</label>
+                            <div className="flex bg-black/40 p-1 rounded-xl border border-white/5">
+                                <button onClick={() => setSecondaryMediaType('IMAGE')} className={`px-3 py-1 rounded-lg text-[8px] font-black uppercase transition-all ${secondaryMediaType === 'IMAGE' ? 'bg-white text-black' : 'text-white/40'}`}>Imagen</button>
+                                <button onClick={() => setSecondaryMediaType('VIDEO')} className={`px-3 py-1 rounded-lg text-[8px] font-black uppercase transition-all ${secondaryMediaType === 'VIDEO' ? 'bg-white text-black' : 'text-white/40'}`}>Video</button>
+                            </div>
+                        </div>
+                        <div className="relative group">
+                          <label className={`w-full border-2 border-dashed border-white/10 rounded-3xl py-8 flex flex-col items-center justify-center cursor-pointer hover:bg-white/5 transition-all relative overflow-hidden ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}>
+                            <input type="file" accept={secondaryMediaType === 'IMAGE' ? "image/*" : "video/mp4"} className="hidden" onChange={(e) => handleFileUpload(e, false, true)} />
+                            {isUploading ? <Loader2 className="w-8 h-8 text-boston-gold animate-spin" /> : (
+                              secondaryImageUrl ? (
+                                <div className="flex flex-col items-center gap-2"><Check className="w-6 h-6 text-boston-gold" /><span className="text-[7px] text-white/30 truncate max-w-[200px]">{secondaryImageUrl}</span></div>
+                              ) : (
+                                <>{secondaryMediaType === 'IMAGE' ? <ImageIcon className="w-6 h-6 text-white/5 mb-2" /> : <PlayCircle className="w-6 h-6 text-white/5 mb-2" />}<span className="text-[9px] font-black text-white/20 uppercase">Subir {secondaryMediaType === 'IMAGE' ? 'Imagen' : 'Video'}</span></>
+                              )
+                            )}
+                          </label>
+                          {secondaryImageUrl && (
+                            <button 
+                              onClick={() => setSecondaryImageUrl("")}
+                              className="absolute top-2 right-2 p-1.5 bg-red-500/10 text-red-500/50 rounded-full hover:bg-red-500 hover:text-white transition-all z-20"
+                              title="Eliminar Multimedia"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          )}
+                        </div>
+                    </div>
+
                     <div>
                         <label className="text-[10px] text-white/40 uppercase font-black tracking-[0.2em] mb-3 block">Contenido Detallado (Página Interior)</label>
                         <textarea value={content} onChange={(e) => setContent(e.target.value)} placeholder="Explica los detalles de la promo o evento..." className="w-full bg-black/50 text-white border border-white/10 rounded-2xl py-4 px-6 focus:border-boston-gold transition-all outline-none text-sm min-h-[250px] resize-none leading-relaxed" />

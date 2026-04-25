@@ -102,6 +102,8 @@ model Event {
   redemptionPolicy String   @default("ONCE_TOTAL") // ONCE_TOTAL, ONCE_PER_NIGHT, UNLIMITED
   benefitType      String?  // PERCENTAGE, FIXED, FREE, TWO_FOR_ONE
   benefitValue     String?  // e.g., "10", "500", "Bebida Gratis"
+  secondaryImageUrl String? // Image or Video URL for the internal detail page
+  secondaryMediaType String @default("IMAGE") // IMAGE or VIDEO
 
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt

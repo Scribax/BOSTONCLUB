@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, Alert, ActivityIndicator, StyleSheet, LogBox } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Mail, Lock, LogIn, ChevronRight, Crown, ArrowRight, User as UserIcon, Phone } from 'lucide-react-native';
+import { Mail, Lock, LogIn, ChevronRight, Crown, ArrowRight, User as UserIcon, Phone, Eye, EyeOff } from 'lucide-react-native';
 import api, { setAuthToken } from '../lib/api';
 import { StatusBar } from 'expo-status-bar';
 import { VideoPlayer } from '../components/VideoPlayer';
@@ -21,6 +21,7 @@ export default function LoginScreen() {
   const [whatsapp, setWhatsapp] = useState('');
   const [birthDateInput, setBirthDateInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const router = useRouter();
 
@@ -244,9 +245,19 @@ export default function LoginScreen() {
                 </View>
                 <TextInput 
                   value={password} onChangeText={setPassword} placeholder="••••••••" 
-                  placeholderTextColor="rgba(255,255,255,0.4)" secureTextEntry
-                  className="w-full bg-black/40 text-white border border-white/10 rounded-2xl py-3.5 pl-11 pr-4 h-12 font-medium" 
+                  placeholderTextColor="rgba(255,255,255,0.4)" secureTextEntry={!showPassword}
+                  className="w-full bg-black/40 text-white border border-white/10 rounded-2xl py-3.5 pl-11 pr-12 h-12 font-medium" 
                 />
+                <TouchableOpacity 
+                  onPress={() => setShowPassword(!showPassword)}
+                  className="absolute right-2 z-10 p-2"
+                >
+                  {showPassword ? (
+                    <EyeOff size={22} color="rgba(255,255,255,0.4)" />
+                  ) : (
+                    <Eye size={22} color="rgba(255,255,255,0.4)" />
+                  )}
+                </TouchableOpacity>
               </View>
             </View>
 
@@ -263,7 +274,7 @@ export default function LoginScreen() {
               className={`w-full mt-6 rounded-[1rem] p-[1px] relative overflow-hidden ${loading ? 'opacity-50' : ''}`}
             >
               <View className="absolute inset-0 bg-boston-gold opacity-50" />
-              <View className="flex-row items-center justify-center bg-boston-black py-4 px-8 rounded-[1rem] border border-boston-gold/50">
+              <View className="flex-row items-center justify-center bg-boston-black py-4 px-8 rounded-[1rem] border border-boston-gold/50 shadow-xl shadow-boston-gold/20">
                 {loading ? (
                   <ActivityIndicator color="#D4AF37" />
                 ) : (

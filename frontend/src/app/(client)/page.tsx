@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Crown, KeyRound, Mail, ArrowRight, User as UserIcon } from "lucide-react";
+import { Crown, KeyRound, Mail, ArrowRight, User as UserIcon, Eye, EyeOff } from "lucide-react";
 import { apiFetch, setAuthToken } from "@/lib/api";
 import { useRouter } from "next/navigation";
 
@@ -17,6 +17,7 @@ export default function LoginPage() {
   const [whatsapp, setWhatsapp] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleAuth = async () => {
     setLoading(true);
@@ -153,7 +154,20 @@ export default function LoginPage() {
             <label className="text-[10px] font-bold text-white/30 uppercase ml-1 tracking-widest">Contraseña</label>
             <div className="relative group">
               <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-white/20 group-focus-within:text-boston-red transition-colors" />
-              <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" className="w-full bg-black/40 text-white border border-white/5 rounded-2xl py-3.5 pl-11 pr-4 outline-none focus:border-boston-red transition-all text-sm font-medium placeholder:text-white/10" />
+              <input 
+                type={showPassword ? "text" : "password"} 
+                value={password} 
+                onChange={e => setPassword(e.target.value)} 
+                placeholder="••••••••" 
+                className="w-full bg-black/40 text-white border border-white/5 rounded-2xl py-3.5 pl-11 pr-12 outline-none focus:border-boston-red transition-all text-sm font-medium placeholder:text-white/10" 
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-white/20 hover:text-white/60 transition-colors"
+              >
+                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+              </button>
             </div>
           </div>
 

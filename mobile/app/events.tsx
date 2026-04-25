@@ -1,10 +1,11 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Image, RefreshControl } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { ArrowLeft, Ticket, Calendar, MapPin, ExternalLink, ChevronDown, ChevronUp } from 'lucide-react-native';
+import { ArrowLeft, Ticket, Calendar, MapPin, ExternalLink, ChevronDown, ChevronUp, PlayCircle } from 'lucide-react-native';
 import * as Linking from 'expo-linking';
 import api from '../lib/api';
 import { StatusBar } from 'expo-status-bar';
+import { VideoPlayer } from '../components/VideoPlayer';
 
 type EventData = {
   id: string;
@@ -175,9 +176,27 @@ export default function EventsScreen() {
                    </View>
 
                    {/* Expandable Details Section */}
-                   {expandedId === event.id && event.details && (
-                     <View className="mb-6 p-5 bg-black/40 rounded-[2rem] border border-white/5">
-                        <Text className="text-white/70 text-xs font-medium leading-loose">{event.details}</Text>
+                   {expandedId === event.id && (
+                     <View className="mb-6 space-y-4">
+                        {event.secondaryImageUrl && (
+                          event.secondaryMediaType === 'VIDEO' ? (
+                            <VideoPlayer 
+                              uri={resolveImageUrl(event.secondaryImageUrl) || ''} 
+                              style={{ width: '100%', height: 192, borderRadius: 16, marginBottom: 16 }} 
+                            />
+                          ) : (
+                            <Image 
+                              source={{ uri: resolveImageUrl(event.secondaryImageUrl) || '' }} 
+                              className="w-full h-48 rounded-2xl mb-4" 
+                              resizeMode="cover" 
+                            />
+                          )
+                        )}
+                        {event.details && (
+                          <View className="p-5 bg-black/40 rounded-[2rem] border border-white/5">
+                             <Text className="text-white/70 text-xs font-medium leading-loose">{event.details}</Text>
+                          </View>
+                        )}
                      </View>
                    )}
 
