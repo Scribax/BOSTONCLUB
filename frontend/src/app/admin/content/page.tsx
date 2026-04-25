@@ -43,7 +43,7 @@ type ContentItem = {
   mediaType: string; // 'IMAGE' or 'VIDEO'
   order: number;
   isActive: boolean;
-  type: 'BANNER' | 'EVENTO' | 'PROMO';
+  type: 'BANNER' | 'EVENTO' | 'PROMO' | 'EVENT';
   benefits?: string;
   buttonText?: string;
   externalLink?: string;
@@ -103,7 +103,12 @@ export default function AppContentManager() {
     setLoading(true);
     try {
       const data = await apiFetch("/events");
-      setItems(data);
+      // Normalize 'EVENT' to 'EVENTO' for frontend UI consistency
+      const normalized = data.map((item: any) => ({
+        ...item,
+        type: item.type === 'EVENT' ? 'EVENTO' : item.type
+      }));
+      setItems(normalized);
     } catch (err) {
       console.error("Error fetching content", err);
     } finally {
