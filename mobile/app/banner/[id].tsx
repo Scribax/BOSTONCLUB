@@ -2,7 +2,7 @@ import { View, Text, ScrollView, Image, TouchableOpacity, Dimensions, Animated, 
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState, useEffect, useRef } from 'react';
 import api from '../../lib/api';
-import { ArrowLeft, Gift, AlertCircle, Share2, Sparkles, ChevronDown, ArrowRight, QrCode, X, CheckCircle2, ShieldAlert } from 'lucide-react-native';
+import { ArrowLeft, Gift, AlertCircle, Share2, Sparkles, ChevronDown, ArrowRight, QrCode, X, CheckCircle2, ShieldAlert, Calendar } from 'lucide-react-native';
 import { VideoPlayer } from '../../components/VideoPlayer';
 import { LinearGradient } from 'expo-linear-gradient';
 import { FadeInView } from '../../components/FadeInView';

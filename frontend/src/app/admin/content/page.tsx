@@ -139,12 +139,13 @@ export default function AppContentManager() {
 
     setIsUploading(true);
     const formData = new FormData();
-    const isVideo = (isGlobal && activeTab === 'GLOBAL') || (isSecondary ? secondaryMediaType === 'VIDEO' : mediaType === 'VIDEO');
-    formData.append(isVideo ? "video" : "file", file);
+    const isGlobalUpload = isGlobal && activeTab === 'GLOBAL';
+    const isVideo = isGlobalUpload || (isSecondary ? secondaryMediaType === 'VIDEO' : mediaType === 'VIDEO');
+    formData.append(isGlobalUpload ? "video" : "file", file);
 
     try {
       const token = getAuthToken();
-      const endpoint = (isGlobal && activeTab === 'GLOBAL') || (isSecondary ? secondaryMediaType === 'VIDEO' : mediaType === 'VIDEO') ? `${API_URL}/settings/upload-video` : `${API_URL}/media/upload`;
+      const endpoint = isGlobalUpload ? `${API_URL}/settings/upload-video` : `${API_URL}/media/upload`;
       
       const response = await fetch(endpoint, {
         method: "POST",
