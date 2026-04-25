@@ -8,6 +8,7 @@ import api from './api';
 let Notifications: any = null;
 
 const getNotifications = () => {
+  if (Platform.OS === 'web') return null;
   if (Notifications) return Notifications;
   if (Constants.appOwnership === 'expo') return null;
   

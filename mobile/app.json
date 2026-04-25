@@ -2,6 +2,7 @@
   "expo": {
     "name": "Boston Club",
     "slug": "mobile",
+    "privacy": "public",
     "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -29,7 +30,13 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.USE_BIOMETRIC",
+        "android.permission.USE_FINGERPRINT",
+        "android.permission.USE_BIOMETRIC",
+        "android.permission.USE_FINGERPRINT"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -50,6 +57,13 @@
       "eas": {
         "projectId": "3c50dc68-3e19-4218-a359-aca0431d7233"
       }
+    },
+    "owner": "scribax",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/3c50dc68-3e19-4218-a359-aca0431d7233"
     }
   }
 }

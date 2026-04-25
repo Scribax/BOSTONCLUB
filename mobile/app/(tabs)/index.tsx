@@ -17,8 +17,10 @@ LogBox.ignoreLogs([
   '[Reanimated] Writing to `value` during component render'
 ]);
 
-// Initialize notifications configuration
-initNotifications();
+// Initialize notifications configuration (solo en nativo)
+if (Platform.OS !== 'web') {
+  initNotifications();
+}
 
 type UserData = {
   id: string;
