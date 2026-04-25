@@ -289,6 +289,21 @@ export default function BannerDetailScreen() {
              </FadeInView>
            )}
 
+           {/* New: Linked Event Button */}
+           {banner.linkedEventId && (
+             <FadeInView delay={350} className="mb-12">
+                <TouchableOpacity 
+                  activeOpacity={0.8}
+                  onPress={() => router.push({ pathname: '/events', params: { highlightId: banner.linkedEventId } })}
+                  className="bg-boston-gold py-6 rounded-[2rem] flex-row items-center justify-center shadow-xl shadow-boston-gold/20"
+                >
+                   <Calendar color="black" size={20} className="mr-3" />
+                   <Text className="text-black font-black text-xs uppercase tracking-[0.2em]">IR AL EVENTO</Text>
+                   <ArrowRight color="black" size={18} className="ml-2" />
+                </TouchableOpacity>
+             </FadeInView>
+           )}
+
            {/* Gallery - Grid Style (Modern) */}
            {banner.gallery && Array.isArray(banner.gallery) && banner.gallery.length > 0 && (
              <View className="mt-4">

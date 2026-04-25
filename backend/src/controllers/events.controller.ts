@@ -88,7 +88,8 @@ export const createEvent = async (req: Request, res: Response): Promise<void> =>
       benefitType,
       benefitValue,
       secondaryImageUrl,
-      secondaryMediaType
+      secondaryMediaType,
+      linkedEventId
     } = req.body;
     
     const event = await prisma.event.create({
@@ -116,7 +117,8 @@ export const createEvent = async (req: Request, res: Response): Promise<void> =>
         benefitType: benefitType || null,
         benefitValue: benefitValue || null,
         secondaryImageUrl: secondaryImageUrl || null,
-        secondaryMediaType: secondaryMediaType || "IMAGE"
+        secondaryMediaType: secondaryMediaType || "IMAGE",
+        linkedEventId: linkedEventId || null
       }
     });
 
@@ -178,7 +180,8 @@ export const updateEvent = async (req: Request, res: Response): Promise<void> =>
       benefitType,
       benefitValue,
       secondaryImageUrl,
-      secondaryMediaType
+      secondaryMediaType,
+      linkedEventId
     } = req.body;
 
     const event = await prisma.event.update({
@@ -206,7 +209,8 @@ export const updateEvent = async (req: Request, res: Response): Promise<void> =>
         benefitType,
         benefitValue,
         secondaryImageUrl,
-        secondaryMediaType
+        secondaryMediaType,
+        linkedEventId
       }
     });
 

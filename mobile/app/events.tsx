@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Image, RefreshControl } from 'react-native';
-import { useRouter, useFocusEffect } from 'expo-router';
+import { useRouter, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { ArrowLeft, Ticket, Calendar, MapPin, ExternalLink, ChevronDown, ChevronUp, PlayCircle } from 'lucide-react-native';
 import * as Linking from 'expo-linking';
 import api from '../lib/api';
@@ -18,14 +18,19 @@ type EventData = {
   benefits: string;
   buttonText: string;
   externalLink: string;
+  content?: string;
+  secondaryImageUrl?: string;
+  secondaryMediaType?: string;
+  linkedEventId?: string;
 };
 
 export default function EventsScreen() {
   const router = useRouter();
+  const { highlightId } = useLocalSearchParams();
   const [events, setEvents] = useState<EventData[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>((highlightId as string) || null);
 
   const resolveImageUrl = (url: string | undefined | null) => {
     if (!url) return null;
@@ -192,9 +197,15 @@ export default function EventsScreen() {
                             />
                           )
                         )}
-                        {event.details && (
+                        {(event.content || event.details) && (
                           <View className="p-5 bg-black/40 rounded-[2rem] border border-white/5">
-                             <Text className="text-white/70 text-xs font-medium leading-loose">{event.details}</Text>
+                             <Text className="text-white/70 text-xs font-medium leading-loose">{event.content || event.details}</Text>
+                          </View>
+                        )}
+                        {event.benefits && (
+                          <View className="bg-boston-gold/10 p-5 rounded-[2rem] border border-boston-gold/20">
+                             <Text className="text-boston-gold text-[9px] uppercase font-black tracking-widest mb-2">✨ Beneficio Incluido</Text>
+                             <Text className="text-white/90 text-xs italic font-medium leading-relaxed">{event.benefits}</Text>
                           </View>
                         )}
                      </View>

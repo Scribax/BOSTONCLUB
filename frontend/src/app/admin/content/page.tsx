@@ -57,6 +57,7 @@ type ContentItem = {
   benefitValue: string | null;
   secondaryImageUrl?: string;
   secondaryMediaType?: 'IMAGE' | 'VIDEO';
+  linkedEventId?: string;
 };
 
 export default function AppContentManager() {
@@ -86,6 +87,7 @@ export default function AppContentManager() {
   const [gallery, setGallery] = useState<string[]>([]);
   const [secondaryImageUrl, setSecondaryImageUrl] = useState("");
   const [secondaryMediaType, setSecondaryMediaType] = useState<'IMAGE' | 'VIDEO'>("IMAGE");
+  const [linkedEventId, setLinkedEventId] = useState("");
   // Redemption Form State
   const [isRedeemable, setIsRedeemable] = useState(false);
   const [redemptionPolicy, setRedemptionPolicy] = useState("ONCE_TOTAL");
@@ -213,7 +215,8 @@ export default function AppContentManager() {
       benefitType: isRedeemable ? benefitType : null,
       benefitValue: isRedeemable ? benefitValue : null,
       secondaryImageUrl,
-      secondaryMediaType
+      secondaryMediaType,
+      linkedEventId: linkedEventId || null
     };
 
     try {
@@ -280,6 +283,7 @@ export default function AppContentManager() {
     setBenefitValue("");
     setSecondaryImageUrl("");
     setSecondaryMediaType("IMAGE");
+    setLinkedEventId("");
   };
 
   const openEdit = (item: ContentItem) => {
@@ -309,6 +313,7 @@ export default function AppContentManager() {
     setBenefitValue(item.benefitValue || "");
     setSecondaryImageUrl(item.secondaryImageUrl || "");
     setSecondaryMediaType((item.secondaryMediaType as 'IMAGE' | 'VIDEO') || "IMAGE");
+    setLinkedEventId(item.linkedEventId || "");
     setShowModal(true);
   };
 
@@ -746,10 +751,29 @@ export default function AppContentManager() {
                         )}
                      </div>
 
+                     <div className="mt-4 p-6 bg-white/5 rounded-[2rem] border border-white/5">
+                         <label className="text-[9px] text-white/40 uppercase font-black tracking-widest mb-4 block">Vincular con Evento (Opcional)</label>
+                         <div className="relative">
+                           <select 
+                             value={linkedEventId} 
+                             onChange={(e) => setLinkedEventId(e.target.value)}
+                             className="w-full bg-black/50 text-white border border-white/10 rounded-xl py-4 px-5 focus:border-boston-gold outline-none text-[10px] font-black uppercase tracking-widest appearance-none transition-all cursor-pointer"
+                           >
+                               <option value="">Ninguno</option>
+                               {items.filter(i => i.type === 'EVENT' || i.type === 'EVENTO').map(ev => (
+                                 <option key={ev.id} value={ev.id}>{ev.title}</option>
+                               ))}
+                           </select>
+                           <div className="absolute inset-y-0 right-5 flex items-center pointer-events-none text-white/20">
+                               <Plus className="w-4 h-4" />
+                           </div>
+                         </div>
+                     </div>
+
                      <button 
                        onClick={handleSave} 
                        disabled={isSubmitting || isUploading} 
-                       className="w-full bg-boston-gold text-black py-6 rounded-[2rem] font-black uppercase text-[11px] tracking-[0.2em] shadow-xl shadow-boston-gold/20 hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-50"
+                       className="w-full bg-boston-gold text-black py-6 rounded-[2rem] font-black uppercase text-[11px] tracking-[0.2em] shadow-xl shadow-boston-gold/20 hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-50 mt-4"
                      >
                         {isSubmitting ? "Guardando..." : (editingItem ? 'Guardar Cambios' : 'Crear Publicación')}
                      </button>

@@ -104,6 +104,7 @@ model Event {
   benefitValue     String?  // e.g., "10", "500", "Bebida Gratis"
   secondaryImageUrl String? // Image or Video URL for the internal detail page
   secondaryMediaType String @default("IMAGE") // IMAGE or VIDEO
+  linkedEventId      String? // ID of another event/promo to link to
 
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt

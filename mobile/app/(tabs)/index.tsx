@@ -62,7 +62,38 @@ export default function DashboardScreen() {
       setCurrentBannerIdx(viewableItems[0].index ?? 0);
     }
   });
+
+  const onPromoViewableItemsChangedRef = useRef(({ viewableItems }: any) => {
+    if (viewableItems.length > 0) {
+      setCurrentPromoIdx(viewableItems[0].index ?? 0);
+    }
+  });
+
   const viewabilityConfigRef = useRef({ itemVisiblePercentThreshold: 50 });
+  const bannerListRef = useRef<FlatList>(null);
+  const promoListRef = useRef<FlatList>(null);
+
+  // Auto-scroll effect para Banners
+  useEffect(() => {
+    if (banners.length > 1) {
+      const interval = setInterval(() => {
+        const nextIdx = (currentBannerIdx + 1) % banners.length;
+        bannerListRef.current?.scrollToIndex({ index: nextIdx, animated: true });
+      }, 6000);
+      return () => clearInterval(interval);
+    }
+  }, [banners, currentBannerIdx]);
+
+  // Auto-scroll effect para Promos
+  useEffect(() => {
+    if (promoBanners.length > 1) {
+      const interval = setInterval(() => {
+        const nextIdx = (currentPromoIdx + 1) % promoBanners.length;
+        promoListRef.current?.scrollToIndex({ index: nextIdx, animated: true });
+      }, 6000);
+      return () => clearInterval(interval);
+    }
+  }, [promoBanners, currentPromoIdx]);
 
   const loadProfile = async () => {
     try {
@@ -254,12 +285,18 @@ export default function DashboardScreen() {
           {/* Hero Carousel */}
           <View style={{ height: Dimensions.get('window').height * 0.75 }}>
              <FlatList
+                ref={bannerListRef}
                 data={banners.length > 0 ? banners : [{ id: 'empty', title: 'Bienvenido', description: 'Cargando novedades...', mediaType: 'IMAGE' } as any]}
                 horizontal
                 pagingEnabled
                 showsHorizontalScrollIndicator={false}
                 onViewableItemsChanged={onViewableItemsChangedRef.current}
                 viewabilityConfig={viewabilityConfigRef.current}
+                getItemLayout={(data, index) => ({
+                   length: Dimensions.get('window').width,
+                   offset: Dimensions.get('window').width * index,
+                   index,
+                })}
                 renderItem={({ item }: { item: any }) => (
                   <TouchableOpacity 
                     activeOpacity={0.9} 
@@ -507,17 +544,20 @@ export default function DashboardScreen() {
 
               <View style={{ height: 180 }}>
                  <FlatList
+                    ref={promoListRef}
                     data={promoBanners}
                     horizontal
                     showsHorizontalScrollIndicator={false}
                     contentContainerStyle={{ paddingHorizontal: 24, gap: 16 }}
                     snapToInterval={SCREEN_WIDTH * 0.85 + 16}
                     decelerationRate="fast"
-                    onScroll={(e) => {
-                       const x = e.nativeEvent.contentOffset.x;
-                       const idx = Math.round(x / (SCREEN_WIDTH * 0.85 + 16));
-                       setCurrentPromoIdx(idx);
-                    }}
+                    onViewableItemsChanged={onPromoViewableItemsChangedRef.current}
+                    viewabilityConfig={viewabilityConfigRef.current}
+                    getItemLayout={(data, index) => ({
+                       length: SCREEN_WIDTH * 0.85 + 16,
+                       offset: (SCREEN_WIDTH * 0.85 + 16) * index,
+                       index,
+                    })}
                     renderItem={({ item }: { item: any }) => (
                       <TouchableOpacity 
                         activeOpacity={0.9} 
