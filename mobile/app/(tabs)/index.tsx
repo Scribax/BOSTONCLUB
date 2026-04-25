@@ -242,6 +242,8 @@ export default function DashboardScreen() {
 
   if (!user) return null; // Safety check
 
+  const pts = user.points;
+
   const getAuraColor = () => {
     switch (user.membershipLevel) {
       case 'ORO': return 'bg-[#D4AF37]';
@@ -565,39 +567,41 @@ export default function DashboardScreen() {
                         style={{ width: SCREEN_WIDTH * 0.85, height: 160 }} 
                         className="relative bg-[#0c0c0c] rounded-[2.5rem] border border-white/5 overflow-hidden shadow-2xl"
                       >
-                        {/* Card Content Layout */}
-                        <View className="flex-1 flex-row">
-                           {/* Text Content (Left) */}
-                           <View className="flex-1 p-6 justify-center">
-                              <Text className="text-white text-4xl font-black uppercase italic tracking-tighter mb-1">
-                                 {item.title}
-                              </Text>
-                              <Text className="text-white/80 font-black uppercase text-[10px] tracking-widest mb-4">
-                                 {item.description}
-                              </Text>
-                              <View className="bg-white/10 self-start px-2 py-1 rounded-md">
-                                 <Text className="text-white/40 font-bold uppercase text-[7px] tracking-widest">
-                                    {item.condition || 'Válido hoy'}
-                                 </Text>
-                              </View>
-                           </View>
+                      <View className="flex-1 relative">
+                         {/* Image Content (Absolute background on the right) */}
+                         <View className="absolute top-0 right-0 w-[60%] h-full">
+                            <Image 
+                              source={{ uri: resolveImageUrl(item.imageUrl) || 'https://images.unsplash.com/photo-1550547660-d9450f859349?q=80&w=500' }} 
+                              className="w-full h-full"
+                              resizeMode="cover"
+                            />
+                            {/* Gradient to blend image with text area */}
+                            <LinearGradient
+                               colors={['#0c0c0c', 'rgba(12,12,12,0.7)', 'transparent']}
+                               start={{ x: 0, y: 0.5 }}
+                               end={{ x: 0.7, y: 0.5 }}
+                               style={{ position: 'absolute', top: 0, left: 0, bottom: 0, width: '100%' }}
+                            />
+                         </View>
 
-                           {/* Image Content (Right) */}
-                           <View className="w-[45%] h-full">
-                              <Image 
-                                source={{ uri: resolveImageUrl(item.imageUrl) || 'https://images.unsplash.com/photo-1550547660-d9450f859349?q=80&w=500' }} 
-                                className="w-full h-full"
-                                resizeMode="cover"
-                              />
-                              {/* Gradient to blend image with text area */}
-                              <LinearGradient
-                                 colors={['#0c0c0c', 'transparent']}
-                                 start={{ x: 0, y: 0.5 }}
-                                 end={{ x: 0.8, y: 0.5 }}
-                                 style={{ position: 'absolute', top: 0, left: 0, bottom: 0, width: '40%' }}
-                              />
-                           </View>
-                        </View>
+                         {/* Text Content (Foreground) */}
+                         <View className="flex-1 p-6 justify-center z-10">
+                            <Text 
+                              className="text-white text-4xl font-black uppercase italic tracking-tighter leading-[34px] mb-1"
+                              numberOfLines={2}
+                            >
+                               {item.title}
+                            </Text>
+                            <Text className="text-white/80 font-black uppercase text-[10px] tracking-widest mb-4">
+                               {item.description}
+                            </Text>
+                            <View className="bg-white/10 self-start px-2 py-1 rounded-md">
+                               <Text className="text-white/40 font-bold uppercase text-[7px] tracking-widest">
+                                  {item.condition || 'Válido hoy'}
+                               </Text>
+                            </View>
+                         </View>
+                      </View>
                       </TouchableOpacity>
                     )}
                  />
@@ -665,62 +669,109 @@ export default function DashboardScreen() {
         </View>
       </Modal>
 
-      {/* Benefits Modal */}
-      <Modal visible={showBenefits} transparent animationType="slide">
-        <View className="flex-1 bg-black/80 justify-end">
-           <View className="w-full bg-[#0d0d0d] border-t border-white/10 rounded-t-[40px] p-8 max-h-[90%]">
-              <View className="flex-row justify-between items-start mb-8">
-                 <View className="flex-1 pr-4">
-                    <Text className="text-[#D4AF37] text-[10px] font-black uppercase tracking-[0.4em] mb-1">Estatus Actual</Text>
-                    <Text className="text-3xl font-black text-white italic uppercase tracking-tighter" numberOfLines={1}>Rango {user.membershipLevel}</Text>
-                 </View>
-                 <TouchableOpacity onPress={() => setShowBenefits(false)} className="w-10 h-10 rounded-full bg-white/5 items-center justify-center">
-                    <X size={20} color="rgba(255,255,255,0.5)" />
-                 </TouchableOpacity>
-              </View>
-              
-              <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
-                 <View className="flex-row items-center gap-3 mb-6">
-                    <Crown size={20} color="#D4AF37" />
-                    <Text className="text-[10px] font-black text-white uppercase tracking-[0.2em] flex-1">Tus Privilegios Exclusivos</Text>
-                 </View>
-                 
-                 <View className="flex-col gap-3">
-                    {settings && (settings[`${user.membershipLevel.toLowerCase() === 'bronce' || user.membershipLevel.toLowerCase() === 'bronze' ? 'bronce' : (user.membershipLevel === 'ORO' ? 'gold' : (user.membershipLevel === 'PLATINO' ? 'platinum' : (user.membershipLevel === 'DIAMANTE' ? 'diamond' : 'superVip')))}Benefits`] || "- No hay beneficios configurados").split('\n').map((benefit: string, i: number) => (
-                       <View key={i} className="flex-row items-center bg-white/[0.03] p-4 rounded-3xl border border-white/5 gap-4">
-                          <View className="w-6 h-6 rounded-full bg-[#D4AF37]/10 items-center justify-center border border-[#D4AF37]/20 flex-shrink-0">
-                             <View className="w-1.5 h-1.5 bg-[#D4AF37] rounded-full" />
-                          </View>
-                          <Text className="flex-1 text-xs text-white/80 font-medium uppercase italic leading-tight">{benefit.replace(/^-\s*/, '')}</Text>
-                       </View>
-                    ))}
-                 </View>
+      {/* Benefits Modal - Motivational Redesign */}
+       <Modal visible={showBenefits} transparent animationType="slide" onRequestClose={() => setShowBenefits(false)}>
+         <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.9)', justifyContent: 'flex-end' }}>
+            <View style={{ width: '100%', backgroundColor: '#0c0c0c', borderTopLeftRadius: 40, borderTopRightRadius: 40, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.1)', height: '85%', overflow: 'hidden' }}>
+               {/* Modal Header with Gradient */}
+               <View style={{ height: 180, position: 'relative' }}>
+                  <LinearGradient 
+                    colors={['#FF3B30', '#881B16', '#0c0c0c']} 
+                    style={{ position: 'absolute', inset: 0 }}
+                  />
+                  <View style={{ padding: 32, flex: 1, justifyContent: 'flex-end' }}>
+                     <TouchableOpacity 
+                       onPress={() => setShowBenefits(false)} 
+                       style={{ position: 'absolute', top: 24, right: 24, width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.2)', alignItems: 'center', justifyContent: 'center' }}
+                     >
+                        <X size={20} color="white" />
+                     </TouchableOpacity>
+                     
+                     <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 10, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 2 }}>Tu Estatus Actual</Text>
+                     <Text style={{ color: 'white', fontSize: 44, fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', letterSpacing: -2 }}>{user.membershipLevel}</Text>
+                  </View>
+               </View>
 
-                 <View className="mt-10 pt-10 border-t border-white/5 flex-col gap-4">
-                    <Text className="text-[10px] font-black text-white/20 uppercase tracking-[0.4em]">Próximas Metas</Text>
-                    
-                    {[
-                      { name: "ORO", icon: "🥇", color: "text-boston-gold" },
-                      { name: "PLATINO", icon: "💎", color: "text-white" },
-                      { name: "DIAMANTE", icon: "💠", color: "text-cyan-400" },
-                      { name: "SÚPER VIP", icon: "🔥", color: "text-boston-red-glow" },
-                    ].filter(t => t.name !== user.membershipLevel).map((tier, idx) => (
-                       <View key={idx} className="p-4 rounded-3xl bg-white/[0.02] border border-white/5 flex-row items-center justify-between">
-                          <View className="flex-row items-center gap-4">
-                             <Text className="text-xl">{tier.icon}</Text>
-                             <View>
-                                <Text className={`text-[10px] font-black uppercase tracking-widest ${tier.color}`}>{tier.name}</Text>
-                                <Text className="text-[8px] text-white/20 font-bold uppercase mt-1">Desbloquea más beneficios</Text>
+               <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 32, paddingBottom: 60 }}>
+                  {/* Current Benefits */}
+                  <View style={{ marginBottom: 40 }}>
+                     <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
+                        <Crown size={18} color="#D4AF37" />
+                        <Text style={{ color: 'white', fontSize: 12, fontWeight: '900', textTransform: 'uppercase', fontStyle: 'italic', marginLeft: 12, letterSpacing: 1 }}>Tus Privilegios</Text>
+                     </View>
+                     
+                     <View style={{ gap: 12 }}>
+                        {settings && (settings[`${user.membershipLevel.toLowerCase() === 'bronce' || user.membershipLevel.toLowerCase() === 'bronze' ? 'bronce' : (user.membershipLevel === 'ORO' ? 'gold' : (user.membershipLevel === 'PLATINO' ? 'platinum' : (user.membershipLevel === 'DIAMANTE' ? 'diamond' : 'superVip')))}Benefits`] || "- No hay beneficios configurados").split('\n').map((benefit: string, i: number) => (
+                           <View key={i} style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.03)', padding: 16, borderRadius: 20, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' }}>
+                              <View style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: 'rgba(212,175,55,0.1)', alignItems: 'center', justifyContent: 'center', marginRight: 16 }}>
+                                 <Star size={10} color="#D4AF37" fill="#D4AF37" />
+                              </View>
+                              <Text style={{ flex: 1, color: 'white', fontSize: 13, fontWeight: '600', fontStyle: 'italic' }}>{benefit.replace(/^-\s*/, '')}</Text>
+                           </View>
+                        ))}
+                     </View>
+                  </View>
+
+                  {/* Next Level Incentive (What you're missing) */}
+                  {calculateNextTier() && (
+                    <View style={{ marginBottom: 40 }}>
+                       <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
+                          <Flame size={18} color="#FF3B30" />
+                          <Text style={{ color: '#FF3B30', fontSize: 12, fontWeight: '900', textTransform: 'uppercase', fontStyle: 'italic', marginLeft: 12, letterSpacing: 1 }}>Desbloquea en Rango {calculateNextTier()?.name}</Text>
+                       </View>
+                       
+                       <View style={{ padding: 24, backgroundColor: 'rgba(255,59,48,0.05)', borderRadius: 32, borderWidth: 1, borderColor: 'rgba(255,59,48,0.2)', borderStyle: 'dashed' }}>
+                          <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, fontWeight: '900', textTransform: 'uppercase', textAlign: 'center', marginBottom: 16 }}>Lo que te estás perdiendo:</Text>
+                          <View style={{ gap: 16 }}>
+                             {settings && (settings[`${calculateNextTier()?.name === 'ORO' ? 'gold' : (calculateNextTier()?.name === 'PLATINO' ? 'platinum' : (calculateNextTier()?.name === 'DIAMANTE' ? 'diamond' : 'superVip'))}Benefits`] || "").split('\n').slice(0, 3).map((benefit: string, i: number) => (
+                                <View key={i} style={{ flexDirection: 'row', alignItems: 'center', opacity: 0.6 }}>
+                                   <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: 'rgba(255,255,255,0.2)', marginRight: 12 }} />
+                                   <Text style={{ flex: 1, color: 'white', fontSize: 12, fontWeight: '500', fontStyle: 'italic' }}>{benefit.replace(/^-\s*/, '')}</Text>
+                                </View>
+                             ))}
+                          </View>
+                          
+                          <View style={{ marginTop: 24, alignItems: 'center' }}>
+                             <View style={{ backgroundColor: '#FF3B30', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 12 }}>
+                                <Text style={{ color: 'white', fontWeight: '900', fontSize: 10, textTransform: 'uppercase' }}>A solo {calculateNextTier()!.pointsNeeded - pts} pts</Text>
                              </View>
                           </View>
-                          <ArrowRight size={16} color="rgba(255,255,255,0.1)" />
                        </View>
-                    ))}
-                 </View>
-              </ScrollView>
-           </View>
-        </View>
-      </Modal>
+                    </View>
+                  )}
+
+                  {/* Future Tiers List */}
+                  <View>
+                     <Text style={{ color: 'rgba(255,255,255,0.2)', fontSize: 10, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 2, marginBottom: 20 }}>Próximas Metas</Text>
+                     <View style={{ gap: 12 }}>
+                        {[
+                          { name: "ORO", pts: settings?.goldThreshold || 5000, color: '#D4AF37' },
+                          { name: "PLATINO", pts: settings?.platinumThreshold || 20000, color: '#FFFFFF' },
+                          { name: "DIAMANTE", pts: settings?.diamondThreshold || 50000, color: '#22D3EE' },
+                          { name: "SÚPER VIP", pts: settings?.superVipThreshold || 100000, color: '#FF3B30' },
+                        ].filter(t => {
+                          const tiers = ['BRONCE', 'ORO', 'PLATINO', 'DIAMANTE', 'SÚPER VIP'];
+                          return tiers.indexOf(t.name) > tiers.indexOf(user.membershipLevel);
+                        }).map((tier, idx) => (
+                           <View key={idx} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 20, backgroundColor: 'rgba(255,255,255,0.02)', borderRadius: 24, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' }}>
+                              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                 <View style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.05)', alignItems: 'center', justifyContent: 'center', marginRight: 16 }}>
+                                    <Star size={14} color={tier.color} fill={idx === 0 ? tier.color : 'transparent'} />
+                                 </View>
+                                 <View>
+                                    <Text style={{ color: tier.color, fontWeight: '900', fontSize: 14, fontStyle: 'italic', textTransform: 'uppercase' }}>{tier.name}</Text>
+                                    <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 9, fontWeight: '700' }}>META: {tier.pts} PUNTOS</Text>
+                                 </View>
+                              </View>
+                              <ArrowRight size={16} color="rgba(255,255,255,0.1)" />
+                           </View>
+                        ))}
+                     </View>
+                  </View>
+               </ScrollView>
+            </View>
+         </View>
+       </Modal>
 
 
     </View>
