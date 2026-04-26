@@ -132,7 +132,7 @@ export default function LoginScreen() {
       {videoUrl && (
         <VideoPlayer
           uri={resolveVideoUrl(videoUrl) || ''}
-          style={StyleSheet.absoluteFill}
+          style={StyleSheet.absoluteFillObject}
         />
       )}
       

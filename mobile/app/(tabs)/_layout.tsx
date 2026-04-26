@@ -50,7 +50,7 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        sceneContainerStyle: { backgroundColor: '#050505' },
+        sceneStyle: { backgroundColor: '#050505' },
         animation: 'shift',
         tabBarStyle: {
           position: 'absolute',

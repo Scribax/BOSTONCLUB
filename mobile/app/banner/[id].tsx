@@ -58,7 +58,7 @@ export default function BannerDetailScreen() {
 
   // Polling for redemption status
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: ReturnType<typeof setInterval>;
     if (showQRModal && qrToken && redemptionStatus !== 'COMPLETED') {
       interval = setInterval(async () => {
         try {

@@ -146,6 +146,11 @@ export const notifyEvent = async (req: Request, res: Response): Promise<void> =>
       return;
     }
 
+    if (!event.isActive) {
+      res.status(400).json({ message: "Cannot notify inactive events" });
+      return;
+    }
+
     sendEventPublishedNotification(event.title, event.description, event.type).catch(console.error);
 
     res.json({ message: "Notification dispatched manually" });

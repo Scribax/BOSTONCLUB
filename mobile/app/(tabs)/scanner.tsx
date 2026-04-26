@@ -15,8 +15,8 @@ export default function ScannerScreen() {
   const router = useRouter();
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
-    let timeout: NodeJS.Timeout;
+    let interval: ReturnType<typeof setInterval>;
+    let timeout: ReturnType<typeof setTimeout>;
     if (status === 'pos_waiting' && currentOrderId) {
       interval = setInterval(async () => {
         try {

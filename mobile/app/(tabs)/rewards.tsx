@@ -102,7 +102,7 @@ export default function RewardsScreen() {
       <StatusBar style="light" />
       
       {/* Dynamic Header */}
-      <View style={{ paddingTop: 60, paddingBottom: 20, px: 24, backgroundColor: 'black', zIndex: 50 }}>
+      <View style={{ paddingTop: 60, paddingBottom: 20, paddingHorizontal: 24, backgroundColor: 'black', zIndex: 50 }}>
          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 24 }}>
             <View>
                <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 10, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 2 }}>Puntos Boston</Text>
@@ -176,7 +176,7 @@ export default function RewardsScreen() {
                     style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '70%' }} 
                   />
                   <View style={{ position: 'absolute', top: 20, left: 20, backgroundColor: '#FF3B30', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 }}>
-                     <Text style={{ color: 'white', fontWeight: '900', fontSize: 9, textTransform: 'uppercase', italic: true }}>Destacado</Text>
+                     <Text style={{ color: 'white', fontWeight: '900', fontSize: 9, textTransform: 'uppercase', fontStyle: 'italic' }}>Destacado</Text>
                   </View>
                   <View style={{ position: 'absolute', bottom: 20, left: 20, right: 20 }}>
                      <Text style={{ color: 'white', fontSize: 24, fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase' }}>{featuredReward.name}</Text>
@@ -222,7 +222,7 @@ export default function RewardsScreen() {
                            {reward.imageUrl ? (
                               <Image source={{ uri: resolveImageUrl(reward.imageUrl) || '' }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
                            ) : (
-                              <View style={{ flex: 1, alignItems: 'center', justifyCenter: 'center' }}>
+                              <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
                                  <Text style={{ fontSize: 40 }}>{reward.type === 'BEBIDA' ? '🍺' : '🍔'}</Text>
                               </View>
                            )}
@@ -267,7 +267,7 @@ export default function RewardsScreen() {
          </View>
 
          {filteredRewards.length === 0 && (
-            <View style={{ alignItems: 'center', justifyCenter: 'center', marginTop: 60, paddingHorizontal: 40 }}>
+            <View style={{ alignItems: 'center', justifyContent: 'center', marginTop: 60, paddingHorizontal: 40 }}>
                <Gift size={48} color="rgba(255,255,255,0.1)" />
                <Text style={{ color: 'rgba(255,255,255,0.3)', marginTop: 20, textAlign: 'center', fontSize: 10, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 1 }}>Sin premios en esta categoría</Text>
             </View>
@@ -278,14 +278,14 @@ export default function RewardsScreen() {
       <Modal visible={confirmModal.visible} transparent animationType="fade" onRequestClose={() => setConfirmModal({ visible: false, reward: null })}>
          <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.9)', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
             {confirmModal.reward && (
-               <Animated.View entering={FadeInDown} style={{ width: '100%', backgroundColor: '#0c0c0c', borderRadius: 40, borderSize: 1, borderColor: 'rgba(255,255,255,0.1)', overflow: 'hidden' }}>
+               <Animated.View entering={FadeInDown} style={{ width: '100%', backgroundColor: '#0c0c0c', borderRadius: 40, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', overflow: 'hidden' }}>
                   <View style={{ width: '100%', height: 200 }}>
                      <Image source={{ uri: resolveImageUrl(confirmModal.reward.imageUrl) || '' }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
                      <LinearGradient colors={['transparent', 'rgba(12,12,12,0.6)', '#0c0c0c']} style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '80%' }} />
                      
                      <TouchableOpacity 
                        onPress={() => setConfirmModal({ visible: false, reward: null })}
-                       style={{ position: 'absolute', top: 20, right: 20, width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyCenter: 'center' }}
+                       style={{ position: 'absolute', top: 20, right: 20, width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center' }}
                      >
                         <X size={20} color="white" />
                      </TouchableOpacity>
