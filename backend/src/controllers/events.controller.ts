@@ -231,3 +231,27 @@ export const deleteEvent = async (req: Request, res: Response): Promise<void> =>
     res.status(500).json({ message: "Server Error" });
   }
 };
+
+export const reorderEvents = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { orders } = req.body; // Array of { id, order }
+
+    if (!Array.isArray(orders)) {
+      res.status(400).json({ message: "Orders must be an array" });
+      return;
+    }
+
+    const updates = orders.map((item: { id: string; order: number }) =>
+      prisma.event.update({
+        where: { id: item.id },
+        data: { order: item.order }
+      })
+    );
+
+    await prisma.$transaction(updates);
+
+    res.json({ message: "Order updated successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Server Error" });
+  }
+};

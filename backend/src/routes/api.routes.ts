@@ -3,7 +3,7 @@ import { authenticate, requireAdmin } from "../middlewares/auth";
 import { addPoints, getMyPointsHistory } from "../controllers/points.controller";
 import { getAllRewards, createReward, deleteReward, updateReward } from "../controllers/rewards.controller";
 import { generateRedemptionQR, confirmRedemption, getRedemptionStatus } from "../controllers/redemptions.controller";
-import { getAllEvents, createEvent, deleteEvent, notifyEvent, updateEvent } from "../controllers/events.controller";
+import { getAllEvents, createEvent, deleteEvent, notifyEvent, updateEvent, reorderEvents } from "../controllers/events.controller";
 import { getAllUsers, adjustPoints, toggleBlockUser, deleteUser, toggleVipRewardStatus, getUserHistory } from "../controllers/users.controller";
 import { getAdminStats } from "../controllers/admin.controller";
 import { generatePromoToken, claimPromoToken } from "../controllers/promo.controller";
@@ -37,6 +37,7 @@ router.get("/redemptions/status/:qrToken", getRedemptionStatus);
 router.get("/events", getAllEvents);
 router.post("/events", authenticate, requireAdmin, createEvent);
 router.patch("/events/:id", authenticate, requireAdmin, updateEvent);
+router.patch("/events/reorder", authenticate, requireAdmin, reorderEvents);
 router.post("/events/:id/notify", authenticate, requireAdmin, notifyEvent);
 router.delete("/events/:id", authenticate, requireAdmin, deleteEvent);
 

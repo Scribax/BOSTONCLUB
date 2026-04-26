@@ -26,10 +26,28 @@ import {
   ShieldCheck,
   RefreshCcw,
   Zap,
-  PlayCircle
+  PlayCircle,
+  GripVertical
 } from "lucide-react";
 import { apiFetch, API_URL, getAuthToken } from "@/lib/api";
 import { motion, AnimatePresence } from "framer-motion";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 type ContentItem = {
   id: string;
@@ -115,6 +133,53 @@ export default function AppContentManager() {
       setLoading(false);
     }
   };
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = filteredItems.findIndex((item) => item.id === active.id);
+    const newIndex = filteredItems.findIndex((item) => item.id === over.id);
+
+    const newFilteredItems = arrayMove(filteredItems, oldIndex, newIndex);
+    
+    // Update local state for all items
+    const updatedItems = items.map(item => {
+        const foundIndex = newFilteredItems.findIndex(ni => ni.id === item.id);
+        if (foundIndex !== -1) {
+            return { ...item, order: foundIndex };
+        }
+        return item;
+    });
+
+    setItems(updatedItems);
+
+    // Save to backend
+    try {
+        const orders = newFilteredItems.map((item, index) => ({
+            id: item.id,
+            order: index
+        }));
+        await apiFetch("/events/reorder", {
+            method: "PATCH",
+            body: JSON.stringify({ orders })
+        });
+    } catch (err) {
+        console.error("Error reordering", err);
+        fetchContent(); // Rollback
+    }
+  };
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   const fetchGlobalSettings = async () => {
     try {
@@ -436,48 +501,32 @@ export default function AppContentManager() {
                     <p className="text-white/20 uppercase font-black text-[10px] tracking-widest">No hay {activeTab} configurados</p>
                  </div>
                ) : (
-                 <div className="space-y-4">
-                    {filteredItems.map((item, index) => (
-                      <div key={item.id} className="bg-white/[0.02] border border-white/5 p-4 rounded-3xl flex items-center gap-5 group hover:bg-white/5 transition-all">
-                        <div className="w-24 h-24 bg-black rounded-2xl overflow-hidden border border-white/10 flex items-center justify-center">
-                            {item.imageUrl ? (
-                              <img src={getFullUrl(item.imageUrl)} className="w-full h-full object-cover opacity-60" />
-                            ) : (
-                              <ImageIcon className="w-6 h-6 text-white/10" />
-                            )}
-                        </div>
-                        
-                        <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <h3 className="text-white font-black text-sm uppercase italic tracking-tighter">{item.title}</h3>
-                              {item.isActive && <Check className="w-3 h-3 text-green-500" />}
-                              {item.isRedeemable && <QrCode className="w-3 h-3 text-boston-gold" />}
-                            </div>
-                            <p className="text-white/30 text-[9px] font-bold uppercase tracking-widest line-clamp-1">{item.description}</p>
-                            <div className="flex items-center gap-3 mt-3">
-                              {activeTab === 'EVENTO' && (
-                                <span className="bg-white/5 px-2 py-1 rounded text-[8px] text-white/50 font-black uppercase">{item.eventDate ? new Date(item.eventDate).toLocaleDateString() : 'Sin Fecha'}</span>
-                              )}
-                              <span className={`text-[8px] font-black px-2 py-1 rounded uppercase ${item.mediaType === 'VIDEO' ? 'bg-boston-red text-white' : 'bg-white/10 text-white/40'}`}>{item.mediaType}</span>
-                              {item.isRedeemable && <span className="bg-boston-gold/10 text-boston-gold px-2 py-1 rounded text-[8px] font-black uppercase">REDEEMABLE</span>}
-                            </div>
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                            <button onClick={() => handleNotify(item.id)} className="w-9 h-9 bg-white/5 rounded-xl flex items-center justify-center text-white/30 hover:text-boston-gold transition-all">
-                              <Bell className="w-4 h-4" />
-                            </button>
-                            <button onClick={() => openEdit(item)} className="w-9 h-9 bg-white/5 rounded-xl flex items-center justify-center text-white/30 hover:text-white transition-all">
-                              <Eye className="w-4 h-4" />
-                            </button>
-                            <button onClick={() => handleDelete(item.id)} className="w-9 h-9 bg-boston-red/5 rounded-xl flex items-center justify-center text-boston-red/40 hover:text-boston-red transition-all">
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                        </div>
+                  <DndContext 
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragEnd={handleDragEnd}
+                  >
+                    <SortableContext 
+                      items={filteredItems.map(i => i.id)}
+                      strategy={verticalListSortingStrategy}
+                      disabled={activeTab === 'EVENTO'}
+                    >
+                      <div className="space-y-4">
+                        {filteredItems.map((item) => (
+                          <SortableItem 
+                            key={item.id} 
+                            item={item} 
+                            activeTab={activeTab} 
+                            getFullUrl={getFullUrl} 
+                            openEdit={openEdit} 
+                            handleDelete={handleDelete} 
+                            handleNotify={handleNotify} 
+                          />
+                        ))}
                       </div>
-                    ))}
-                 </div>
-               )}
+                    </SortableContext>
+                  </DndContext>
+                )}
              </>
            )}
         </div>
@@ -793,6 +842,74 @@ export default function AppContentManager() {
           </div>
         )}
       </AnimatePresence>
+    </div>
+  );
+}
+
+function SortableItem({ item, activeTab, getFullUrl, openEdit, handleDelete, handleNotify }: any) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging
+  } = useSortable({ id: item.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 10 : 1,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div 
+      ref={setNodeRef} 
+      style={style} 
+      className="bg-white/[0.02] border border-white/5 p-4 rounded-3xl flex items-center gap-5 group hover:bg-white/5 transition-all"
+    >
+      {activeTab !== 'EVENTO' && (
+        <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing p-1 text-white/10 hover:text-white/40 transition-colors">
+          <GripVertical className="w-4 h-4" />
+        </div>
+      )}
+
+      <div className="w-24 h-24 bg-black rounded-2xl overflow-hidden border border-white/10 flex items-center justify-center">
+          {item.imageUrl ? (
+            <img src={getFullUrl(item.imageUrl)} className="w-full h-full object-cover opacity-60" />
+          ) : (
+            <ImageIcon className="w-6 h-6 text-white/10" />
+          )}
+      </div>
+      
+      <div className="flex-1">
+          <div className="flex items-center gap-2 mb-1">
+            <h3 className="text-white font-black text-sm uppercase italic tracking-tighter">{item.title}</h3>
+            {item.isActive && <Check className="w-3 h-3 text-green-500" />}
+            {item.isRedeemable && <QrCode className="w-3 h-3 text-boston-gold" />}
+          </div>
+          <p className="text-white/30 text-[9px] font-bold uppercase tracking-widest line-clamp-1">{item.description}</p>
+          <div className="flex items-center gap-3 mt-3">
+            {activeTab === 'EVENTO' && (
+              <span className="bg-white/5 px-2 py-1 rounded text-[8px] text-white/50 font-black uppercase">{item.eventDate ? new Date(item.eventDate).toLocaleDateString() : 'Sin Fecha'}</span>
+            )}
+            <span className={`text-[8px] font-black px-2 py-1 rounded uppercase ${item.mediaType === 'VIDEO' ? 'bg-boston-red text-white' : 'bg-white/10 text-white/40'}`}>{item.mediaType}</span>
+            {item.isRedeemable && <span className="bg-boston-gold/10 text-boston-gold px-2 py-1 rounded text-[8px] font-black uppercase">REDEEMABLE</span>}
+          </div>
+      </div>
+
+      <div className="flex items-center gap-2">
+          <button onClick={() => handleNotify(item.id)} className="w-9 h-9 bg-white/5 rounded-xl flex items-center justify-center text-white/30 hover:text-boston-gold transition-all">
+            <Bell className="w-4 h-4" />
+          </button>
+          <button onClick={() => openEdit(item)} className="w-9 h-9 bg-white/5 rounded-xl flex items-center justify-center text-white/30 hover:text-white transition-all">
+            <Eye className="w-4 h-4" />
+          </button>
+          <button onClick={() => handleDelete(item.id)} className="w-9 h-9 bg-boston-red/5 rounded-xl flex items-center justify-center text-boston-red/40 hover:text-boston-red transition-all">
+            <Trash2 className="w-4 h-4" />
+          </button>
+      </div>
     </div>
   );
 }
