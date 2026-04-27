@@ -254,10 +254,14 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 
     // Check verification if strict mode is on
     if (!user.isEmailVerified) {
+      const payload = { id: user.id, role: user.role };
+      const pendingToken = jwt.sign(payload, process.env.JWT_SECRET as string, { expiresIn: '15m' });
+      
       res.status(401).json({ 
         message: "Por favor verifica tu email para ingresar", 
         isEmailVerified: false,
-        userId: user.id 
+        userId: user.id,
+        token: pendingToken
       });
       return;
     }

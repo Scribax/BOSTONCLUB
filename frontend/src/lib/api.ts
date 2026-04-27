@@ -58,8 +58,12 @@ export const apiFetch = async (endpoint: string, options: RequestInit = {}) => {
         throw new Error("Cuenta bloqueada");
       }
 
+      if (data.isEmailVerified === false) {
+         throw new Error(JSON.stringify({ type: "UNVERIFIED_EMAIL", token: data.token || "" }));
+      }
+
       logout();
-      throw new Error("No autorizado");
+      throw new Error(data.message || "No autorizado");
     }
 
     const data = await response.json();
