@@ -125,9 +125,9 @@ export default function LoginPage() {
 
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-center px-6 overflow-hidden bg-boston-black">
-      {/* Background Glows */}
-      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-boston-red rounded-full mix-blend-screen filter blur-[120px] opacity-10 animate-pulse-slow" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-boston-gold rounded-full mix-blend-screen filter blur-[120px] opacity-10 animate-pulse-slow" />
+      {/* Background Glows (Optimized for Mobile) */}
+      <div className="absolute -top-32 -left-32 w-96 h-96 bg-boston-red/10 rounded-full blur-[60px] pointer-events-none" />
+      <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-boston-gold/10 rounded-full blur-[60px] pointer-events-none" />
 
       {/* Logo & Header */}
       <motion.div 
@@ -152,13 +152,12 @@ export default function LoginPage() {
 
       {/* Auth Card */}
       <motion.div 
-        layout
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         className="w-full max-w-sm relative z-10"
       >
-        <div className="absolute -inset-1 bg-gradient-to-r from-boston-gold/20 via-boston-red/20 to-boston-gold/20 rounded-3xl blur-md opacity-50" />
-        <div className="relative bg-[#0a0a0a]/90 backdrop-blur-xl border border-white/10 p-8 rounded-3xl shadow-2xl">
+        <div className="absolute -inset-1 bg-gradient-to-r from-boston-gold/20 via-boston-red/20 to-boston-gold/20 rounded-3xl blur-sm opacity-40 pointer-events-none" />
+        <div className="relative bg-[#0a0a0a]/95 backdrop-blur-sm border border-white/10 p-8 rounded-3xl shadow-xl">
           
           {errorMsg && (
             <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-6 p-3 bg-red-500/10 border border-red-500/30 rounded-xl flex items-center justify-center gap-2">
