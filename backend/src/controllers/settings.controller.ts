@@ -6,20 +6,10 @@ import fs from "fs";
 
 const prisma = new PrismaClient();
 
-// Multer Storage Configuration
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadPath = path.join(__dirname, "../../uploads/videos");
-    if (!fs.existsSync(uploadPath)) {
-      fs.mkdirSync(uploadPath, { recursive: true });
-    }
-    cb(null, uploadPath);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, "login-bg-" + uniqueSuffix + path.extname(file.originalname));
-  },
-});
+import { uploadToR2 } from "../services/storage.service";
+
+// Multer Configuration for Memory Storage
+const storage = multer.memoryStorage();
 
 export const upload = multer({
   storage,
@@ -139,7 +129,16 @@ export const uploadVideo = async (req: Request, res: Response): Promise<void> =>
       return;
     }
 
-    const videoUrl = `/uploads/videos/${req.file.filename}`;
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    const filename = "login-bg-" + uniqueSuffix + path.extname(req.file.originalname);
+
+    // Upload buffer to R2
+    const videoUrl = await uploadToR2(
+      req.file.buffer,
+      filename,
+      req.file.mimetype,
+      "videos"
+    );
     
     // Auto-update settings with the new video URL
     await prisma.clubSettings.upsert({
@@ -156,7 +155,7 @@ export const uploadVideo = async (req: Request, res: Response): Promise<void> =>
       url: videoUrl 
     });
   } catch (error) {
-    console.error(error);
+    console.error("Error uploading video:", error);
     res.status(500).json({ message: "Upload failed" });
   }
 };
