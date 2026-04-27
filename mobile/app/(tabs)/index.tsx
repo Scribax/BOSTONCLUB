@@ -57,6 +57,7 @@ export default function DashboardScreen() {
   const [showGuide, setShowGuide] = useState(false);
   const [showBenefits, setShowBenefits] = useState(false);
   const [errorStatus, setErrorStatus] = useState<null | 'connection' | 'session'>(null);
+  const [isScreenFocused, setIsScreenFocused] = useState(true);
 
   // FIX: New Architecture requiere que estas referencias sean estables (no recreadas en cada render)
   const onViewableItemsChangedRef = useRef(({ viewableItems }: any) => {
@@ -148,10 +149,14 @@ export default function DashboardScreen() {
 
   useFocusEffect(
     useCallback(() => {
+      setIsScreenFocused(true);
       loadProfile().then(() => {
         // Ejecutar petición de notificaciones luego de cargar usuario (si no es Expo Go)
         registerForPushNotificationsAsync();
       });
+      return () => {
+        setIsScreenFocused(false); // Pause video when leaving this tab
+      };
     }, [])
   );
 
@@ -312,6 +317,7 @@ export default function DashboardScreen() {
                       <VideoPlayer
                         uri={resolveImageUrl(item.videoUrl) || ''}
                         style={{ width: '100%', height: '100%' }}
+                        paused={!isScreenFocused}
                       />
                     ) : (
                       <Image 
