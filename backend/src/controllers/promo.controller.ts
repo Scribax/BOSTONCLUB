@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
-import { calculateMembershipLevel } from "../services/user.service";
+import { awardPointsToUser } from "../services/user.service";
 
 const prisma = new PrismaClient();
 
@@ -95,36 +95,13 @@ export const claimPromoToken = async (req: any, res: Response): Promise<void> =>
         });
       }
 
-      const updatedUser = await tx.user.update({
-        where: { id: userId },
-        data: { points: { increment: promo.points } }
-      });
+      // Award points using the centralized service (handles streak, level upgrade, history)
+      const source = promo.type === "DAILY_CHECKIN" ? "DAILY_CHECKIN" : "PROMO";
+      const desc = promo.type === "DAILY_CHECKIN"
+        ? "Check-in diario en mesa"
+        : `Regalo de puntos: ${promo.points}`;
 
-      // Fetch settings to check for Event Mode reason and Level Upgrade
-      const settings = await tx.clubSettings.findUnique({ where: { id: "singleton" } });
-      
-      if (settings) {
-        const newLevel = calculateMembershipLevel(updatedUser.points, settings);
-        if (updatedUser.membershipLevel !== newLevel) {
-          await tx.user.update({
-            where: { id: userId },
-            data: { membershipLevel: newLevel }
-          });
-        }
-      }
-
-      const isEvent = settings?.isEventDay && promo.type === "DAILY_CHECKIN";
-
-      await tx.pointHistory.create({
-        data: {
-          userId,
-          pointsGained: promo.points,
-          source: promo.type === "DAILY_CHECKIN" ? "DAILY_CHECKIN" : "PROMO",
-          description: isEvent 
-            ? `Bono de Evento Especial: ${promo.points} PTS` 
-            : (promo.type === "DAILY_CHECKIN" ? "Check-in diario en mesa" : `Regalo de puntos: ${promo.points}`)
-        }
-      });
+      await awardPointsToUser(tx, userId, promo.points, source, desc);
     });
 
     res.json({ message: `¡Felicidades! Ganaste ${promo.points} puntos`, pointsGained: promo.points });

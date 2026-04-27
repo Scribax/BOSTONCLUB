@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
 import { MercadoPagoConfig, Payment, MerchantOrder } from "mercadopago";
-import { calculateMembershipLevel } from "../services/user.service";
+import { awardPointsToUser } from "../services/user.service";
 
 const prisma = new PrismaClient();
 
@@ -172,7 +172,6 @@ export const handleWebhook = async (req: Request, res: Response): Promise<void> 
 // Función auxiliar para acreditar puntos (Retorna true si tuvo éxito)
 async function processPointsAwarding(idToSearch: string, amount: number, externalId: string): Promise<boolean> {
   try {
-    // Buscamos la transacción que coincida con el ID escaneado
     const trans = await prisma.posTransaction.findUnique({
       where: { orderId: idToSearch }
     });
@@ -182,32 +181,16 @@ async function processPointsAwarding(idToSearch: string, amount: number, externa
       if (pointsToAward <= 0) return false;
 
       await prisma.$transaction(async (tx) => {
-        const updatedUser = await tx.user.update({
-          where: { id: trans.userId },
-          data: { points: { increment: pointsToAward } }
-        });
+        // Award points with streak tracking via centralized service
+        await awardPointsToUser(
+          tx,
+          trans.userId,
+          pointsToAward,
+          "COMPRA_POSNET",
+          `Puntos por pago en POSNET (${idToSearch})`
+        );
 
-        // Check for level upgrade
-        const settings = await tx.clubSettings.findUnique({ where: { id: "singleton" } });
-        if (settings) {
-          const newLevel = calculateMembershipLevel(updatedUser.points, settings);
-          if (updatedUser.membershipLevel !== newLevel) {
-            await tx.user.update({
-              where: { id: trans.userId },
-              data: { membershipLevel: newLevel }
-            });
-          }
-        }
-
-        await tx.pointHistory.create({
-          data: {
-            userId: trans.userId,
-            pointsGained: pointsToAward,
-            source: "COMPRA_POSNET",
-            description: `Puntos por pago en POSNET (${idToSearch})`
-          }
-        });
-
+        // Mark transaction as processed
         await tx.posTransaction.update({
           where: { id: trans.id },
           data: { 
@@ -222,7 +205,7 @@ async function processPointsAwarding(idToSearch: string, amount: number, externa
       console.log(`[POINTS] ✅ ${pointsToAward} puntos acreditados con éxito al socio.`);
       return true;
     }
-    return false; // Asegurar que siempre retorne un booleano
+    return false;
   } catch (err) {
     console.error("[PROCESS POINTS ERROR]", err);
     return false;

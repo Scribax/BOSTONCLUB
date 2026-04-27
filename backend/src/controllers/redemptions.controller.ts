@@ -182,11 +182,21 @@ export const confirmRedemption = async (req: Request, res: Response): Promise<vo
         });
       });
     } else if (redemption.eventId && redemption.event) {
-      // Promo-specific logic (Just mark as completed)
-      await prisma.redemption.update({
-        where: { id: redemption.id },
-        data: { status: "COMPLETED" }
-      });
+      // Promo-specific logic (Mark as completed + log activity for user history)
+      await prisma.$transaction([
+        prisma.redemption.update({
+          where: { id: redemption.id },
+          data: { status: "COMPLETED" }
+        }),
+        prisma.pointHistory.create({
+          data: {
+            userId: redemption.userId,
+            pointsGained: 0, // 0 points — it's a benefit, not a purchase
+            source: "CANJE_PROMO",
+            description: `Beneficio canjeado: ${redemption.event.title}`
+          }
+        })
+      ]);
     }
 
     res.json({ 

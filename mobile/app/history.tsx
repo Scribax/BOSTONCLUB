@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { ArrowLeft, History, ArrowUpRight, ArrowDownRight, Gift, CalendarCheck, CheckCircle2, Users, Flame } from 'lucide-react-native';
+import { ArrowLeft, History, ArrowUpRight, ArrowDownRight, Gift, CalendarCheck, CheckCircle2, Users, Flame, Ticket } from 'lucide-react-native';
 import api from '../lib/api';
 import { StatusBar } from 'expo-status-bar';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -90,6 +90,7 @@ export default function HistoryScreen() {
   const getSourceIcon = (source: string, pointsGained: number) => {
     if (source === 'DAILY_CHECKIN' || source === 'QR_CHECKIN') return <CalendarCheck size={20} color="#D4AF37" />;
     if (source === 'COMPRA_POSNET' || source === 'PURCHASE') return <CheckCircle2 size={20} color="#22c55e" />;
+    if (source === 'CANJE_PROMO') return <Ticket size={20} color="#a855f7" />;
     if (source === 'PROMO' || source === 'REDEEM') return <Gift size={20} color="#D4AF37" />;
     if (source === 'REFERIDO') return <Users size={20} color="#D4AF37" />;
     if (source.includes('RACHA') || source === 'STREAK_BONUS') return <Flame size={20} color="#FF3B30" />;
@@ -187,6 +188,7 @@ export default function HistoryScreen() {
           <View className="flex-col gap-3">
             {filteredHistory.map((item, index) => {
               const isPositive = item.pointsGained > 0;
+              const isPromoRedeem = item.source === 'CANJE_PROMO';
               const date = new Date(item.createdAt);
               
               // Helper to show "Hoy" or "Ayer"
@@ -215,25 +217,33 @@ export default function HistoryScreen() {
                 <View key={item.id}>
                   {dateHeader}
                   <TouchableOpacity activeOpacity={0.8} className="bg-[#0c0c0c] border border-white/5 p-5 rounded-[2rem] flex-row items-center shadow-2xl">
-                    <View className={`w-12 h-12 rounded-2xl items-center justify-center ${isPositive ? 'bg-white/5' : 'bg-red-500/10'}`}>
+                    <View className={`w-12 h-12 rounded-2xl items-center justify-center ${isPromoRedeem ? 'bg-purple-500/10' : isPositive ? 'bg-white/5' : 'bg-red-500/10'}`}>
                       {getSourceIcon(item.source, item.pointsGained)}
                     </View>
                     <View className="flex-1 ml-4 pr-2">
                       <Text className="text-white font-bold text-[13px] uppercase tracking-tight mb-1" numberOfLines={1}>
-                        {item.description || (isPositive ? 'Acreditación Boston' : 'Canje Boston')}
+                        {item.description || (isPromoRedeem ? 'Beneficio Canjeado' : isPositive ? 'Acreditación Boston' : 'Canje Boston')}
                       </Text>
                       <View className="flex-row items-center">
-                         <View className={`w-1.5 h-1.5 rounded-full mr-2 ${isPositive ? 'bg-boston-gold' : 'bg-boston-red'}`} />
+                         <View className={`w-1.5 h-1.5 rounded-full mr-2 ${isPromoRedeem ? 'bg-purple-500' : isPositive ? 'bg-boston-gold' : 'bg-boston-red'}`} />
                          <Text className="text-white/30 text-[9px] uppercase tracking-widest font-black">
                            {date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} HS • {item.source}
                          </Text>
                       </View>
                     </View>
                     <View className="items-end">
-                      <Text className={`font-black text-lg italic ${isPositive ? 'text-white' : 'text-boston-red'}`}>
-                        {isPositive ? '+' : ''}{item.pointsGained}
-                      </Text>
-                      <Text className={`text-[8px] font-black uppercase tracking-widest ${isPositive ? 'text-boston-gold' : 'text-boston-red/50'}`}>PTS</Text>
+                      {isPromoRedeem ? (
+                        <View className="bg-purple-500/20 border border-purple-500/30 px-3 py-1 rounded-xl">
+                          <Text className="text-purple-400 font-black text-[9px] uppercase tracking-widest">BENEFICIO</Text>
+                        </View>
+                      ) : (
+                        <>
+                          <Text className={`font-black text-lg italic ${isPositive ? 'text-white' : 'text-boston-red'}`}>
+                            {isPositive ? '+' : ''}{item.pointsGained}
+                          </Text>
+                          <Text className={`text-[8px] font-black uppercase tracking-widest ${isPositive ? 'text-boston-gold' : 'text-boston-red/50'}`}>PTS</Text>
+                        </>
+                      )}
                     </View>
                   </TouchableOpacity>
                 </View>
