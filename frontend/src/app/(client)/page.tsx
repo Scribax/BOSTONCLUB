@@ -18,6 +18,8 @@ export default function LoginPage() {
   const [errorMsg, setErrorMsg] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [birthDate, setBirthDate] = useState("");
+  const [referralCode, setReferralCode] = useState("");
 
   const handleAuth = async () => {
     setLoading(true);
@@ -39,7 +41,9 @@ export default function LoginPage() {
             dni, 
             whatsapp, 
             email, 
-            password 
+            password,
+            birthDate,
+            referralCode: referralCode || undefined
           })
         });
 
@@ -138,6 +142,28 @@ export default function LoginPage() {
                   placeholder="1112223334" 
                   className="w-full bg-black/40 text-white border border-white/5 rounded-2xl py-3.5 px-4 outline-none focus:border-boston-red transition-all text-sm font-bold tracking-[0.2em] placeholder:tracking-normal placeholder:font-normal" 
                 />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-white/30 uppercase ml-1 tracking-widest">Nacimiento</label>
+                  <input 
+                    type="date" 
+                    value={birthDate} 
+                    onChange={e => setBirthDate(e.target.value)} 
+                    className="w-full bg-black/40 text-white/80 border border-white/5 rounded-2xl py-3.5 px-4 outline-none focus:border-boston-red transition-all text-sm font-medium" 
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-boston-gold uppercase ml-1 tracking-widest">Cód. Referido</label>
+                  <input 
+                    type="text" 
+                    value={referralCode} 
+                    onChange={e => setReferralCode(e.target.value.toUpperCase())} 
+                    placeholder="Opcional" 
+                    className="w-full bg-black/40 text-boston-gold border border-boston-gold/20 rounded-2xl py-3.5 px-4 outline-none focus:border-boston-gold transition-all text-sm font-bold tracking-[0.1em]" 
+                  />
+                </div>
               </div>
             </motion.div>
           )}
