@@ -221,7 +221,19 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     const payload = { id: user.id, role: user.role };
     const token = jwt.sign(payload, process.env.JWT_SECRET as string, { expiresIn: '7d' });
     
-    res.json({ token, user: { id: user.id, email: user.email, role: user.role, firstName: user.firstName, points: user.points, membershipLevel: user.membershipLevel, isEmailVerified: user.isEmailVerified }});
+    res.json({ 
+      token, 
+      user: { 
+        id: user.id, 
+        email: user.email, 
+        role: user.role, 
+        firstName: user.firstName, 
+        points: user.points, 
+        membershipLevel: user.membershipLevel, 
+        isEmailVerified: user.isEmailVerified,
+        referralCode: user.referralCode
+      }
+    });
    } catch (error) {
      console.error(error);
      res.status(500).json({ message: "Server Error" });
@@ -284,7 +296,7 @@ export const resetPassword = async (req: Request, res: Response): Promise<void> 
 
 export const getMe = async (req: any, res: Response): Promise<void> => {
   try {
-    const user = await prisma.user.findUnique({
+    let user = await prisma.user.findUnique({
       where: { id: req.user.id },
       select: { 
         id: true, dni: true, firstName: true, lastName: true, 
@@ -319,11 +331,17 @@ export const getMe = async (req: any, res: Response): Promise<void> => {
       }
       
       if (newCode) {
-        await prisma.user.update({
+        user = await prisma.user.update({
           where: { id: user.id },
-          data: { referralCode: newCode }
+          data: { referralCode: newCode },
+          select: { 
+            id: true, dni: true, firstName: true, lastName: true, 
+            email: true, whatsapp: true, points: true, membershipLevel: true, 
+            role: true, isEmailVerified: true,
+            streak: true, lastStreakDate: true,
+            referralCode: true, referredById: true
+          }
         });
-        user.referralCode = newCode;
       }
     }
 
