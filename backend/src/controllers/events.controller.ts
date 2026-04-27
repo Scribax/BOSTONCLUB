@@ -189,6 +189,8 @@ export const updateEvent = async (req: Request, res: Response): Promise<void> =>
       linkedEventId
     } = req.body;
 
+    const oldEvent = await prisma.event.findUnique({ where: { id: id as string } });
+
     const event = await prisma.event.update({
       where: { id: id as string },
       data: {
@@ -218,6 +220,11 @@ export const updateEvent = async (req: Request, res: Response): Promise<void> =>
         linkedEventId
       }
     });
+
+    // Notify if it just became active
+    if (event.isActive && (!oldEvent || !oldEvent.isActive)) {
+       sendEventPublishedNotification(event.title, event.description, event.type).catch(console.error);
+    }
 
     res.json(event);
   } catch (error) {

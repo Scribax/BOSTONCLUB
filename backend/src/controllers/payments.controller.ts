@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
 import { MercadoPagoConfig, Payment, MerchantOrder } from "mercadopago";
+import { calculateMembershipLevel } from "../services/user.service";
 
 const prisma = new PrismaClient();
 
@@ -180,20 +181,34 @@ async function processPointsAwarding(idToSearch: string, amount: number, externa
       const pointsToAward = Math.floor(amount);
       if (pointsToAward <= 0) return false;
 
-      await prisma.$transaction([
-        prisma.user.update({
+      await prisma.$transaction(async (tx) => {
+        const updatedUser = await tx.user.update({
           where: { id: trans.userId },
           data: { points: { increment: pointsToAward } }
-        }),
-        prisma.pointHistory.create({
+        });
+
+        // Check for level upgrade
+        const settings = await tx.clubSettings.findUnique({ where: { id: "singleton" } });
+        if (settings) {
+          const newLevel = calculateMembershipLevel(updatedUser.points, settings);
+          if (updatedUser.membershipLevel !== newLevel) {
+            await tx.user.update({
+              where: { id: trans.userId },
+              data: { membershipLevel: newLevel }
+            });
+          }
+        }
+
+        await tx.pointHistory.create({
           data: {
             userId: trans.userId,
             pointsGained: pointsToAward,
             source: "COMPRA_POSNET",
             description: `Puntos por pago en POSNET (${idToSearch})`
           }
-        }),
-        prisma.posTransaction.update({
+        });
+
+        await tx.posTransaction.update({
           where: { id: trans.id },
           data: { 
             status: "SUCCESS", 
@@ -201,8 +216,8 @@ async function processPointsAwarding(idToSearch: string, amount: number, externa
             processed: true,
             externalPaymentId: externalId
           }
-        })
-      ]);
+        });
+      });
 
       console.log(`[POINTS] ✅ ${pointsToAward} puntos acreditados con éxito al socio.`);
       return true;

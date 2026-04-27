@@ -484,16 +484,16 @@ export default function DashboardScreen() {
                 {/* Milestones */}
                 <View className="flex-row justify-between px-2">
                    <View className="items-center">
-                      <Star size={10} color={user.points >= 0 ? '#D4AF37' : '#333'} fill={user.points >= 0 ? '#D4AF37' : 'transparent'} className="mb-2" />
-                      <Text className={`text-[10px] font-black uppercase italic ${user.points >= 0 ? 'text-white' : 'text-white/20'}`}>CLÁSICO</Text>
+                      <Star size={10} color={user.points >= (settings?.goldThreshold || 500) ? '#D4AF37' : '#333'} fill={user.points >= (settings?.goldThreshold || 500) ? '#D4AF37' : 'transparent'} className="mb-2" />
+                      <Text className={`text-[10px] font-black uppercase italic ${user.points >= (settings?.goldThreshold || 500) ? 'text-white' : 'text-white/20'}`}>ORO</Text>
                    </View>
                    <View className="items-center">
-                      <Star size={10} color={user.points >= 5000 ? '#D4AF37' : '#333'} fill={user.points >= 5000 ? '#D4AF37' : 'transparent'} className="mb-2" />
-                      <Text className={`text-[10px] font-black uppercase italic ${user.points >= 5000 ? 'text-white' : 'text-white/20'}`}>FAN</Text>
+                      <Star size={10} color={user.points >= (settings?.platinumThreshold || 1500) ? '#D4AF37' : '#333'} fill={user.points >= (settings?.platinumThreshold || 1500) ? '#D4AF37' : 'transparent'} className="mb-2" />
+                      <Text className={`text-[10px] font-black uppercase italic ${user.points >= (settings?.platinumThreshold || 1500) ? 'text-white' : 'text-white/20'}`}>PLATINO</Text>
                    </View>
                    <View className="items-center">
-                      <Star size={10} color={user.points >= 20000 ? '#D4AF37' : '#333'} fill={user.points >= 20000 ? '#D4AF37' : 'transparent'} className="mb-2" />
-                      <Text className={`text-[10px] font-black uppercase italic ${user.points >= 20000 ? 'text-white' : 'text-white/20'}`}>MEGA FAN</Text>
+                      <Star size={10} color={user.points >= (settings?.diamondThreshold || 5000) ? '#D4AF37' : '#333'} fill={user.points >= (settings?.diamondThreshold || 5000) ? '#D4AF37' : 'transparent'} className="mb-2" />
+                      <Text className={`text-[10px] font-black uppercase italic ${user.points >= (settings?.diamondThreshold || 5000) ? 'text-white' : 'text-white/20'}`}>DIAMANTE</Text>
                    </View>
                 </View>
              </TouchableOpacity>

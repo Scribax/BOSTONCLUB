@@ -87,7 +87,7 @@ export default function LoginScreen() {
                setLoading(false);
                return;
             }
-            birthDateIso = `${yyyy}-${mm.padStart(2, '0')}-${dd.padStart(2, '0')}T00:00:00.000Z`;
+            birthDateIso = `${yyyy}-${mm.padStart(2, '0')}-${dd.padStart(2, '0')}T12:00:00.000Z`;
         } else {
             Alert.alert('Error', 'Formato de fecha de nacimiento incorrecto (Usa DD/MM/YYYY).');
             setLoading(false);
