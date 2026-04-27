@@ -8,7 +8,7 @@ import Link from "next/link";
 
 type Redemption = {
   id: string;
-  rewardName: string;
+  description: string;
   userName: string;
   points: number;
   createdAt: string;
@@ -18,7 +18,7 @@ type Stats = {
   totalUsers: number;
   totalPointsUsed: number;
   totalPointsBalance: number;
-  latestRedemptions: Redemption[];
+  latestActivity: Redemption[];
 };
 
 export default function AdminDashboard() {
@@ -137,15 +137,15 @@ export default function AdminDashboard() {
            </div>
          ) : (
            <div className="space-y-3">
-              {stats?.latestRedemptions && stats.latestRedemptions.length > 0 ? (
-                stats.latestRedemptions.map((r) => (
+               {stats?.latestActivity && stats.latestActivity.length > 0 ? (
+                stats.latestActivity.map((r) => (
                   <div key={r.id} className="flex justify-between items-center bg-white/[0.02] p-5 rounded-[1.5rem] border border-white/5 hover:border-white/10 hover:bg-white/[0.04] transition-all group">
                     <div className="flex items-center gap-5">
                       <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all ${r.points < 0 ? 'text-boston-red-glow bg-boston-red/10 group-hover:scale-110' : 'text-green-500 bg-green-500/10 group-hover:scale-110'}`}>
                         <Ticket className="w-6 h-6" />
                       </div>
                       <div>
-                        <p className="text-white font-black text-sm tracking-tight uppercase italic">{r.rewardName}</p>
+                        <p className="text-white font-black text-sm tracking-tight uppercase italic">{r.description}</p>
                         <p className="text-white/40 text-[9px] font-black uppercase tracking-[0.2em] mt-1">{r.userName}</p>
                       </div>
                     </div>

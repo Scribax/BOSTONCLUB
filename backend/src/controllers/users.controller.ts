@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
+import { calculateMembershipLevel } from "../services/user.service";
 
 const prisma = new PrismaClient();
 
@@ -73,11 +74,7 @@ export const adjustPoints = async (req: Request, res: Response): Promise<void> =
     // Check for level upgrade
     const settings = await prisma.clubSettings.findUnique({ where: { id: "singleton" } });
     if (settings) {
-      let newLevel = "BRONCE";
-      if (user.points >= settings.superVipThreshold) newLevel = "SÚPER VIP";
-      else if (user.points >= settings.diamondThreshold) newLevel = "DIAMANTE";
-      else if (user.points >= settings.platinumThreshold) newLevel = "PLATINO";
-      else if (user.points >= settings.goldThreshold) newLevel = "ORO";
+      const newLevel = calculateMembershipLevel(user.points, settings);
 
       if (user.membershipLevel !== newLevel) {
         user = await prisma.user.update({

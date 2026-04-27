@@ -3,6 +3,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { PrismaClient } from "@prisma/client";
 import { sendVerificationEmail, sendPasswordResetEmail } from "../services/email.service";
+import { calculateMembershipLevel } from "../services/user.service";
 
 // Define a custom Request type that includes the user from JWT
 interface AuthRequest extends Request {
@@ -83,7 +84,9 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       const referrer = await prisma.user.findUnique({ 
         where: { referralCode: normalized } 
       });
-      if (referrer) referredById = referrer.id;
+      if (referrer) {
+        referredById = referrer.id;
+      }
     }
 
     const user = await prisma.user.create({
@@ -379,11 +382,7 @@ export const getMe = async (req: AuthRequest, res: Response): Promise<void> => {
 
     const settings = await prisma.clubSettings.findUnique({ where: { id: "singleton" } });
     if (settings) {
-      let correctLevel = "BRONCE";
-      if (user.points >= settings.superVipThreshold) correctLevel = "SÚPER VIP";
-      else if (user.points >= settings.diamondThreshold) correctLevel = "DIAMANTE";
-      else if (user.points >= settings.platinumThreshold) correctLevel = "PLATINO";
-      else if (user.points >= settings.goldThreshold) correctLevel = "ORO";
+      const correctLevel = calculateMembershipLevel(user.points, settings);
 
       if (user.membershipLevel !== correctLevel) {
         const updatedUser = await prisma.user.update({

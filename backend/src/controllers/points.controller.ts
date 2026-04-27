@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
+import { calculateMembershipLevel } from "../services/user.service";
 
 const prisma = new PrismaClient();
 
@@ -73,10 +74,22 @@ export const addPoints = async (req: Request, res: Response): Promise<void> => {
       updateData.lastStreakDate = now;
     }
 
-    const updatedUser = await prisma.user.update({
+    let updatedUser = await prisma.user.update({
       where: { id: userId },
       data: updateData
     });
+
+    // Check for level upgrade
+    const settings = await prisma.clubSettings.findUnique({ where: { id: "singleton" } });
+    if (settings) {
+      const newLevel = calculateMembershipLevel(updatedUser.points, settings);
+      if (updatedUser.membershipLevel !== newLevel) {
+        updatedUser = await prisma.user.update({
+          where: { id: userId },
+          data: { membershipLevel: newLevel }
+        });
+      }
+    }
 
     res.json({ 
       message: "Points added successfully", 

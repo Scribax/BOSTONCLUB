@@ -93,13 +93,13 @@ export const generateRedemptionQR = async (req: any, res: Response): Promise<voi
           return;
         }
       } else if (event.redemptionPolicy === "ONCE_PER_NIGHT") {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
+        // Nightly window: 12 hours ago (to cover a full nightclub session across midnight)
+        const twelveHoursAgo = new Date(Date.now() - 12 * 60 * 60 * 1000);
         const existing = await prisma.redemption.findFirst({
           where: { 
             userId, 
             eventId, 
-            createdAt: { gte: today },
+            createdAt: { gte: twelveHoursAgo },
             OR: [
               { status: "COMPLETED" },
               { status: "PENDING", expiresAt: { gt: new Date() } }
@@ -107,7 +107,7 @@ export const generateRedemptionQR = async (req: any, res: Response): Promise<voi
           }
         });
         if (existing) {
-          res.status(400).json({ message: "Ya has canjeado esta promoción hoy o tienes un código activo" });
+          res.status(400).json({ message: "Ya has reclamado esta promoción en las últimas 12hs o tienes un código activo" });
           return;
         }
       }
@@ -152,29 +152,35 @@ export const confirmRedemption = async (req: Request, res: Response): Promise<vo
 
     // Reward-specific logic (Deduct points)
     if (redemption.rewardId && redemption.reward) {
-      if (redemption.user.points < redemption.reward.pointsRequired) {
-        res.status(400).json({ message: "Insufficient points" });
-        return;
-      }
+      await prisma.$transaction(async (tx) => {
+        // 1. RE-FETCH user inside transaction to get latest points
+        const freshUser = await tx.user.findUnique({ where: { id: redemption.userId } });
+        if (!freshUser || freshUser.points < redemption.reward!.pointsRequired) {
+          throw new Error("Puntos insuficientes para este canje");
+        }
 
-      await prisma.$transaction([
-        prisma.user.update({
+        // 2. Deduct points
+        await tx.user.update({
           where: { id: redemption.userId },
-          data: { points: { decrement: redemption.reward.pointsRequired } }
-        }),
-        prisma.redemption.update({
+          data: { points: { decrement: redemption.reward!.pointsRequired } }
+        });
+
+        // 3. Mark as completed
+        await tx.redemption.update({
           where: { id: redemption.id },
           data: { status: "COMPLETED" }
-        }),
-        prisma.pointHistory.create({
+        });
+
+        // 4. Create history
+        await tx.pointHistory.create({
           data: {
             userId: redemption.userId,
-            pointsGained: -redemption.reward.pointsRequired,
+            pointsGained: -redemption.reward!.pointsRequired,
             source: "ADMIN",
-            description: `Canje de premio: ${redemption.reward.name}`
+            description: `Canje de premio: ${redemption.reward!.name}`
           }
-        })
-      ]);
+        });
+      });
     } else if (redemption.eventId && redemption.event) {
       // Promo-specific logic (Just mark as completed)
       await prisma.redemption.update({

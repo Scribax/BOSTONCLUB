@@ -11,14 +11,17 @@ export const getAdminStats = async (req: Request, res: Response): Promise<void> 
     });
 
     // 2. Total Points Used (Only from COMPLETED redemptions)
-    const allRedemptions = await prisma.redemption.findMany({
-      where: { status: "COMPLETED" },
-      include: {
-        reward: true
+    // We sum the PointHistory entries with negative points (which represent redemptions)
+    const pointsHistoryStats = await prisma.pointHistory.aggregate({
+      where: {
+        pointsGained: { lt: 0 }
+      },
+      _sum: {
+        pointsGained: true
       }
     });
     
-    const totalPointsUsed = allRedemptions.reduce((sum, r) => sum + (r.reward?.pointsRequired || 0), 0);
+    const totalPointsUsed = Math.abs(pointsHistoryStats._sum.pointsGained || 0);
 
     // 3. Latest Activity (All point movements: Redemptions, Promos, Admin additions)
     const latestActivity = await prisma.pointHistory.findMany({
@@ -47,9 +50,9 @@ export const getAdminStats = async (req: Request, res: Response): Promise<void> 
       totalUsers,
       totalPointsUsed,
       totalPointsBalance,
-      latestRedemptions: latestActivity.map(h => ({
+      latestActivity: latestActivity.map(h => ({
         id: h.id,
-        rewardName: h.description,
+        description: h.description,
         userName: `${h.user.firstName} ${h.user.lastName}`,
         points: h.pointsGained,
         createdAt: h.createdAt
