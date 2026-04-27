@@ -128,8 +128,7 @@ export default function DashboardPage() {
         </Link>
       </header>
 
-      <main className="px-5 sm:px-6 relative z-10 space-y-10">
-        <PWAInstallButton />
+      <main className="px-5 sm:px-6 relative z-10 space-y-10 pb-12">
         
         <motion.div 
           initial={{ y: 15, opacity: 0 }}
@@ -146,50 +145,29 @@ export default function DashboardPage() {
           />
         </motion.div>
 
-        {/* Info Blocks Row */}
-        <section className="space-y-5">
-           <div className="bg-boston-red/20 border border-boston-red/50 rounded-3xl p-5 text-center flex flex-col items-center justify-center">
-              <span className="text-[10px] font-black text-white uppercase tracking-[0.4em] mb-2">GRAN LANZAMIENTO</span>
-              <p className="text-4xl font-black text-white italic tracking-tighter drop-shadow-[0_0_15px_rgba(255,59,48,0.8)]">1 DE MAYO</p>
-              <p className="text-[10px] text-white/60 font-bold uppercase mt-2 tracking-widest leading-relaxed">Descarga la App ese día para usar tus beneficios.</p>
-           </div>
-           <div className="grid grid-cols-3 gap-3">
-              {/* $1 = 1 PUNTO (Interactive) */}
-              <button 
-                onClick={() => setShowGuide(true)}
-                className="glass-panel p-4 rounded-3xl border border-white/5 bg-white/5 flex flex-col items-center text-center transition-all hover:scale-105 active:scale-95 group"
-              >
-                  <Flame className="w-6 h-6 mb-3 text-boston-red-glow group-hover:animate-pulse" />
-                  <p className="text-[10px] font-black text-white uppercase leading-none tracking-normal">$1 = 1 PUNTO</p>
-                  <p className="text-[7px] text-white/40 font-bold uppercase mt-2 tracking-widest">Saber más</p>
-              </button>
-
-              {/* CHECK-IN (Active) */}
-              <Link 
-                href="/claim"
-                className="glass-panel p-4 rounded-3xl border border-white/5 bg-white/5 flex flex-col items-center text-center transition-all hover:scale-105 active:scale-95 group"
-              >
-                  <MapPin className="w-6 h-6 mb-3 text-boston-gold group-hover:animate-bounce transition-transform" />
-                  <p className="text-[10px] font-black text-white uppercase leading-none tracking-tighter">Check-in</p>
-                  <p className="text-[7px] text-white/40 font-bold uppercase mt-2 tracking-widest">Sumar puntos</p>
-              </Link>
-
-              {/* EVENTOS (Linked) */}
-              <Link 
-                href="/events"
-                className="glass-panel p-4 rounded-3xl border border-white/5 bg-white/5 flex flex-col items-center text-center transition-all hover:scale-105 active:scale-95 group"
-              >
-                  <Ticket className="w-6 h-6 mb-3 text-cyan-400 group-hover:rotate-12 transition-transform" />
-                  <p className="text-[10px] font-black text-white uppercase leading-none tracking-tighter">Eventos</p>
-                  <p className="text-[7px] text-white/40 font-bold uppercase mt-2 tracking-widest">Ver cartel</p>
-              </Link>
+        {/* Waitlist Grand Launch Info */}
+        <section className="space-y-4">
+           <div className="bg-gradient-to-b from-boston-red/30 to-transparent border border-boston-red/50 rounded-[2.5rem] p-8 text-center flex flex-col items-center justify-center relative overflow-hidden">
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-boston-red/50 blur-[50px] rounded-full pointer-events-none" />
+              <span className="text-[10px] font-black text-white uppercase tracking-[0.4em] mb-3 relative z-10">GRAN LANZAMIENTO</span>
+              <p className="text-5xl font-black text-white italic tracking-tighter drop-shadow-[0_0_20px_rgba(255,59,48,0.8)] relative z-10">1 DE MAYO</p>
+              <div className="mt-6 space-y-3 relative z-10">
+                <p className="text-xs text-white/80 font-bold uppercase tracking-widest leading-relaxed">
+                  Ese día recibirás en tu correo el link oficial para descargar la app en <span className="text-white">iOS y Android</span>.
+                </p>
+              </div>
            </div>
         </section>
 
         {/* Quick Actions Re-Designed for Pre-Launch */}
-        <div className="space-y-4">
+        <div className="space-y-6">
+          <div className="text-center px-4">
+            <h3 className="text-lg font-black text-white italic uppercase tracking-tighter">Acumula Puntos Hoy</h3>
+            <p className="text-[10px] text-white/40 font-bold uppercase tracking-widest mt-1">Gana {user.referralRewardReferrer || 500} pts por cada amigo que invites a la lista VIP.</p>
+          </div>
+
           <div className="relative block group">
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-boston-gold/50 to-boston-gold/20 rounded-[2rem] blur opacity-20 group-hover:opacity-40 transition duration-1000 group-hover:duration-200"></div>
+            <div className="absolute -inset-1 bg-gradient-to-r from-boston-gold/50 via-boston-gold/20 to-boston-gold/50 rounded-[2.5rem] blur opacity-40 group-hover:opacity-70 transition duration-1000 group-hover:duration-200"></div>
             <div 
               onClick={() => {
                 if (navigator.share) {
@@ -203,158 +181,46 @@ export default function DashboardPage() {
                   alert("Código copiado al portapapeles");
                 }
               }}
-              className="relative glass-panel rounded-[2rem] p-6 flex items-center justify-between border border-boston-gold/30 bg-gradient-to-br from-boston-gold/10 to-transparent hover:bg-boston-gold transition-all duration-500 overflow-hidden cursor-pointer"
+              className="relative bg-[#111]/90 backdrop-blur-xl rounded-[2.5rem] p-8 flex items-center justify-between border border-boston-gold/50 hover:bg-boston-gold/10 transition-all duration-500 overflow-hidden cursor-pointer shadow-2xl"
             >
-                <div className="flex items-center gap-5">
-                   <div className="w-14 h-14 bg-boston-gold/20 rounded-2xl flex items-center justify-center border border-boston-gold/30 group-hover:bg-black/20 transition-colors">
-                      <Gift className="w-7 h-7 text-boston-gold group-hover:text-black" />
+                <div className="flex items-center gap-6">
+                   <div className="w-16 h-16 bg-gradient-to-br from-boston-gold to-boston-gold/40 rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(212,175,55,0.4)] group-hover:scale-110 transition-transform duration-500">
+                      <Gift className="w-8 h-8 text-black" />
                    </div>
                    <div>
-                      <h4 className="text-white font-black text-xl italic uppercase tracking-tighter group-hover:text-black transition-colors">Invita y Gana</h4>
-                      <p className="text-[9px] text-white/40 font-bold uppercase tracking-[0.2em] group-hover:text-black/50 transition-colors">Tu código: <span className="text-boston-gold group-hover:text-black font-black text-xs">{user.referralCode}</span></p>
+                      <h4 className="text-white font-black text-2xl italic uppercase tracking-tighter group-hover:text-boston-gold transition-colors">Compartir Código</h4>
+                      <p className="text-[10px] text-white/50 font-bold uppercase tracking-[0.2em] mt-1">
+                        Tu código VIP: <span className="text-boston-gold font-black text-sm ml-1 bg-boston-gold/10 px-2 py-0.5 rounded">{user.referralCode}</span>
+                      </p>
                    </div>
                 </div>
-                <ArrowRight className="w-5 h-5 text-boston-gold group-hover:text-black group-hover:translate-x-1 transition-all" />
+                <ArrowRight className="w-6 h-6 text-boston-gold group-hover:translate-x-2 transition-all" />
             </div>
           </div>
-          <p className="text-[9px] text-center text-white/30 font-bold uppercase italic tracking-widest px-4">
-             Invita amigos hoy y empieza con {user.referralRewardReferrer || 500} pts extra el 1 de mayo.
-          </p>
         </div>
 
-        {/* Flash Promo Banners Carousel */}
-        <div className="relative">
-          <AnimatePresence mode="wait">
-            {banner && (
-              <motion.div 
-                key={banner.id}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.5 }}
-                whileHover={{ scale: 1.01 }}
-                className={`rounded-[2.5rem] p-8 relative overflow-hidden shadow-2xl border border-white/10 ${!banner.imageUrl ? 'bg-gradient-to-r from-boston-red to-[#5a0000]' : 'bg-zinc-900'}`}
-              >
-                {/* Background Image with optimized overlay */}
-                {banner.imageUrl && (
-                  <>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={banner.imageUrl} alt="" className="absolute inset-0 w-full h-full object-cover" />
-                    <div className="absolute inset-0 bg-gradient-to-r from-black via-black/40 to-transparent" />
-                  </>
-                )}
-
-                <div className="absolute right-[-5%] top-[-10%] w-32 h-32 bg-white rounded-full opacity-5 filter blur-3xl pointer-events-none" />
-                
-                <div className="flex justify-between items-center relative z-10">
-                    <div className="max-w-[70%]">
-                      <span className="bg-white/10 backdrop-blur-md text-white/80 text-[8px] font-black uppercase tracking-[0.2em] px-4 py-2 rounded-full inline-block mb-5 border border-white/10">Novedades</span>
-                      <h3 className="text-white font-black text-3xl italic tracking-tighter leading-[0.85] mb-3 uppercase drop-shadow-2xl">
-                        {banner.title}
-                      </h3>
-                      <p className="text-white/60 text-sm font-medium leading-snug line-clamp-2">
-                        {banner.description}
-                      </p>
-                    </div>
-                    <div className="shrink-0 w-16 h-16 bg-white/10 rounded-3xl backdrop-blur-3xl flex items-center justify-center border border-white/10 shadow-2xl">
-                      <Flame className="w-9 h-9 text-white animate-pulse" />
-                    </div>
+        {/* Steps Info */}
+        <div className="pt-6 border-t border-white/5 space-y-6">
+           <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.4em] text-center">¿Cómo funcionará la App?</p>
+           <div className="space-y-4">
+              {[
+                { step: "01", title: "Descarga", text: "El 1 de mayo, instala la app desde la tienda oficial." },
+                { step: "02", title: "Escanea", text: "Usa tu celular en caja para escanear el QR y ganar puntos." },
+                { step: "03", title: "Disfruta", text: "Canjea tus puntos por recompensas exclusivas." }
+              ].map((s, i) => (
+                <div key={i} className="flex gap-4 items-center bg-white/[0.02] border border-white/5 p-4 rounded-3xl">
+                   <span className="text-boston-gold font-black italic text-xl w-8 shrink-0">{s.step}</span>
+                   <div>
+                     <p className="text-xs text-white font-black uppercase tracking-widest">{s.title}</p>
+                     <p className="text-[10px] text-white/50 font-bold uppercase tracking-widest leading-relaxed mt-0.5">{s.text}</p>
+                   </div>
                 </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* Carousel Indicators (Dots) */}
-          {banners.length > 1 && (
-            <div className="flex justify-center gap-2 mt-4">
-              {banners.map((_, idx) => (
-                <div 
-                  key={idx}
-                  className={`h-1 rounded-full transition-all duration-300 ${idx === currentBannerIdx ? 'w-6 bg-boston-gold shadow-[0_0_10px_rgba(212,175,55,0.5)]' : 'w-2 bg-white/20'}`}
-                />
               ))}
-            </div>
-          )}
+           </div>
         </div>
-
-        {/* History Link */}
-        <Link href="/history" className="glass-panel p-6 rounded-3xl flex items-center gap-5 hover:bg-white/[0.04] transition-all group bg-white/[0.02] border border-white/5">
-           <div className="w-14 h-14 bg-white/5 rounded-2xl flex items-center justify-center text-white/20 group-hover:text-white group-hover:bg-white/10 transition-all">
-             <History className="w-6 h-6" />
-           </div>
-           <div className="flex-1">
-              <p className="text-xs font-black text-white uppercase tracking-[0.3em] mb-1">Actividad</p>
-              <p className="text-[10px] text-white/30 font-bold uppercase">Tus puntos y recompensas</p>
-           </div>
-           <ArrowRight className="w-5 h-5 text-white/10 group-hover:text-boston-gold group-hover:translate-x-1 transition-all" />
-        </Link>
       </main>
 
-      {/* Info Modal ($1=1pt Guide) */}
-      {showGuide && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
-           <motion.div 
-             initial={{ opacity: 0 }}
-             animate={{ opacity: 1 }}
-             className="absolute inset-0 bg-black/80 backdrop-blur-sm"
-             onClick={() => setShowGuide(false)}
-           />
-           <motion.div 
-             initial={{ y: 30, opacity: 0 }}
-             animate={{ y: 0, opacity: 1 }}
-             transition={{ duration: 0.3 }}
-             className="relative w-full max-w-sm bg-[#0d0d0d] border border-white/10 rounded-[40px] p-8 overflow-hidden shadow-2xl"
-           >
-              {/* Modal Background Glow */}
-              <div className="absolute top-0 left-0 w-32 h-32 bg-boston-red rounded-full filter blur-[60px] opacity-10" />
 
-              <div className="relative z-10">
-                 <div className="flex justify-between items-start mb-8">
-                    <div>
-                       <h2 className="text-2xl font-black text-white italic uppercase tracking-tighter leading-none">Guía Boston</h2>
-                       <p className="text-[10px] text-boston-gold font-black uppercase tracking-[0.3em] mt-2">Cómo sumar y subir</p>
-                    </div>
-                    <button onClick={() => setShowGuide(false)} className="text-white/20 hover:text-white transition-colors text-xs font-black">CERRAR</button>
-                 </div>
-
-                 <div className="space-y-6">
-                    <div className="space-y-3">
-                       <p className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">Regla de Oro</p>
-                       <div className="p-5 rounded-3xl bg-white/5 border border-white/5 flex items-center gap-4">
-                          <Flame className="w-8 h-8 text-boston-red-glow" />
-                          <div>
-                             <p className="text-xl font-black text-white italic leading-none">$1 = 1 PUNTO</p>
-                             <p className="text-[9px] text-white/40 font-bold mt-1 uppercase">Cada peso gastado es un punto para tu cuenta.</p>
-                          </div>
-                       </div>
-                    </div>
-
-                    <div className="space-y-3">
-                       <p className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">Paso a paso para reclamar</p>
-                       <div className="space-y-4">
-                          {[
-                            { step: "01", text: "Disfruta tu cena o bebida favorita en Boston." },
-                            { step: "02", text: "Al pagar, solicita tu ticket con el QR de Boston Club al mozo." },
-                            { step: "03", text: "Usa el botón \"CANJEAR QR\" en tu app y escanea el código." }
-                          ].map((s, i) => (
-                            <div key={i} className="flex gap-4 items-start">
-                               <span className="text-boston-gold font-black italic text-xs mt-1">{s.step}</span>
-                               <p className="text-[11px] text-white/70 font-medium leading-relaxed uppercase tracking-tight">{s.text}</p>
-                            </div>
-                          ))}
-                       </div>
-                    </div>
-
-                    <div className="pt-4 mt-6 border-t border-white/10">
-                       <p className="text-[9px] text-center text-white/30 font-bold uppercase italic font-mono tracking-widest">
-                          Sigue sumando para desbloquear beneficios exclusivos
-                       </p>
-                    </div>
-                 </div>
-              </div>
-           </motion.div>
-        </div>
-      )}
       {/* Benefits Modal (Click on Card) */}
       {showBenefits && settings && (
         <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-6">
