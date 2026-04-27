@@ -225,6 +225,8 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     const payload = { id: user.id, role: user.role };
     const token = jwt.sign(payload, process.env.JWT_SECRET as string, { expiresIn: '7d' });
     
+    const settings = await prisma.clubSettings.findUnique({ where: { id: "singleton" } });
+
     res.json({ 
       token, 
       user: { 
@@ -235,7 +237,9 @@ export const login = async (req: Request, res: Response): Promise<void> => {
         points: user.points, 
         membershipLevel: user.membershipLevel, 
         isEmailVerified: user.isEmailVerified,
-        referralCode: user.referralCode
+        referralCode: user.referralCode,
+        referralRewardReferrer: settings?.referralRewardReferrer || 500,
+        referralRewardReferee: settings?.referralRewardReferee || 200
       }
     });
    } catch (error) {
@@ -374,7 +378,11 @@ export const getMe = async (req: any, res: Response): Promise<void> => {
       }
     }
 
-    res.json(user);
+    res.json({
+      ...user,
+      referralRewardReferrer: settings?.referralRewardReferrer || 500,
+      referralRewardReferee: settings?.referralRewardReferee || 200
+    });
   } catch (error) {
     res.status(500).json({ message: "Server Error" });
   }

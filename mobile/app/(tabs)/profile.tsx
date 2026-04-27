@@ -121,7 +121,7 @@ export default function ProfileScreen() {
   const handleShareReferral = async () => {
     try {
       await Share.share({
-        message: `¡Sumate al Boston Club conmigo! Usá mi código ${user.referralCode} al registrarte y ganamos puntos los dos. Descargá la app acá: https://mybostonclub.com`,
+        message: `¡Sumate al Boston Club conmigo! Usá mi código ${user.referralCode} al registrarte y ganamos puntos los dos (${user.referralRewardReferrer || 500} para mí y ${user.referralRewardReferee || 200} para vos). Descargá la app acá: https://mybostonclub.com`,
       });
     } catch (error) {
       console.error(error);
@@ -268,9 +268,9 @@ export default function ProfileScreen() {
               
               <View className="mt-5 flex-row items-center">
                  <View className="h-[4px] w-[4px] rounded-full bg-boston-gold mr-3" />
-                 <Text className="text-white/60 text-[9px] font-bold uppercase leading-4 flex-1">
-                   Tú recibís <Text className="text-boston-gold">500 pts</Text> y tu amigo <Text className="text-boston-gold">200 pts</Text>
-                 </Text>
+                  <Text className="text-white/60 text-[9px] font-bold uppercase leading-4 flex-1">
+                    Tú recibís <Text className="text-boston-gold">{user.referralRewardReferrer || 500} pts</Text> y tu amigo <Text className="text-boston-gold">{user.referralRewardReferee || 200} pts</Text>
+                  </Text>
               </View>
             </View>
           </View>
