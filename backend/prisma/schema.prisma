@@ -34,6 +34,8 @@ model User {
   // Referral system
   referralCode            String?          @unique
   referredById            String?
+  referredBy              User?            @relation("UserReferrals", fields: [referredById], references: [id])
+  referrals               User[]           @relation("UserReferrals")
   createdAt               DateTime         @default(now())
   updatedAt               DateTime         @updatedAt
   notifications           Notification[]
@@ -158,6 +160,8 @@ model ClubSettings {
   diamondThreshold   Int      @default(5000000)
   superVipThreshold  Int      @default(10000000)
   vipMessageTemplate String   @default("¡Felicidades {name}! 🎉 Has llegado a los {points} puntos en Boston Club. ¡Eres un socio VIP! Canjea tus puntos por premios exclusivos.")
+  referralRewardReferrer Int @default(500)
+  referralRewardReferee  Int @default(200)
   rewardListText     String   @default("- 30% Off en Bebidas\n- Ingreso Free a Eventos\n- Regalo Sorpresa")
   bronceBenefits     String   @default("- Beneficios base de socio\n- Acceso a promociones")
   goldBenefits       String   @default("- 10% Off en toda la carta\n- Mesa reservada los findes")

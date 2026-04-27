@@ -44,6 +44,10 @@ export const getAllUsers = async (req: Request, res: Response): Promise<void> =>
         vipRewardSentAt: true,
         createdAt: true,
         birthDate: true,
+        referralCode: true,
+        _count: {
+          select: { referrals: true }
+        }
       },
     });
     res.json(users);
@@ -179,6 +183,25 @@ export const getUserHistory = async (req: Request, res: Response): Promise<void>
     ]);
 
     res.json({ history, redemptions });
+  } catch (error) {
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+
+export const getUserReferrals = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const referrals = await prisma.user.findMany({
+      where: { referredById: id as string },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        createdAt: true
+      }
+    });
+    res.json(referrals);
   } catch (error) {
     res.status(500).json({ message: "Server Error" });
   }

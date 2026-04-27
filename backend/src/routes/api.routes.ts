@@ -4,7 +4,7 @@ import { addPoints, getMyPointsHistory } from "../controllers/points.controller"
 import { getAllRewards, createReward, deleteReward, updateReward, reorderRewards } from "../controllers/rewards.controller";
 import { generateRedemptionQR, confirmRedemption, getRedemptionStatus } from "../controllers/redemptions.controller";
 import { getAllEvents, createEvent, deleteEvent, notifyEvent, updateEvent, reorderEvents } from "../controllers/events.controller";
-import { getAllUsers, adjustPoints, toggleBlockUser, deleteUser, toggleVipRewardStatus, getUserHistory } from "../controllers/users.controller";
+import { getAllUsers, adjustPoints, toggleBlockUser, deleteUser, toggleVipRewardStatus, getUserHistory, getUserReferrals } from "../controllers/users.controller";
 import { getAdminStats } from "../controllers/admin.controller";
 import { generatePromoToken, claimPromoToken } from "../controllers/promo.controller";
 import { getSettings, updateSettings, uploadVideo, upload } from "../controllers/settings.controller";
@@ -48,6 +48,7 @@ router.patch("/users/:id/points", authenticate, requireAdmin, adjustPoints);
 router.patch("/users/:id/block", authenticate, requireAdmin, toggleBlockUser);
 router.patch("/users/:id/reward-status", authenticate, requireAdmin, toggleVipRewardStatus);
 router.get("/users/:id/history", authenticate, requireAdmin, getUserHistory);
+router.get("/users/:id/referrals", authenticate, requireAdmin, getUserReferrals);
 router.delete("/users/:id", authenticate, requireAdmin, deleteUser);
 
 

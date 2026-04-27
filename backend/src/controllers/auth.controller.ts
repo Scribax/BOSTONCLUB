@@ -97,13 +97,17 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 
     // Reward both users if referred
     if (referredById) {
-      // Bonus for the referrer (+500 pts)
+      const settings = await prisma.clubSettings.findUnique({ where: { id: "singleton" } });
+      const referrerReward = settings?.referralRewardReferrer || 500;
+      const refereeReward = settings?.referralRewardReferee || 200;
+
+      // Bonus for the referrer
       await prisma.$transaction([
-        prisma.pointHistory.create({ data: { userId: referredById, pointsGained: 500, source: 'REFERIDO', description: `Amigo ${firstName} se unió con tu código` } }),
-        prisma.user.update({ where: { id: referredById }, data: { points: { increment: 500 } } }),
-        // Bonus for the new user (+200 pts) — added after email verification in a real flow, here immediately
-        prisma.pointHistory.create({ data: { userId: user.id, pointsGained: 200, source: 'REFERIDO', description: 'Bono por unirte con código de amigo' } }),
-        prisma.user.update({ where: { id: user.id }, data: { points: { increment: 200 } } })
+        prisma.pointHistory.create({ data: { userId: referredById, pointsGained: referrerReward, source: 'REFERIDO', description: `Amigo ${firstName} se unió con tu código` } }),
+        prisma.user.update({ where: { id: referredById }, data: { points: { increment: referrerReward } } }),
+        // Bonus for the new user
+        prisma.pointHistory.create({ data: { userId: user.id, pointsGained: refereeReward, source: 'REFERIDO', description: 'Bono por unirte con código de amigo' } }),
+        prisma.user.update({ where: { id: user.id }, data: { points: { increment: refereeReward } } })
       ]);
     }
 

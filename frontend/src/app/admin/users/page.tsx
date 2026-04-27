@@ -19,6 +19,10 @@ type User = {
   membershipLevel: string;
   vipRewardSentAt: string | null;
   birthDate: string | null;
+  referralCode: string | null;
+  _count: {
+    referrals: number;
+  };
 };
 
 type HistoryItem = {
@@ -72,9 +76,28 @@ export default function AdminUsersPage() {
   // Selection State
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
+  // Referrals State
+  const [referralUser, setReferralUser] = useState<User | null>(null);
+  const [referralData, setReferralData] = useState<any[]>([]);
+  const [loadingReferrals, setLoadingReferrals] = useState(false);
+
   useEffect(() => {
     fetchData();
   }, [sort]);
+
+  const fetchReferrals = async (user: User) => {
+    if (user._count.referrals === 0) return;
+    setReferralUser(user);
+    setLoadingReferrals(true);
+    try {
+      const data = await apiFetch(`/users/${user.id}/referrals`);
+      setReferralData(data);
+    } catch (err) {
+      console.error("Error fetching referrals", err);
+    } finally {
+      setLoadingReferrals(false);
+    }
+  };
 
   const fetchData = async () => {
     setLoading(true);
@@ -302,6 +325,7 @@ export default function AdminUsersPage() {
                 <th className="pb-4">DNI / Email</th>
                 <th className="pb-4 text-center">Puntos</th>
                 <th className="pb-4 text-center">Nivel</th>
+                <th className="pb-4 text-center">Referidos</th>
                 <th className="pb-4 text-center">Estado</th>
                 <th className="pb-4 text-right pr-4">Acciones</th>
               </tr>
@@ -403,6 +427,14 @@ export default function AdminUsersPage() {
                       <span className="text-[10px] font-black bg-white/5 text-white/60 px-2 py-1 rounded border border-white/5">
                         {u.membershipLevel}
                       </span>
+                    </td>
+                    <td className="py-5 text-center">
+                      <button 
+                        onClick={() => fetchReferrals(u)}
+                        className={`text-[10px] font-black px-3 py-1 rounded-full transition-all ${u._count.referrals > 0 ? 'bg-boston-gold/10 text-boston-gold hover:bg-boston-gold hover:text-black border border-boston-gold/20' : 'bg-white/5 text-white/20 border border-white/5 cursor-default'}`}
+                      >
+                        {u._count.referrals} {u._count.referrals === 1 ? 'Invitado' : 'Invitados'}
+                      </button>
                     </td>
                     <td className="py-5 text-center">
                       {u.isBlocked ? (
@@ -688,6 +720,72 @@ export default function AdminUsersPage() {
                         )}
                       </div>
                     </div>
+                  </>
+                )}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+      
+      {/* Referrals Modal */}
+      <AnimatePresence>
+        {referralUser && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 sm:p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setReferralUser(null)}
+              className="absolute inset-0 bg-black/90 backdrop-blur-md"
+            />
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0, y: 30 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 30 }}
+              className="relative w-full max-w-xl bg-[#0c0c0c] border border-white/10 rounded-[3rem] shadow-2xl overflow-hidden flex flex-col max-h-[80vh]"
+            >
+              <div className="p-10 pb-6 border-b border-white/5">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h3 className="text-2xl font-black text-white uppercase tracking-tighter italic mb-1">Socios Referidos</h3>
+                    <p className="text-white/40 text-[10px] font-black uppercase tracking-[0.2em]">Invitados por: <span className="text-boston-gold">{referralUser.firstName} {referralUser.lastName}</span></p>
+                  </div>
+                  <button onClick={() => setReferralUser(null)} className="p-2 bg-white/5 rounded-full hover:bg-white/10 transition-all">
+                    <X className="w-5 h-5 text-white/50" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-10 space-y-4 scrollbar-hide">
+                {loadingReferrals ? (
+                  <div className="py-20 flex flex-col items-center justify-center gap-4">
+                    <div className="w-8 h-8 border-2 border-boston-gold border-t-transparent rounded-full animate-spin" />
+                    <p className="text-[10px] text-white/20 font-black uppercase tracking-[0.3em]">Cargando referidos...</p>
+                  </div>
+                ) : (
+                  <>
+                    {referralData.length > 0 ? (
+                      referralData.map((ref) => (
+                        <div key={ref.id} className="bg-white/[0.03] border border-white/5 p-5 rounded-2xl flex justify-between items-center group hover:bg-white/[0.05] transition-all">
+                          <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-xl bg-boston-gold/10 flex items-center justify-center text-boston-gold font-black text-xs">
+                              {ref.firstName[0]}{ref.lastName[0]}
+                            </div>
+                            <div>
+                              <p className="text-white text-sm font-black uppercase italic tracking-tight">{ref.firstName} {ref.lastName}</p>
+                              <p className="text-white/30 text-[10px] font-bold mt-0.5">{ref.email}</p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-white/20 text-[9px] font-black uppercase tracking-widest">Se unió el</p>
+                            <p className="text-white/40 text-[10px] font-bold">{new Date(ref.createdAt).toLocaleDateString()}</p>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-center text-white/20 uppercase font-black tracking-widest text-[10px] py-20">No hay referidos registrados para este usuario</p>
+                    )}
                   </>
                 )}
               </div>

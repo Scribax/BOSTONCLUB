@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Save, Crown, MessageSquare, ListCheck, Loader2, Video, Upload, Trash2 } from "lucide-react";
+import { ArrowLeft, Save, Crown, MessageSquare, ListCheck, Loader2, Video, Upload, Trash2, Users } from "lucide-react";
 import Link from "next/link";
 import { apiFetch } from "@/lib/api";
 import { formatWithDots, parseSmartNumber } from "@/lib/numberFormatting";
@@ -23,7 +23,9 @@ export default function VipSettingsPage() {
     platinumBenefits: "",
     diamondBenefits: "",
     superVipBenefits: "",
-    loginVideoUrl: ""
+    loginVideoUrl: "",
+    referralRewardReferrer: 500,
+    referralRewardReferee: 200
   });
 
   useEffect(() => {
@@ -185,18 +187,47 @@ export default function VipSettingsPage() {
               ))}
             </div>
 
-            <div className="mt-10 pt-8 border-t border-white/5">
-                <label className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-4 block">Filtro Visual VIP (Anterior)</label>
-                <div className="flex items-center gap-6">
-                    <input 
-                      type="text" 
-                      value={formatWithDots(settings.vipThreshold)}
-                      onChange={(e) => setSettings({ ...settings, vipThreshold: parseSmartNumber(e.target.value) })}
-                      className="w-40 bg-white/5 text-white border border-white/10 rounded-xl py-2 px-4 text-lg font-bold outline-none"
-                    />
-                    <p className="text-[9px] text-white/20 font-medium uppercase leading-tight italic">
-                      Umbral original para resaltar usuarios. Usa "k" o "m".
-                    </p>
+            <div className="mt-10 pt-8 border-t border-white/5 space-y-8">
+                <div>
+                  <label className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-4 block">Filtro Visual VIP (Anterior)</label>
+                  <div className="flex items-center gap-6">
+                      <input 
+                        type="text" 
+                        value={formatWithDots(settings.vipThreshold)}
+                        onChange={(e) => setSettings({ ...settings, vipThreshold: parseSmartNumber(e.target.value) })}
+                        className="w-40 bg-white/5 text-white border border-white/10 rounded-xl py-2 px-4 text-lg font-bold outline-none"
+                      />
+                      <p className="text-[9px] text-white/20 font-medium uppercase leading-tight italic">
+                        Umbral original para resaltar usuarios. Usa "k" o "m".
+                      </p>
+                  </div>
+                </div>
+
+                <div className="pt-8 border-t border-white/5">
+                  <div className="flex items-center gap-3 mb-6">
+                    <Users className="w-4 h-4 text-boston-gold" />
+                    <h4 className="text-[10px] font-black text-white/80 uppercase tracking-[0.2em]">Puntos por Referidos</h4>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label className="text-[9px] font-black text-white/30 uppercase tracking-widest ml-1">Para el que invita (Referrer)</label>
+                      <input 
+                        type="text" 
+                        value={formatWithDots(settings.referralRewardReferrer)}
+                        onChange={(e) => setSettings({ ...settings, referralRewardReferrer: parseSmartNumber(e.target.value) })}
+                        className="w-full bg-black/40 text-white border border-white/5 rounded-xl py-3 px-4 text-xl font-black outline-none focus:border-boston-gold/30"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[9px] font-black text-white/30 uppercase tracking-widest ml-1">Para el invitado (Referee)</label>
+                      <input 
+                        type="text" 
+                        value={formatWithDots(settings.referralRewardReferee)}
+                        onChange={(e) => setSettings({ ...settings, referralRewardReferee: parseSmartNumber(e.target.value) })}
+                        className="w-full bg-black/40 text-white border border-white/5 rounded-xl py-3 px-4 text-xl font-black outline-none focus:border-boston-gold/30"
+                      />
+                    </div>
+                  </div>
                 </div>
             </div>
           </motion.div>
