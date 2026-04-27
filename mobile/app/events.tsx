@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, ActivityIndicator,
   Image, RefreshControl, Dimensions, Modal
@@ -139,6 +139,70 @@ const EventCard = ({ event, index, onPress }: { event: EventData; index: number;
 };
 
 // ─────────────────────────────────────────────
+// F1 COUNTDOWN COMPONENT
+// ─────────────────────────────────────────────
+const F1Countdown = ({ event }: { event: EventData }) => {
+  const [timeLeft, setTimeLeft] = useState<{ d: number; h: number; m: number; s: number } | null>(null);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const now = new Date().getTime();
+      const target = new Date(event.eventDate).getTime();
+      const diff = target - now;
+
+      if (diff <= 0) {
+        setTimeLeft(null);
+        clearInterval(timer);
+      } else {
+        setTimeLeft({
+          d: Math.floor(diff / (1000 * 60 * 60 * 24)),
+          h: Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+          m: Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)),
+          s: Math.floor((diff % (1000 * 60)) / 1000),
+        });
+      }
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [event.eventDate]);
+
+  if (!timeLeft) return null;
+
+  return (
+    <Animated.View entering={FadeIn} style={{ marginHorizontal: 20, marginBottom: 30 }}>
+      <View style={{ backgroundColor: '#111', borderRadius: 24, padding: 24, borderWidth: 2, borderColor: '#FF3B30', shadowColor: '#FF3B30', shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.3, shadowRadius: 15 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
+          <View style={{ h: 1, flex: 1, backgroundColor: 'rgba(255,59,48,0.2)' }} />
+          <Text style={{ color: '#FF3B30', fontSize: 10, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 3, marginHorizontal: 12 }}>Próxima Carrera</Text>
+          <View style={{ h: 1, flex: 1, backgroundColor: 'rgba(255,59,48,0.2)' }} />
+        </View>
+        
+        <Text style={{ color: 'white', fontSize: 18, fontWeight: '900', textAlign: 'center', textTransform: 'uppercase', fontStyle: 'italic', marginBottom: 20 }}>
+          {event.title}
+        </Text>
+
+        <View style={{ flexDirection: 'row', justifyContent: 'space-around' }}>
+          {[
+            { label: 'DÍAS', value: timeLeft.d },
+            { label: 'HRS', value: timeLeft.h },
+            { label: 'MIN', value: timeLeft.m },
+            { label: 'SEG', value: timeLeft.s },
+          ].map((item, i) => (
+            <View key={i} style={{ alignItems: 'center' }}>
+              <View style={{ backgroundColor: '#000', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', minWidth: 60 }}>
+                <Text style={{ color: 'white', fontSize: 32, fontWeight: '900', fontVariant: ['tabular-nums'], textAlign: 'center' }}>
+                  {item.value.toString().padStart(2, '0')}
+                </Text>
+              </View>
+              <Text style={{ color: '#FF3B30', fontSize: 8, fontWeight: '900', marginTop: 6 }}>{item.label}</Text>
+            </View>
+          ))}
+        </View>
+      </View>
+    </Animated.View>
+  );
+};
+
+// ─────────────────────────────────────────────
 // MAIN SCREEN
 // ─────────────────────────────────────────────
 export default function EventsScreen() {
@@ -236,6 +300,10 @@ export default function EventsScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingTop: 24, paddingBottom: 120 }}
       >
+        {events.length > 0 && (
+          <F1Countdown event={[...events].sort((a, b) => new Date(a.eventDate).getTime() - new Date(b.eventDate).getTime()).filter(e => new Date(e.eventDate).getTime() > new Date().getTime())[0] || events[0]} />
+        )}
+
         {events.length === 0 ? (
           <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 80 }}>
             <Calendar size={48} color="rgba(255,59,48,0.3)" />

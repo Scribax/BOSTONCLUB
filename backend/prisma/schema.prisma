@@ -28,6 +28,12 @@ model User {
   resetCodeExpires        DateTime?
   expoPushToken           String?
   vipRewardSentAt         DateTime?
+  // Streak system
+  streak                  Int              @default(0)
+  lastStreakDate           DateTime?
+  // Referral system
+  referralCode            String?          @unique
+  referredById            String?
   createdAt               DateTime         @default(now())
   updatedAt               DateTime         @updatedAt
   notifications           Notification[]

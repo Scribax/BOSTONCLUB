@@ -11,9 +11,17 @@ const generateSixDigitCode = () => {
   return Math.floor(100000 + Math.random() * 900000).toString();
 };
 
+// Helper to generate a unique referral code like "BST-K3X9"
+const generateReferralCode = () => {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = 'BST-';
+  for (let i = 0; i < 4; i++) code += chars[Math.floor(Math.random() * chars.length)];
+  return code;
+};
+
 export const register = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { dni, firstName, lastName, email, password, whatsapp, birthDate } = req.body;
+    const { dni, firstName, lastName, email, password, whatsapp, birthDate, referralCode: incomingReferralCode } = req.body;
 
     if (!whatsapp || whatsapp.trim() === "") {
         res.status(400).json({ message: "El WhatsApp es obligatorio para el registro." });
@@ -46,6 +54,23 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     const verificationCode = generateSixDigitCode();
     const verificationCodeExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
+    // Generate unique referral code for this new user
+    let referralCode: string | null = null;
+    let attempts = 0;
+    while (!referralCode && attempts < 10) {
+      const candidate = generateReferralCode();
+      const exists = await prisma.user.findUnique({ where: { referralCode: candidate } });
+      if (!exists) referralCode = candidate;
+      attempts++;
+    }
+
+    // Handle incoming referral code
+    let referredById: string | undefined = undefined;
+    if (incomingReferralCode) {
+      const referrer = await prisma.user.findUnique({ where: { referralCode: incomingReferralCode.trim().toUpperCase() } });
+      if (referrer) referredById = referrer.id;
+    }
+
     const user = await prisma.user.create({
       data: {
         dni,
@@ -58,8 +83,22 @@ export const register = async (req: Request, res: Response): Promise<void> => {
         verificationCode,
         verificationCodeExpires,
         isEmailVerified: false,
+        referralCode,
+        referredById
       }
     });
+
+    // Reward both users if referred
+    if (referredById) {
+      // Bonus for the referrer (+500 pts)
+      await prisma.$transaction([
+        prisma.pointHistory.create({ data: { userId: referredById, pointsGained: 500, source: 'REFERIDO', description: `Amigo ${firstName} se unió con tu código` } }),
+        prisma.user.update({ where: { id: referredById }, data: { points: { increment: 500 } } }),
+        // Bonus for the new user (+200 pts) — added after email verification in a real flow, here immediately
+        prisma.pointHistory.create({ data: { userId: user.id, pointsGained: 200, source: 'REFERIDO', description: 'Bono por unirte con código de amigo' } }),
+        prisma.user.update({ where: { id: user.id }, data: { points: { increment: 200 } } })
+      ]);
+    }
 
     // Send email in background
     sendVerificationEmail(user.email, verificationCode).catch(console.error);
@@ -240,7 +279,13 @@ export const getMe = async (req: any, res: Response): Promise<void> => {
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.user.id },
-      select: { id: true, dni: true, firstName: true, lastName: true, email: true, whatsapp: true, points: true, membershipLevel: true, role: true, isEmailVerified: true }
+      select: { 
+        id: true, dni: true, firstName: true, lastName: true, 
+        email: true, whatsapp: true, points: true, membershipLevel: true, 
+        role: true, isEmailVerified: true,
+        streak: true, lastStreakDate: true,
+        referralCode: true, referredById: true
+      }
     });
 
     if (!user) {
@@ -265,7 +310,13 @@ export const getMe = async (req: any, res: Response): Promise<void> => {
         const updatedUser = await prisma.user.update({
           where: { id: user.id },
           data: { membershipLevel: correctLevel },
-          select: { id: true, dni: true, firstName: true, lastName: true, email: true, whatsapp: true, points: true, membershipLevel: true, role: true, isEmailVerified: true }
+          select: { 
+            id: true, dni: true, firstName: true, lastName: true, 
+            email: true, whatsapp: true, points: true, membershipLevel: true, 
+            role: true, isEmailVerified: true,
+            streak: true, lastStreakDate: true,
+            referralCode: true, referredById: true
+          }
         });
         res.json(updatedUser);
         return;

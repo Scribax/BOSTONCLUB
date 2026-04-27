@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Alert, ActivityIndicator, TextInput, Modal } from 'react-native';
+import { View, Text, TouchableOpacity, Alert, ActivityIndicator, TextInput, Modal, Share } from 'react-native';
 import { router } from 'expo-router';
-import { LogOut, User, ShieldCheck, Mail, Edit2, X, Phone, Check } from 'lucide-react-native';
+import { LogOut, User, ShieldCheck, Mail, Edit2, X, Phone, Check, Users, Share2 } from 'lucide-react-native';
 import api, { logout } from '../../lib/api';
 import { StatusBar } from 'expo-status-bar';
 import * as LocalAuthentication from 'expo-local-authentication';
@@ -117,6 +117,16 @@ export default function ProfileScreen() {
     );
   };
 
+  const handleShareReferral = async () => {
+    try {
+      await Share.share({
+        message: `¡Sumate al Boston Club conmigo! Usá mi código ${user.referralCode} al registrarte y ganamos puntos los dos. Descargá la app acá: https://mybostonclub.com`,
+      });
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
 
   if (loading && !user) {
     return (
@@ -168,7 +178,32 @@ export default function ProfileScreen() {
          </View>
       </View>
 
-      <View className="flex-col gap-4 z-10">
+
+
+      <ScrollView className="flex-col gap-4 z-10" showsVerticalScrollIndicator={false}>
+         {/* Referral Section */}
+         {user.referralCode && (
+           <View className="bg-[#D4AF37]/10 border border-[#D4AF37]/30 rounded-3xl p-6 shadow-lg mb-2">
+              <View className="flex-row items-center mb-4">
+                 <Users size={22} color="#D4AF37" />
+                 <Text className="text-[#D4AF37] font-black text-xs uppercase tracking-[0.2em] ml-4">Invitá a un amigo</Text>
+              </View>
+              <Text className="text-white/60 text-[10px] font-bold uppercase mb-4 leading-4">
+                Compartí tu código. Si alguien se registra, ganás 500 pts y tu amigo 200 pts.
+              </Text>
+              <View className="flex-row items-center justify-between bg-black/40 rounded-2xl p-4 border border-white/5">
+                 <Text className="text-white text-xl font-black tracking-[0.3em] ml-2">{user.referralCode}</Text>
+                 <TouchableOpacity 
+                   onPress={handleShareReferral}
+                   className="bg-[#D4AF37] px-4 py-2 rounded-xl flex-row items-center"
+                 >
+                    <Share2 size={14} color="black" />
+                    <Text className="text-black font-black text-[10px] uppercase ml-2">Compartir</Text>
+                 </TouchableOpacity>
+              </View>
+           </View>
+         )}
+
          <View className="bg-white/[0.03] border border-white/5 rounded-3xl p-6 flex-row items-center shadow-lg">
             <Mail size={22} color="rgba(255,255,255,0.4)" />
             <View className="ml-5 flex-1">
@@ -226,7 +261,7 @@ export default function ProfileScreen() {
                <Text className="text-[#ff4d4d] font-black text-xs uppercase tracking-widest ml-5">Cerrar Sesión</Text>
             </View>
          </TouchableOpacity>
-      </View>
+      </ScrollView>
 
       {/* Edit WhatsApp Modal */}
       <Modal visible={editModalVisible} transparent animationType="fade">

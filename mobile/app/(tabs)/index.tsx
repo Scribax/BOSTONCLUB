@@ -28,6 +28,9 @@ type UserData = {
   lastName: string;
   points: number;
   membershipLevel: string;
+  streak?: number;
+  lastStreakDate?: string;
+  referralCode?: string;
 };
 
 type BannerEvent = {
@@ -41,6 +44,24 @@ type BannerEvent = {
 };
 
 // Componente helper para animaciones optimizadas removido de acá y movido a components/FadeInView.tsx
+
+const StreakBadge = ({ streak }: { streak: number }) => {
+  if (streak <= 0) return null;
+  
+  const multiplier = streak >= 7 ? 'x2.0' : (streak >= 3 ? 'x1.5' : '');
+
+  return (
+    <Animated.View 
+      entering={FadeInView}
+      className="flex-row items-center bg-[#FF3B30]/10 border border-[#FF3B30]/30 rounded-full px-3 py-1 self-start mt-2"
+    >
+      <Flame size={12} color="#FF3B30" fill="#FF3B30" />
+      <Text className="text-[#FF3B30] font-black text-[9px] uppercase tracking-tighter ml-1.5">
+        Racha {streak} {streak === 1 ? 'visita' : 'visitas'} {multiplier ? `• ${multiplier}` : ''}
+      </Text>
+    </Animated.View>
+  );
+};
 
 export default function DashboardScreen() {
   const router = useRouter();
@@ -402,6 +423,7 @@ export default function DashboardScreen() {
                          <Text className="text-white text-3xl font-black uppercase italic tracking-tighter leading-none">
                             {user.membershipLevel.toUpperCase()}
                          </Text>
+                         <StreakBadge streak={user.streak || 0} />
                          <View className="flex-row items-center mt-2">
                             <View className="h-[1px] flex-1 bg-boston-red/30" />
                             <Star size={8} color="white" fill="white" className="mx-2" />

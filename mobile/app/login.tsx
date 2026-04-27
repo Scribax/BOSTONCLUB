@@ -20,6 +20,7 @@ export default function LoginScreen() {
   const [dni, setDni] = useState('');
   const [whatsapp, setWhatsapp] = useState('');
   const [birthDateInput, setBirthDateInput] = useState('');
+  const [referralCode, setReferralCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
@@ -100,7 +101,8 @@ export default function LoginScreen() {
           whatsapp, 
           email, 
           password,
-          birthDate: birthDateIso
+          birthDate: birthDateIso,
+          referralCode: referralCode.trim()
         });
         const { token } = response.data;
         // NO guardamos el token todavía - el guard lo mandaría al dashboard
@@ -219,6 +221,13 @@ export default function LoginScreen() {
                       className="w-full bg-black/40 text-white border border-white/5 rounded-2xl py-3.5 px-4 h-12 font-bold tracking-[0.1em]" 
                     />
                   </View>
+                <View className="space-y-1.5">
+                  <Text className="text-[10px] font-bold text-white/80 uppercase ml-1 tracking-widest">¿Código de amigo? (Opcional)</Text>
+                  <TextInput 
+                    value={referralCode} onChangeText={setReferralCode} 
+                    placeholder="BST-XXXX" placeholderTextColor="rgba(255,255,255,0.4)" autoCapitalize="characters"
+                    className="w-full bg-black/40 text-white border border-white/5 rounded-2xl py-3.5 px-4 h-12 font-bold tracking-[0.2em]" 
+                  />
                 </View>
               </View>
             )}
