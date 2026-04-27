@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { ArrowLeft, History, ArrowUpRight, ArrowDownRight, Gift, CalendarCheck, CheckCircle2, TrendingUp, Star, Users, Flame } from 'lucide-react-native';
+import { ArrowLeft, History, ArrowUpRight, ArrowDownRight, Gift, CalendarCheck, CheckCircle2, Users, Flame } from 'lucide-react-native';
 import api from '../lib/api';
 import { StatusBar } from 'expo-status-bar';
 import { LinearGradient } from 'expo-linear-gradient';

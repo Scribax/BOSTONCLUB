@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, Alert, ActivityIndicator, StyleSheet, LogBox } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Mail, Lock, LogIn, ChevronRight, Crown, ArrowRight, User as UserIcon, Phone, Eye, EyeOff } from 'lucide-react-native';
+import { Mail, Lock, User as UserIcon, Phone, Eye, EyeOff } from 'lucide-react-native';
 import api, { setAuthToken } from '../lib/api';
 import { StatusBar } from 'expo-status-bar';
 import { VideoPlayer } from '../components/VideoPlayer';

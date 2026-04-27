@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, UserCog, UserMinus, ShieldAlert, Award, ArrowUpDown, Trash2, Ban, CheckCircle2, Crown, MessageCircle, Download, CheckSquare, Square, History, Clock, Ticket, Star, X } from "lucide-react";
+import { Search, Award, ArrowUpDown, Trash2, Ban, CheckCircle2, Crown, MessageCircle, Download, CheckSquare, History, Clock, Ticket, Star, X } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 import { motion, AnimatePresence } from "framer-motion";
 import * as XLSX from 'xlsx';

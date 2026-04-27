@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Save, Crown, MessageSquare, ListCheck, Loader2, Video, Upload, Trash2, Users } from "lucide-react";
+import { ArrowLeft, Save, Crown, MessageSquare, ListCheck, Loader2, Users } from "lucide-react";
 import Link from "next/link";
 import { apiFetch } from "@/lib/api";
 import { formatWithDots, parseSmartNumber } from "@/lib/numberFormatting";
