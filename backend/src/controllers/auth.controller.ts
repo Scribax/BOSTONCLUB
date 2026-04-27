@@ -4,6 +4,14 @@ import jwt from "jsonwebtoken";
 import { PrismaClient } from "@prisma/client";
 import { sendVerificationEmail, sendPasswordResetEmail } from "../services/email.service";
 
+// Define a custom Request type that includes the user from JWT
+interface AuthRequest extends Request {
+  user?: {
+    id: string;
+    role: string;
+  };
+}
+
 const prisma = new PrismaClient();
 
 // Helper to generate 6-digit code
@@ -133,9 +141,13 @@ export const register = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-export const verifyEmail = async (req: any, res: Response): Promise<void> => {
+export const verifyEmail = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { code } = req.body;
+    if (!req.user) {
+      res.status(401).json({ message: "No autorizado" });
+      return;
+    }
     const user = await prisma.user.findUnique({ where: { id: req.user.id } });
 
     if (!user) {
@@ -168,8 +180,12 @@ export const verifyEmail = async (req: any, res: Response): Promise<void> => {
   }
 };
 
-export const resendVerificationCode = async (req: any, res: Response): Promise<void> => {
+export const resendVerificationCode = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
+    if (!req.user) {
+      res.status(401).json({ message: "No autorizado" });
+      return;
+    }
     const user = await prisma.user.findUnique({ where: { id: req.user.id } });
 
     if (!user) {
@@ -302,8 +318,12 @@ export const resetPassword = async (req: Request, res: Response): Promise<void> 
   }
 };
 
-export const getMe = async (req: any, res: Response): Promise<void> => {
+export const getMe = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
+    if (!req.user) {
+      res.status(401).json({ message: "No autorizado" });
+      return;
+    }
     let user = await prisma.user.findUnique({
       where: { id: req.user.id },
       select: { 
@@ -388,8 +408,12 @@ export const getMe = async (req: any, res: Response): Promise<void> => {
   }
 };
 
-export const updateMe = async (req: any, res: Response): Promise<void> => {
+export const updateMe = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
+    if (!req.user) {
+      res.status(401).json({ message: "No autorizado" });
+      return;
+    }
     const { firstName, lastName, whatsapp } = req.body;
     
     if (whatsapp && !/^\d+$/.test(whatsapp)) {
