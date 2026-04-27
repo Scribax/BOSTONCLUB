@@ -73,8 +73,8 @@ export default function LoginPage() {
         </h1>
         <div className="flex items-center gap-2 mt-2">
            <div className="h-[1px] w-4 bg-boston-gold/30" />
-           <p className="text-[10px] font-black tracking-[0.3em] text-boston-gold uppercase opacity-80">
-             Fidelización Premium
+           <p className="text-[10px] font-black tracking-[0.3em] text-boston-gold uppercase opacity-80 text-center leading-tight">
+             Fidelización Premium <br/><span className="text-white">Lanzamiento Oficial: 1 de Mayo</span>
            </p>
            <div className="h-[1px] w-4 bg-boston-gold/30" />
         </div>
@@ -179,7 +179,7 @@ export default function LoginPage() {
             <div className={`absolute inset-0 bg-gradient-to-r from-boston-red via-boston-gold to-boston-red bg-[length:200%_auto] animate-shimmer`} />
             <div className="relative flex items-center justify-center gap-3 bg-boston-black py-4 px-8 rounded-2xl">
               <span className="text-xs font-black text-white uppercase tracking-[0.2em]">
-                {loading ? "Verificando..." : (isLogin ? "Iniciar Sesión" : "Crear Perfil")}
+                {loading ? "Verificando..." : (isLogin ? "Iniciar Sesión" : "Unirme a la Lista VIP")}
               </span>
               {!loading && <ArrowRight className="w-4 h-4 text-boston-gold group-hover:translate-x-1 transition-transform" />}
             </div>
@@ -191,7 +191,7 @@ export default function LoginPage() {
             onClick={() => { setIsLogin(!isLogin); setErrorMsg(""); }}
             className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] hover:text-boston-gold transition-colors"
           >
-            {isLogin ? "¿No tienes cuenta? Regístrate gratis" : "¿Ya eres socio? Identifícate"}
+            {isLogin ? "¿Aún no eres socio? Únete a la lista fundadora" : "¿Ya estás en la lista? Inicia sesión"}
           </button>
         </div>
       </motion.div>

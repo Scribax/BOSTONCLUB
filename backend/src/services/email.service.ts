@@ -26,9 +26,9 @@ export const sendVerificationEmail = async (to: string, code: string) => {
               <div style="height: 1px; width: 100px; background: linear-gradient(to right, transparent, #D4AF37, transparent); margin: 10px auto;"></div>
             </div>
 
-            <h2 style="font-size: 18px; font-weight: 400; color: #ffffff; margin-bottom: 10px;">¡Bienvenido a la Experiencia VIP!</h2>
+            <h2 style="font-size: 18px; font-weight: 400; color: #ffffff; margin-bottom: 10px;">¡Bienvenido a la Lista VIP Fundadora!</h2>
             <p style="font-size: 14px; color: #888888; line-height: 1.6; margin-bottom: 30px; padding: 0 20px;">
-              Estás a un solo paso de acceder a beneficios exclusivos, eventos premium y recompensas únicas.
+              Estás a un paso de asegurar tu lugar. Verifica tu correo para acceder al Lobby VIP y obtener tu código de referido. <b>La App oficial se lanza el 1 de Mayo.</b>
             </p>
 
             <!-- Code Box -->

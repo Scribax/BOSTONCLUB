@@ -16,6 +16,8 @@ type UserData = {
   dni: string;
   points: number;
   membershipLevel: string;
+  referralCode?: string;
+  referralRewardReferrer?: number;
 };
 
 type BannerEvent = {
@@ -118,7 +120,7 @@ export default function DashboardPage() {
       {/* Header */}
       <header className="px-6 pt-12 pb-6 flex justify-between items-center relative z-10">
         <div>
-           <p className="text-white/40 text-[9px] font-black uppercase tracking-[0.4em] mb-1">Membresía Premium</p>
+           <p className="text-boston-gold text-[9px] font-black uppercase tracking-[0.4em] mb-1">VIP PRE-LANZAMIENTO</p>
            <h1 className="text-3xl font-black text-white tracking-tighter italic uppercase drop-shadow-lg">{user.firstName}</h1>
         </div>
         <Link href="/profile" className="w-12 h-12 rounded-2xl border border-white/5 flex items-center justify-center bg-white/5 hover:bg-white/10 transition-all shadow-xl group">
@@ -146,7 +148,11 @@ export default function DashboardPage() {
 
         {/* Info Blocks Row */}
         <section className="space-y-5">
-           <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.4em] ml-2">¿Cómo subir a {calculateNextTier()?.name || 'SÚPER VIP'}?</p>
+           <div className="bg-boston-red/20 border border-boston-red/50 rounded-3xl p-5 text-center flex flex-col items-center justify-center">
+              <span className="text-[10px] font-black text-white uppercase tracking-[0.4em] mb-2">GRAN LANZAMIENTO</span>
+              <p className="text-4xl font-black text-white italic tracking-tighter drop-shadow-[0_0_15px_rgba(255,59,48,0.8)]">1 DE MAYO</p>
+              <p className="text-[10px] text-white/60 font-bold uppercase mt-2 tracking-widest leading-relaxed">Descarga la App ese día para usar tus beneficios.</p>
+           </div>
            <div className="grid grid-cols-3 gap-3">
               {/* $1 = 1 PUNTO (Interactive) */}
               <button 
@@ -180,37 +186,40 @@ export default function DashboardPage() {
            </div>
         </section>
 
-        {/* Quick Actions Re-Designed */}
+        {/* Quick Actions Re-Designed for Pre-Launch */}
         <div className="space-y-4">
-          {/* MAIN ACTION: PAY */}
-          <Link href="/claim" className="relative block group">
+          <div className="relative block group">
             <div className="absolute -inset-0.5 bg-gradient-to-r from-boston-gold/50 to-boston-gold/20 rounded-[2rem] blur opacity-20 group-hover:opacity-40 transition duration-1000 group-hover:duration-200"></div>
-            <div className="relative glass-panel rounded-[2rem] p-6 flex items-center justify-between border border-boston-gold/30 bg-gradient-to-br from-boston-gold/10 to-transparent hover:bg-boston-gold transition-all duration-500 overflow-hidden">
+            <div 
+              onClick={() => {
+                if (navigator.share) {
+                  navigator.share({
+                    title: 'Boston Club',
+                    text: `¡Sumate a la lista VIP fundadora de Boston Club conmigo! Usá mi código ${user.referralCode} al registrarte y ganamos puntos los dos.`,
+                    url: 'https://mybostonclub.com'
+                  });
+                } else {
+                  navigator.clipboard.writeText(`¡Sumate a la lista VIP fundadora de Boston Club conmigo! Usá mi código ${user.referralCode} al registrarte y ganamos puntos los dos. https://mybostonclub.com`);
+                  alert("Código copiado al portapapeles");
+                }
+              }}
+              className="relative glass-panel rounded-[2rem] p-6 flex items-center justify-between border border-boston-gold/30 bg-gradient-to-br from-boston-gold/10 to-transparent hover:bg-boston-gold transition-all duration-500 overflow-hidden cursor-pointer"
+            >
                 <div className="flex items-center gap-5">
                    <div className="w-14 h-14 bg-boston-gold/20 rounded-2xl flex items-center justify-center border border-boston-gold/30 group-hover:bg-black/20 transition-colors">
-                      <CreditCard className="w-7 h-7 text-boston-gold group-hover:text-black" />
+                      <Gift className="w-7 h-7 text-boston-gold group-hover:text-black" />
                    </div>
                    <div>
-                      <h4 className="text-white font-black text-xl italic uppercase tracking-tighter group-hover:text-black transition-colors">Pagar con la App</h4>
-                      <p className="text-[9px] text-white/40 font-bold uppercase tracking-[0.2em] group-hover:text-black/50 transition-colors underline decoration-boston-gold/30 underline-offset-4">Escanea el QR del POSNET</p>
+                      <h4 className="text-white font-black text-xl italic uppercase tracking-tighter group-hover:text-black transition-colors">Invita y Gana</h4>
+                      <p className="text-[9px] text-white/40 font-bold uppercase tracking-[0.2em] group-hover:text-black/50 transition-colors">Tu código: <span className="text-boston-gold group-hover:text-black font-black text-xs">{user.referralCode}</span></p>
                    </div>
                 </div>
                 <ArrowRight className="w-5 h-5 text-boston-gold group-hover:text-black group-hover:translate-x-1 transition-all" />
             </div>
-          </Link>
-
-          {/* SECONDARY ACTIONS: REDEEM & CLAIM */}
-          <div className="flex gap-4">
-            <Link href="/rewards" className="flex-1 glass-panel p-5 rounded-[2rem] border border-white/5 flex flex-col items-center justify-center gap-2 hover:bg-boston-red/10 hover:border-boston-red/30 transition-all group">
-              <Gift className="w-5 h-5 text-boston-red-glow" />
-              <span className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em] group-hover:text-white">Explorar Canjes</span>
-            </Link>
-
-            <Link href="/claim" className="flex-1 glass-panel p-5 rounded-[2rem] border border-white/5 flex flex-col items-center justify-center gap-2 hover:bg-white/5 transition-all group">
-              <QrCode className="w-5 h-5 text-white/20 group-hover:text-boston-gold" />
-              <span className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em] group-hover:text-white">Sumar Puntos</span>
-            </Link>
           </div>
+          <p className="text-[9px] text-center text-white/30 font-bold uppercase italic tracking-widest px-4">
+             Invita amigos hoy y empieza con {user.referralRewardReferrer || 500} pts extra el 1 de mayo.
+          </p>
         </div>
 
         {/* Flash Promo Banners Carousel */}
