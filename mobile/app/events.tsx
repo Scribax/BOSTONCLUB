@@ -300,9 +300,13 @@ export default function EventsScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingTop: 24, paddingBottom: 120 }}
       >
-        {events.length > 0 && (
-          <F1Countdown event={[...events].sort((a, b) => new Date(a.eventDate).getTime() - new Date(b.eventDate).getTime()).filter(e => new Date(e.eventDate).getTime() > new Date().getTime())[0] || events[0]} />
-        )}
+        {(() => {
+          const nextEvent = [...events]
+            .sort((a, b) => new Date(a.eventDate).getTime() - new Date(b.eventDate).getTime())
+            .filter(e => new Date(e.eventDate).getTime() > new Date().getTime())[0];
+
+          return nextEvent ? <F1Countdown event={nextEvent} /> : null;
+        })()}
 
         {events.length === 0 ? (
           <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 80 }}>
