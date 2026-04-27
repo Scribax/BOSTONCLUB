@@ -314,11 +314,20 @@ export default function DashboardScreen() {
                     className="relative bg-[#0c0c0c]"
                   >
                     {item.mediaType === 'VIDEO' && item.videoUrl ? (
-                      <VideoPlayer
-                        uri={resolveImageUrl(item.videoUrl) || ''}
-                        style={{ width: '100%', height: '100%' }}
-                        paused={!isScreenFocused}
-                      />
+                      // Unmount completely when tab loses focus so the native video
+                      // surface doesn't bleed through the camera scanner
+                      isScreenFocused ? (
+                        <VideoPlayer
+                          uri={resolveImageUrl(item.videoUrl) || ''}
+                          style={{ width: '100%', height: '100%' }}
+                        />
+                      ) : (
+                        <Image
+                          source={{ uri: resolveImageUrl(item.imageUrl) || 'https://images.unsplash.com/photo-1514525253361-bee8718a300a?q=80&w=1000' }}
+                          style={{ width: '100%', height: '100%', opacity: 0.7 }}
+                          resizeMode="cover"
+                        />
+                      )
                     ) : (
                       <Image 
                         source={{ uri: resolveImageUrl(item.imageUrl) || 'https://images.unsplash.com/photo-1514525253361-bee8718a300a?q=80&w=1000' }} 
