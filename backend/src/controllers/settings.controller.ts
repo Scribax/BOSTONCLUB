@@ -45,7 +45,9 @@ export const getSettings = async (req: Request, res: Response): Promise<void> =>
           platinumBenefits: "- 20% Off en toda la carta\n- Acceso anticipado a eventos",
           diamondBenefits: "- 30% Off en toda la carta\n- Zona VIP sin cargo\n- Regalo de cumpleaños",
           superVipBenefits: "- 50% Off en toda la carta\n- Todo incluido en eventos seleccionados\n- Concierge privado",
-          loginVideoUrl: null
+          loginVideoUrl: null,
+          referralRewardReferrer: 500,
+          referralRewardReferee: 200
         }
       });
     }
@@ -71,7 +73,9 @@ export const updateSettings = async (req: Request, res: Response): Promise<void>
       platinumBenefits,
       diamondBenefits,
       superVipBenefits,
-      checkinPoints
+      checkinPoints,
+      referralRewardReferrer,
+      referralRewardReferee
     } = req.body;
 
     const settings = await prisma.clubSettings.upsert({
@@ -92,7 +96,9 @@ export const updateSettings = async (req: Request, res: Response): Promise<void>
         checkinPoints: Number(checkinPoints),
         isEventDay: Boolean(req.body.isEventDay),
         eventCheckinPoints: Number(req.body.eventCheckinPoints),
-        loginVideoUrl: req.body.loginVideoUrl
+        loginVideoUrl: req.body.loginVideoUrl,
+        referralRewardReferrer: Number(referralRewardReferrer),
+        referralRewardReferee: Number(referralRewardReferee)
       },
       create: {
         id: "singleton",
@@ -111,7 +117,9 @@ export const updateSettings = async (req: Request, res: Response): Promise<void>
         checkinPoints: Number(checkinPoints),
         isEventDay: Boolean(req.body.isEventDay),
         eventCheckinPoints: Number(req.body.eventCheckinPoints),
-        loginVideoUrl: req.body.loginVideoUrl
+        loginVideoUrl: req.body.loginVideoUrl,
+        referralRewardReferrer: Number(referralRewardReferrer),
+        referralRewardReferee: Number(referralRewardReferee)
       }
     });
 
