@@ -64,7 +64,7 @@ export default function LoginScreen() {
     setLoading(true);
     try {
       if (isLogin) {
-        const response = await api.post('/auth/login', { email, password });
+        const response = await api.post('/auth/login', { email: email.toLowerCase().trim(), password });
         const { token } = response.data;
         await setAuthToken(token);
         router.replace('/(tabs)');
@@ -99,7 +99,7 @@ export default function LoginScreen() {
           lastName, 
           dni, 
           whatsapp, 
-          email, 
+          email: email.toLowerCase().trim(), 
           password,
           birthDate: birthDateIso,
           referralCode: referralCode.trim()
@@ -107,13 +107,13 @@ export default function LoginScreen() {
         const { token } = response.data;
         // NO guardamos el token todavía - el guard lo mandaría al dashboard
         // En cambio lo pasamos como parámetro a verify-email
-        router.replace({ pathname: '/verify-email', params: { email, pendingToken: token } });
+        router.replace({ pathname: '/verify-email', params: { email: email.toLowerCase().trim(), pendingToken: token } });
       }
     } catch (error: any) {
       if (error.response?.status === 401 && error.response?.data?.isEmailVerified === false) {
           const { token } = error.response.data;
           // Pasar token como param sin guardarlo
-          router.replace({ pathname: '/verify-email', params: { email, pendingToken: token || '' } });
+          router.replace({ pathname: '/verify-email', params: { email: email.toLowerCase().trim(), pendingToken: token || '' } });
           return;
       }
       const msg = error.response?.data?.message || 'Credenciales inválidas o error en el registro';

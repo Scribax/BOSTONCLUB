@@ -30,7 +30,8 @@ const generateReferralCode = () => {
 
 export const register = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { dni, firstName, lastName, email, password, whatsapp, birthDate, referralCode: incomingReferralCode } = req.body;
+    const { dni, firstName, lastName, password, whatsapp, birthDate, referralCode: incomingReferralCode } = req.body;
+    const email = req.body.email?.toLowerCase().trim();
 
     if (!whatsapp || whatsapp.trim() === "") {
         res.status(400).json({ message: "El WhatsApp es obligatorio para el registro." });
@@ -240,7 +241,8 @@ export const resendVerificationCode = async (req: AuthRequest, res: Response): P
 
 export const login = async (req: Request, res: Response): Promise<void> => {
    try {
-    const { email, password } = req.body;
+    const { password } = req.body;
+    const email = req.body.email?.toLowerCase().trim();
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
       res.status(400).json({ message: "Credenciales inválidas" });
@@ -294,7 +296,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 
 export const forgotPassword = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { email } = req.body;
+    const email = req.body.email?.toLowerCase().trim();
     const user = await prisma.user.findUnique({ where: { email } });
 
     if (!user) {
@@ -320,7 +322,8 @@ export const forgotPassword = async (req: Request, res: Response): Promise<void>
 
 export const resetPassword = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { email, code, newPassword } = req.body;
+    const { code, newPassword } = req.body;
+    const email = req.body.email?.toLowerCase().trim();
     const user = await prisma.user.findUnique({ where: { email } });
 
     if (!user || user.resetCode !== code || (user.resetCodeExpires && user.resetCodeExpires < new Date())) {

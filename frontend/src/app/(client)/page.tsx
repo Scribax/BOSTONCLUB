@@ -31,7 +31,7 @@ export default function LoginPage() {
       if (isLogin) {
         const data = await apiFetch("/auth/login", {
           method: "POST",
-          body: JSON.stringify({ email, password })
+          body: JSON.stringify({ email: email.toLowerCase().trim(), password })
         });
         setAuthToken(data.token);
         window.location.href = data.user?.role === "ADMIN" ? "/admin" : "/dashboard";
@@ -53,7 +53,7 @@ export default function LoginPage() {
             lastName, 
             dni, 
             whatsapp, 
-            email, 
+            email: email.toLowerCase().trim(), 
             password,
             birthDate: formattedBirthDate,
             referralCode: referralCode || undefined
