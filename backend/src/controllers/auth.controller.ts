@@ -64,10 +64,17 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       attempts++;
     }
 
-    // Handle incoming referral code
+    // Handle incoming referral code (flexible: with or without dash)
     let referredById: string | undefined = undefined;
     if (incomingReferralCode) {
-      const referrer = await prisma.user.findUnique({ where: { referralCode: incomingReferralCode.trim().toUpperCase() } });
+      let normalized = incomingReferralCode.trim().toUpperCase().replace(/-/g, '');
+      if (normalized.startsWith('BST') && normalized.length === 7) {
+        normalized = `BST-${normalized.substring(3)}`;
+      }
+      
+      const referrer = await prisma.user.findUnique({ 
+        where: { referralCode: normalized } 
+      });
       if (referrer) referredById = referrer.id;
     }
 

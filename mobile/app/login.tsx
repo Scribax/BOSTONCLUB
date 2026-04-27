@@ -164,8 +164,8 @@ export default function LoginScreen() {
         {/* Auth Box */}
         <View className="w-full bg-black/70 border border-white/10 rounded-[2.5rem] p-6 lg:p-8 relative z-10 shadow-2xl overflow-hidden">
           <View style={StyleSheet.absoluteFill} className="bg-black/20" />
+          
           <View className="space-y-5">
-            
             {!isLogin && (
               <View className="space-y-4">
                 <View className="flex-row space-x-4">
@@ -221,10 +221,19 @@ export default function LoginScreen() {
                       className="w-full bg-black/40 text-white border border-white/5 rounded-2xl py-3.5 px-4 h-12 font-bold tracking-[0.1em]" 
                     />
                   </View>
+                </View>
                 <View className="space-y-1.5">
                   <Text className="text-[10px] font-bold text-white/80 uppercase ml-1 tracking-widest">¿Código de amigo? (Opcional)</Text>
                   <TextInput 
-                    value={referralCode} onChangeText={setReferralCode} 
+                    value={referralCode} 
+                    onChangeText={(t) => {
+                      let cleaned = t.toUpperCase().replace(/[^A-Z0-9]/g, '');
+                      if (cleaned.startsWith('BST') && cleaned.length > 3) {
+                        setReferralCode(`BST-${cleaned.substring(3, 7)}`);
+                      } else {
+                        setReferralCode(cleaned);
+                      }
+                    }} 
                     placeholder="BST-XXXX" placeholderTextColor="rgba(255,255,255,0.4)" autoCapitalize="characters"
                     className="w-full bg-black/40 text-white border border-white/5 rounded-2xl py-3.5 px-4 h-12 font-bold tracking-[0.2em]" 
                   />
