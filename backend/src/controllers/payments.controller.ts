@@ -105,10 +105,6 @@ export const handleWebhook = async (req: Request, res: Response): Promise<void> 
 
         console.log(`[MP_MATCH] Analizando: Order=${orderId}, ExtRef=${externalRef}, Meta=${metadataId}`);
 
-        if (orderId) await processPointsAwarding(orderId, amount, paymentId);
-        if (externalRef) await processPointsAwarding(externalRef, amount, paymentId);
-        if (metadataId) await processPointsAwarding(metadataId.toString(), amount, paymentId);
-
         const poi: any = paymentData.point_of_interaction;
         const pointRefs = poi?.references || [];
         

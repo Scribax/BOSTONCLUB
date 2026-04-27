@@ -62,8 +62,14 @@ export const adjustPoints = async (req: Request, res: Response): Promise<void> =
     const { id } = req.params;
     const { points, reason, mode } = req.body;
 
+    // Fetch current points to compute a meaningful history delta in "set" mode
+    const currentUser = await prisma.user.findUnique({
+      where: { id: id as string },
+      select: { points: true }
+    });
+
     const updateData = mode === "set" 
-      ? { points: points } // Set to absolute value
+      ? { points: points }           // Set to absolute value
       : { points: { increment: points } }; // Increment/Decrement
 
     let user = await prisma.user.update({
@@ -75,7 +81,6 @@ export const adjustPoints = async (req: Request, res: Response): Promise<void> =
     const settings = await prisma.clubSettings.findUnique({ where: { id: "singleton" } });
     if (settings) {
       const newLevel = calculateMembershipLevel(user.points, settings);
-
       if (user.membershipLevel !== newLevel) {
         user = await prisma.user.update({
           where: { id: id as string },
@@ -84,14 +89,18 @@ export const adjustPoints = async (req: Request, res: Response): Promise<void> =
       }
     }
 
-    // Log in history
-    if (points !== 0) {
+    // Log in history — in "set" mode record the actual change
+    const historyDelta = mode === "set"
+      ? points - (currentUser?.points ?? 0)  // Real delta
+      : points;                               // Already a delta
+
+    if (historyDelta !== 0) {
       await prisma.pointHistory.create({
         data: {
           userId: id as string,
-          pointsGained: points,
+          pointsGained: historyDelta,
           source: "ADMIN",
-          description: reason || (points > 0 ? "Puntos agregados por Admin" : "Puntos deducidos por Admin"),
+          description: reason || (historyDelta > 0 ? "Puntos agregados por Admin" : "Puntos deducidos por Admin"),
         },
       });
     }

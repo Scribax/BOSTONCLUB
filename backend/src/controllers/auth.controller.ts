@@ -112,14 +112,31 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       const referrerReward = settings?.referralRewardReferrer || 500;
       const refereeReward = settings?.referralRewardReferee || 200;
 
-      // Bonus for the referrer
-      await prisma.$transaction([
-        prisma.pointHistory.create({ data: { userId: referredById, pointsGained: referrerReward, source: 'REFERIDO', description: `Amigo ${firstName} se unió con tu código` } }),
-        prisma.user.update({ where: { id: referredById }, data: { points: { increment: referrerReward } } }),
-        // Bonus for the new user
-        prisma.pointHistory.create({ data: { userId: user.id, pointsGained: refereeReward, source: 'REFERIDO', description: 'Bono por unirte con código de amigo' } }),
-        prisma.user.update({ where: { id: user.id }, data: { points: { increment: refereeReward } } })
-      ]);
+      await prisma.$transaction(async (tx) => {
+        // Bonus for the referrer
+        const updatedReferrer = await tx.user.update({
+          where: { id: referredById! },
+          data: { points: { increment: referrerReward } }
+        });
+        await tx.pointHistory.create({
+          data: { userId: referredById!, pointsGained: referrerReward, source: 'REFERIDO', description: `Amigo ${firstName} se unió con tu código` }
+        });
+
+        // Upgrade referrer level if needed
+        if (settings) {
+          const { calculateMembershipLevel } = await import("../services/user.service");
+          const newLevel = calculateMembershipLevel(updatedReferrer.points, settings);
+          if (updatedReferrer.membershipLevel !== newLevel) {
+            await tx.user.update({ where: { id: referredById! }, data: { membershipLevel: newLevel } });
+          }
+        }
+
+        // Bonus for the new user (no level upgrade needed — they start at 0 + refereeReward which is usually < goldThreshold)
+        await tx.user.update({ where: { id: user.id }, data: { points: { increment: refereeReward } } });
+        await tx.pointHistory.create({
+          data: { userId: user.id, pointsGained: refereeReward, source: 'REFERIDO', description: 'Bono por unirte con código de amigo' }
+        });
+      });
     }
 
     // Send email in background

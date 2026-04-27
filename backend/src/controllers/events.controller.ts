@@ -40,7 +40,7 @@ export const getAllEvents = async (req: Request, res: Response): Promise<void> =
          }
      }
 
-     const whereClause: any = {};
+     const whereClause: any = { isActive: true }; // Always hide soft-deleted events
      if (isMinor) {
         whereClause.isAdultOnly = false;
      }
