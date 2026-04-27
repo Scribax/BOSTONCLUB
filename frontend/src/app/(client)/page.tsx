@@ -33,6 +33,16 @@ export default function LoginPage() {
         setAuthToken(data.token);
         window.location.href = data.user?.role === "ADMIN" ? "/admin" : "/dashboard";
       } else {
+        let formattedBirthDate = undefined;
+        if (birthDate) {
+          const parts = birthDate.split('/');
+          if (parts.length === 3 && parts[2].length === 4) {
+            formattedBirthDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
+          } else {
+             throw new Error("La fecha de nacimiento debe tener el formato DD/MM/AAAA");
+          }
+        }
+
         const data = await apiFetch("/auth/register", {
           method: "POST",
           body: JSON.stringify({ 
@@ -42,7 +52,7 @@ export default function LoginPage() {
             whatsapp, 
             email, 
             password,
-            birthDate,
+            birthDate: formattedBirthDate,
             referralCode: referralCode || undefined
           })
         });
@@ -148,10 +158,18 @@ export default function LoginPage() {
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-bold text-white/30 uppercase ml-1 tracking-widest">Nacimiento</label>
                   <input 
-                    type="date" 
+                    type="text" 
+                    inputMode="numeric"
                     value={birthDate} 
-                    onChange={e => setBirthDate(e.target.value)} 
-                    className="w-full bg-black/40 text-white/80 border border-white/5 rounded-2xl py-3.5 px-4 outline-none focus:border-boston-red transition-all text-sm font-medium" 
+                    onChange={e => {
+                      let val = e.target.value.replace(/\D/g, '');
+                      if (val.length > 2) val = val.slice(0, 2) + '/' + val.slice(2);
+                      if (val.length > 5) val = val.slice(0, 5) + '/' + val.slice(5, 9);
+                      setBirthDate(val);
+                    }} 
+                    placeholder="DD/MM/AAAA"
+                    maxLength={10}
+                    className="w-full bg-black/40 text-white/80 border border-white/5 rounded-2xl py-3.5 px-4 outline-none focus:border-boston-red transition-all text-sm font-medium tracking-widest placeholder:tracking-normal" 
                   />
                 </div>
                 <div className="space-y-1.5">
