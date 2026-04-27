@@ -40,9 +40,28 @@ export const getAllEvents = async (req: Request, res: Response): Promise<void> =
          }
      }
 
-     const whereClause: any = { isActive: true }; // Always hide soft-deleted events
+     // Admins see ALL events (including soft-deleted); regular users only see active ones
+     let isAdmin = false;
+     const whereClause: any = {};
      if (isMinor) {
         whereClause.isAdultOnly = false;
+     }
+
+     // Re-check admin status from the decoded token (already done above)
+     const authHeader2 = req.headers.authorization;
+     if (authHeader2 && authHeader2.startsWith("Bearer ")) {
+       try {
+         const tok = authHeader2.split(" ")[1];
+         const dec = jwt.verify(tok, process.env.JWT_SECRET as string) as any;
+         if (dec?.id) {
+           const u = await prisma.user.findUnique({ where: { id: dec.id }, select: { role: true } });
+           if (u?.role === "ADMIN") isAdmin = true;
+         }
+       } catch {}
+     }
+
+     if (!isAdmin) {
+       whereClause.isActive = true; // Non-admins never see soft-deleted events
      }
 
      const { type } = req.query;
