@@ -125,6 +125,8 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     const payload = { id: user.id, role: user.role };
     const token = jwt.sign(payload, process.env.JWT_SECRET as string, { expiresIn: '7d' });
     
+    const settings = await prisma.clubSettings.findUnique({ where: { id: "singleton" } });
+
     res.status(201).json({ 
       token, 
       user: { 
@@ -132,7 +134,9 @@ export const register = async (req: Request, res: Response): Promise<void> => {
         email: user.email, 
         role: user.role, 
         firstName: user.firstName,
-        isEmailVerified: user.isEmailVerified 
+        isEmailVerified: user.isEmailVerified,
+        referralRewardReferrer: settings?.referralRewardReferrer || 500,
+        referralRewardReferee: settings?.referralRewardReferee || 200
       }
     });
   } catch (error) {
@@ -393,7 +397,11 @@ export const getMe = async (req: AuthRequest, res: Response): Promise<void> => {
             referralCode: true, referredById: true
           }
         });
-        res.json(updatedUser);
+        res.json({
+          ...updatedUser,
+          referralRewardReferrer: settings?.referralRewardReferrer || 500,
+          referralRewardReferee: settings?.referralRewardReferee || 200
+        });
         return;
       }
     }
@@ -431,7 +439,13 @@ export const updateMe = async (req: AuthRequest, res: Response): Promise<void> =
       select: { id: true, firstName: true, lastName: true, whatsapp: true, email: true }
     });
 
-    res.json(user);
+    const settings = await prisma.clubSettings.findUnique({ where: { id: "singleton" } });
+
+    res.json({
+      ...user,
+      referralRewardReferrer: settings?.referralRewardReferrer || 500,
+      referralRewardReferee: settings?.referralRewardReferee || 200
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Error al actualizar perfil" });
