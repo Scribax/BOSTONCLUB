@@ -41,8 +41,6 @@ export default function ProfilePage() {
       await apiFetch("/auth/me", {
         method: "PATCH",
         body: JSON.stringify({
-          firstName: user.firstName,
-          lastName: user.lastName,
           whatsapp: user.whatsapp
         })
       });
@@ -97,22 +95,11 @@ export default function ProfilePage() {
           <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em] ml-2">Datos de Contacto</p>
           
           <div className="glass-panel p-1 rounded-2xl border border-white/5 bg-black/40">
-             <div className="flex items-center gap-4 p-4 border-b border-white/5">
+             <div className="flex items-center gap-4 p-4 border-b border-white/5 opacity-50">
                 <User className="w-4 h-4 text-white/20" />
                 <div className="flex-1">
-                   <p className="text-[8px] font-black text-white/30 uppercase tracking-widest mb-1">Nombre y Apellido</p>
-                   <div className="flex gap-2">
-                     <input 
-                        className="bg-transparent text-white font-bold text-sm outline-none w-full"
-                        value={user.firstName}
-                        onChange={(e) => setUser({...user, firstName: e.target.value})}
-                     />
-                     <input 
-                        className="bg-transparent text-white font-bold text-sm outline-none w-full text-right"
-                        value={user.lastName}
-                        onChange={(e) => setUser({...user, lastName: e.target.value})}
-                     />
-                   </div>
+                   <p className="text-[8px] font-black text-white/30 uppercase tracking-widest mb-1">Nombre y Apellido (Protegido)</p>
+                   <p className="text-white/60 font-bold text-sm">{user.firstName} {user.lastName}</p>
                 </div>
              </div>
 

@@ -445,7 +445,7 @@ export const updateMe = async (req: AuthRequest, res: Response): Promise<void> =
       res.status(401).json({ message: "No autorizado" });
       return;
     }
-    const { firstName, lastName, whatsapp } = req.body;
+    const { whatsapp } = req.body;
     
     if (whatsapp && !/^\d+$/.test(whatsapp)) {
        res.status(400).json({ message: "El WhatsApp debe contener solo números." });
@@ -455,8 +455,6 @@ export const updateMe = async (req: AuthRequest, res: Response): Promise<void> =
     const user = await prisma.user.update({
       where: { id: req.user.id },
       data: {
-        firstName,
-        lastName,
         whatsapp
       },
       select: { id: true, firstName: true, lastName: true, whatsapp: true, email: true }
