@@ -36,8 +36,8 @@ router.get("/redemptions/status/:qrToken", getRedemptionStatus);
 // Events
 router.get("/events", getAllEvents);
 router.post("/events", authenticate, requireAdmin, createEvent);
-router.patch("/events/:id", authenticate, requireAdmin, updateEvent);
 router.patch("/events/reorder", authenticate, requireAdmin, reorderEvents);
+router.patch("/events/:id", authenticate, requireAdmin, updateEvent);
 router.post("/events/:id/notify", authenticate, requireAdmin, notifyEvent);
 router.delete("/events/:id", authenticate, requireAdmin, deleteEvent);
 
