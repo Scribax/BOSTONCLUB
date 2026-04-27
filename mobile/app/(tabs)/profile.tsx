@@ -278,6 +278,16 @@ export default function ProfileScreen() {
           <Text className="text-white/30 text-[9px] font-black uppercase tracking-[0.4em] mb-4 ml-4">Información Personal</Text>
           
           <View className="bg-white/[0.02] border border-white/5 rounded-[2.5rem] overflow-hidden mb-8">
+             <View className="p-6 flex-row items-center border-b border-white/5 opacity-50">
+                <View className="w-10 h-10 bg-white/5 rounded-2xl items-center justify-center mr-4">
+                   <User size={18} color="rgba(255,255,255,0.6)" />
+                </View>
+                <View className="flex-1">
+                   <Text className="text-white/30 text-[8px] font-black uppercase tracking-widest mb-1">Nombre y Apellido (Protegido)</Text>
+                   <Text className="text-white text-sm font-medium">{user.firstName} {user.lastName}</Text>
+                </View>
+             </View>
+
              <View className="p-6 flex-row items-center border-b border-white/5">
                 <View className="w-10 h-10 bg-white/5 rounded-2xl items-center justify-center mr-4">
                    <Mail size={18} color="rgba(255,255,255,0.6)" />
