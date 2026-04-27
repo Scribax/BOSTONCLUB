@@ -148,12 +148,20 @@ export const toggleVipRewardStatus = async (req: Request, res: Response): Promis
 export const deleteUser = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    // Delete related records first
+    // 1. Nullify referrals so they don't break on FK constraint
+    await prisma.user.updateMany({
+      where: { referredById: id as string },
+      data: { referredById: null }
+    });
+    
+    // 2. Delete related records
     await prisma.pointHistory.deleteMany({ where: { userId: id as string } });
     await prisma.redemption.deleteMany({ where: { userId: id as string } });
     await prisma.notification.deleteMany({ where: { userId: id as string } });
     await prisma.visit.deleteMany({ where: { userId: id as string } });
-    await prisma.posTransaction.deleteMany({ where: { userId: id as string } }); // FIX: Avoid FK constraint error
+    await prisma.posTransaction.deleteMany({ where: { userId: id as string } }); 
+    
+    // 3. Delete the user
     await prisma.user.delete({ where: { id: id as string } });
     res.json({ message: "User deleted" });
   } catch (error) {

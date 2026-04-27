@@ -235,10 +235,11 @@ export const updateEvent = async (req: Request, res: Response): Promise<void> =>
 export const deleteEvent = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    await prisma.event.delete({
-      where: { id: id as string }
+    await prisma.event.update({
+      where: { id: id as string },
+      data: { isActive: false }
     });
-    res.json({ message: "Event deleted successfully" });
+    res.json({ message: "Event deactivated successfully" });
   } catch (error) {
     res.status(500).json({ message: "Server Error" });
   }

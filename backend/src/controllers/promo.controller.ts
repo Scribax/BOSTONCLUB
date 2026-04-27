@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
+import { calculateMembershipLevel } from "../services/user.service";
 
 const prisma = new PrismaClient();
 
@@ -94,13 +95,24 @@ export const claimPromoToken = async (req: any, res: Response): Promise<void> =>
         });
       }
 
-      await tx.user.update({
+      const updatedUser = await tx.user.update({
         where: { id: userId },
         data: { points: { increment: promo.points } }
       });
 
-      // Fetch settings to check for Event Mode reason
+      // Fetch settings to check for Event Mode reason and Level Upgrade
       const settings = await tx.clubSettings.findUnique({ where: { id: "singleton" } });
+      
+      if (settings) {
+        const newLevel = calculateMembershipLevel(updatedUser.points, settings);
+        if (updatedUser.membershipLevel !== newLevel) {
+          await tx.user.update({
+            where: { id: userId },
+            data: { membershipLevel: newLevel }
+          });
+        }
+      }
+
       const isEvent = settings?.isEventDay && promo.type === "DAILY_CHECKIN";
 
       await tx.pointHistory.create({
