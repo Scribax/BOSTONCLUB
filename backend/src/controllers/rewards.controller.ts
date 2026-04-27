@@ -46,7 +46,7 @@ export const getAllRewards = async (req: Request, res: Response): Promise<void> 
 
     const rewards = await prisma.reward.findMany({
       where: whereClause,
-      orderBy: { pointsRequired: "asc" }
+      orderBy: [{ order: "asc" }, { createdAt: "asc" }]
     });
     res.json(rewards);
   } catch (error) {
@@ -107,6 +107,27 @@ export const updateReward = async (req: Request, res: Response): Promise<void> =
     });
     res.json(reward);
   } catch (error) {
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+
+export const reorderRewards = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { orders } = req.body;
+    if (!Array.isArray(orders)) {
+      res.status(400).json({ message: "Orders must be an array" });
+      return;
+    }
+    const updates = orders.map((item: { id: string; order: any }) =>
+      prisma.reward.update({
+        where: { id: item.id },
+        data: { order: parseInt(item.order.toString()) }
+      })
+    );
+    await prisma.$transaction(updates);
+    res.json({ message: "Order updated successfully" });
+  } catch (error) {
+    console.error("[Reorder Rewards Error]", error);
     res.status(500).json({ message: "Server Error" });
   }
 };

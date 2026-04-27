@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { authenticate, requireAdmin } from "../middlewares/auth";
 import { addPoints, getMyPointsHistory } from "../controllers/points.controller";
-import { getAllRewards, createReward, deleteReward, updateReward } from "../controllers/rewards.controller";
+import { getAllRewards, createReward, deleteReward, updateReward, reorderRewards } from "../controllers/rewards.controller";
 import { generateRedemptionQR, confirmRedemption, getRedemptionStatus } from "../controllers/redemptions.controller";
 import { getAllEvents, createEvent, deleteEvent, notifyEvent, updateEvent, reorderEvents } from "../controllers/events.controller";
 import { getAllUsers, adjustPoints, toggleBlockUser, deleteUser, toggleVipRewardStatus, getUserHistory } from "../controllers/users.controller";
@@ -25,6 +25,7 @@ router.post("/points/add", authenticate, requireAdmin, addPoints);
 // Rewards
 router.get("/rewards", getAllRewards);
 router.post("/rewards", authenticate, requireAdmin, createReward);
+router.patch("/rewards/reorder", authenticate, requireAdmin, reorderRewards);
 router.patch("/rewards/:id", authenticate, requireAdmin, updateReward);
 router.delete("/rewards/:id", authenticate, requireAdmin, deleteReward);
 

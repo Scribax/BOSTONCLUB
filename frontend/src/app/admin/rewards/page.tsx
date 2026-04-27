@@ -56,6 +56,24 @@ export default function AdminRewardsPage() {
     }
   };
 
+  // Move a reward to the top of the list (making it the "featured" one in the mobile app)
+  const handleToggleFeatured = async (reward: Reward) => {
+    const isAlreadyFeatured = rewards[0]?.id === reward.id;
+    if (isAlreadyFeatured) return; // already featured, nothing to do
+    try {
+      // Reorder: put this reward first, then keep the rest
+      const newOrder = [reward, ...rewards.filter(r => r.id !== reward.id)];
+      setRewards(newOrder); // optimistic update
+      await apiFetch("/rewards/reorder", {
+        method: "PATCH",
+        body: JSON.stringify({ orders: newOrder.map((r, i) => ({ id: r.id, order: i })) })
+      });
+    } catch (err) {
+      alert("Error al destacar premio");
+      fetchRewards(); // revert on error
+    }
+  };
+
   const openEdit = (reward: Reward) => {
     setEditingReward(reward);
     setNewName(reward.name);
@@ -247,9 +265,19 @@ export default function AdminRewardsPage() {
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: idx * 0.1 }}
-              className="glass-panel p-6 rounded-[2rem] border border-white/5 group hover:border-white/10 transition-all relative overflow-hidden"
+              className={`glass-panel p-6 rounded-[2rem] border group hover:border-white/10 transition-all relative overflow-hidden ${
+                idx === 0 ? 'border-boston-gold/40 shadow-lg shadow-boston-gold/10' : 'border-white/5'
+              }`}
             >
-              <div className="flex justify-between items-start mb-4 relative z-10">
+              {/* Featured badge */}
+              {idx === 0 && (
+                <div className="absolute top-4 left-4 z-20 flex items-center gap-1.5 bg-boston-gold text-black px-3 py-1 rounded-full">
+                  <Star className="w-3 h-3 fill-black" />
+                  <span className="text-[9px] font-black uppercase tracking-widest">Destacado en App</span>
+                </div>
+              )}
+
+              <div className="flex justify-between items-start mb-4 relative z-10" style={{ marginTop: idx === 0 ? '28px' : '0' }}>
                 <div className="flex flex-col gap-2">
                    <div className={`p-3 rounded-xl self-start ${r.type === 'BEBIDA' ? 'bg-blue-500/10 text-blue-400' : 'bg-orange-500/10 text-orange-400'}`}>
                      {r.type === 'BEBIDA' ? <Beer className="w-6 h-6" /> : <Utensils className="w-6 h-6" />}
@@ -261,6 +289,16 @@ export default function AdminRewardsPage() {
                    )}
                 </div>
                 <div className="flex gap-2">
+                  {/* Highlight button - only show if not already featured */}
+                  {idx !== 0 && (
+                    <button 
+                      onClick={() => handleToggleFeatured(r)}
+                      title="Destacar en app"
+                      className="p-2 text-white bg-black/60 rounded-lg hover:text-boston-gold hover:bg-black/80 transition-colors"
+                    >
+                      <Star className="w-5 h-5" />
+                    </button>
+                  )}
                   <button 
                     onClick={() => openEdit(r)}
                     className="p-2 text-white bg-black/60 rounded-lg hover:text-boston-gold hover:bg-black/80 transition-colors"
