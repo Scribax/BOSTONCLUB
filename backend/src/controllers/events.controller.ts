@@ -246,10 +246,12 @@ export const reorderEvents = async (req: Request, res: Response): Promise<void> 
       return;
     }
 
-    const updates = orders.map((item: { id: string; order: number }) =>
+    console.log(`[Reorder] Procesando reordenamiento de ${orders.length} elementos...`);
+
+    const updates = orders.map((item: { id: string; order: any }) =>
       prisma.event.update({
         where: { id: item.id },
-        data: { order: item.order }
+        data: { order: parseInt(item.order.toString()) }
       })
     );
 
@@ -257,6 +259,7 @@ export const reorderEvents = async (req: Request, res: Response): Promise<void> 
 
     res.json({ message: "Order updated successfully" });
   } catch (error) {
+    console.error("[Reorder Error]", error);
     res.status(500).json({ message: "Server Error" });
   }
 };
