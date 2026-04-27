@@ -1,21 +1,31 @@
 import { Expo, ExpoPushMessage } from 'expo-server-sdk';
 import { PrismaClient } from '@prisma/client';
+import { Queue } from 'bullmq';
+import Redis from 'ioredis';
 
-const expo = new Expo();
 const prisma = new PrismaClient();
 
+const redisOptions = {
+  host: process.env.REDIS_HOST || 'localhost',
+  port: parseInt(process.env.REDIS_PORT || '6379', 10),
+  maxRetriesPerRequest: null,
+};
+
+const connection = new Redis(redisOptions);
+
+export const pushQueue = new Queue('push-notifications', { connection });
+
 export const sendPushNotifications = async (messages: ExpoPushMessage[]) => {
-  const chunks = expo.chunkPushNotifications(messages);
-  const tickets = [];
-  
-  for (const chunk of chunks) {
-    try {
-      const ticketChunk = await expo.sendPushNotificationsAsync(chunk);
-      tickets.push(...ticketChunk);
-    } catch (error) {
-      console.error('Error enviando chunk de notificaciones:', error);
+  if (messages.length === 0) return;
+  // Encolar los mensajes en vez de enviarlos sincrónicamente
+  await pushQueue.add('send-chunk', { messages }, {
+    attempts: 3,
+    backoff: {
+      type: 'exponential',
+      delay: 1000
     }
-  }
+  });
+  console.log(`[Push Service] ${messages.length} notificaciones encoladas en BullMQ.`);
 };
 
 export const sendEventPublishedNotification = async (title: string, description: string, type: string) => {
@@ -64,7 +74,6 @@ export const sendEventPublishedNotification = async (title: string, description:
 
     if (messages.length > 0) {
       await sendPushNotifications(messages);
-      console.log(`[Push] Se enviaron ${messages.length} notificaciones de nuevo evento.`);
     }
   } catch (err) {
     console.error('[Push Service Error]', err);
@@ -100,7 +109,6 @@ export const sendEventReminderNotification = async (eventId: string, title: stri
 
     if (messages.length > 0) {
       await sendPushNotifications(messages);
-      console.log(`[Push] Se enviaron ${messages.length} notificaciones de recordatorio.`);
     }
   } catch (err) {
     console.error('[Push Service Error]', err);

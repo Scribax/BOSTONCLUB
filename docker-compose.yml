@@ -1,6 +1,20 @@
 version: '3.3'
 
 services:
+  db:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_DB: bostonclub
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:alpine
+    restart: always
+
   caddy:
     image: caddy:latest
     restart: always
@@ -26,9 +40,14 @@ services:
       - ./backend/prisma:/app/prisma
       - ./backend/uploads:/app/uploads
     restart: always
+    depends_on:
+      - db
+      - redis
     environment:
       - PORT=8080
-      - DATABASE_URL=file:./dev.db
+      - DATABASE_URL=postgresql://postgres:${DB_PASSWORD:-postgres}@db:5432/bostonclub?schema=public
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
       - JWT_SECRET=${JWT_SECRET}
       - SMTP_HOST=smtp.gmail.com
       - SMTP_PORT=587
@@ -53,3 +72,4 @@ services:
 volumes:
   caddy_data:
   caddy_config:
+  postgres_data:

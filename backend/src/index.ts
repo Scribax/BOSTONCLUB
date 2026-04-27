@@ -7,6 +7,7 @@ import authRoutes from "./routes/auth.routes";
 import apiRoutes from "./routes/api.routes";
 import paymentRoutes from "./routes/payments.routes";
 import { initCronJobs } from "./cron";
+import "./workers/push.worker";
 
 const prisma = new PrismaClient();
 const app = express();
