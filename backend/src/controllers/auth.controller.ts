@@ -305,6 +305,28 @@ export const getMe = async (req: any, res: Response): Promise<void> => {
        return;
     }
 
+    // Auto-generate referral code for existing users if missing
+    if (!user.referralCode) {
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+      let newCode: string | null = null;
+      let attempts = 0;
+      while (!newCode && attempts < 10) {
+        let candidate = 'BST-';
+        for (let i = 0; i < 4; i++) candidate += chars[Math.floor(Math.random() * chars.length)];
+        const exists = await prisma.user.findUnique({ where: { referralCode: candidate } });
+        if (!exists) newCode = candidate;
+        attempts++;
+      }
+      
+      if (newCode) {
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { referralCode: newCode }
+        });
+        user.referralCode = newCode;
+      }
+    }
+
     const settings = await prisma.clubSettings.findUnique({ where: { id: "singleton" } });
     if (settings) {
       let correctLevel = "BRONCE";
