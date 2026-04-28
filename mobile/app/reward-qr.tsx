@@ -4,6 +4,8 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ArrowLeft, CheckCircle2, Ticket } from 'lucide-react-native';
 import QRCode from 'react-native-qrcode-svg';
 import { StatusBar } from 'expo-status-bar';
+import api from '../lib/api';
+import { Alert, ActivityIndicator } from 'react-native';
 
 export default function RewardQRScreen() {
   const { token, reward } = useLocalSearchParams<{ token: string; reward: string }>();
@@ -11,6 +13,33 @@ export default function RewardQRScreen() {
 
   // Animation values
   const [fadeAnim] = useState(new Animated.Value(0));
+  const [cancelling, setCancelling] = useState(false);
+
+  const handleCancel = async () => {
+    Alert.alert(
+      'Cancelar Canje',
+      '¿Estás seguro de que deseas cancelar este código QR y recuperar tus puntos?',
+      [
+        { text: 'No', style: 'cancel' },
+        { 
+          text: 'Sí, Cancelar', 
+          style: 'destructive',
+          onPress: async () => {
+            setCancelling(true);
+            try {
+              await api.post('/redemptions/cancel', { qrToken: token });
+              Alert.alert('Cancelado', 'Tu canje ha sido cancelado y tus puntos están disponibles nuevamente.');
+              router.replace('/(tabs)/rewards');
+            } catch (err: any) {
+              Alert.alert('Error', err.response?.data?.message || 'Hubo un error al cancelar.');
+            } finally {
+              setCancelling(false);
+            }
+          }
+        }
+      ]
+    );
+  };
 
   useEffect(() => {
     Animated.timing(fadeAnim, {
@@ -92,12 +121,29 @@ export default function RewardQRScreen() {
                 onPress={() => router.push('/(tabs)')}
                 className="w-full mt-8 rounded-[1.5rem] p-[1px] relative overflow-hidden"
               >
-                <View className="absolute inset-0 bg-boston-gold opacity-50" />
-                <View className="flex-row items-center justify-center bg-boston-black py-4 rounded-[1.5rem] border border-boston-gold/50 space-x-3">
-                   <Ticket size={18} color="#D4AF37" />
-                   <Text className="text-xs font-black text-white uppercase tracking-[0.2em]">Volver al Inicio</Text>
-                </View>
-              </TouchableOpacity>
+                 <View className="absolute inset-0 bg-boston-gold opacity-50" />
+                 <View className="flex-row items-center justify-center bg-boston-black py-4 rounded-[1.5rem] border border-boston-gold/50 space-x-3">
+                    <Ticket size={18} color="#D4AF37" />
+                    <Text className="text-xs font-black text-white uppercase tracking-[0.2em]">Volver al Inicio</Text>
+                 </View>
+               </TouchableOpacity>
+
+               {/* Botón de Cancelar Canje */}
+               <TouchableOpacity 
+                 activeOpacity={0.8}
+                 onPress={handleCancel}
+                 disabled={cancelling}
+                 className="w-full mt-4 rounded-[1.5rem] p-[1px] relative overflow-hidden"
+               >
+                 <View className="absolute inset-0 bg-[#ff4d4d] opacity-20" />
+                 <View className="flex-row items-center justify-center bg-boston-black py-4 rounded-[1.5rem] border border-[#ff4d4d]/30 space-x-3">
+                    {cancelling ? (
+                       <ActivityIndicator size="small" color="#ff4d4d" />
+                    ) : (
+                       <Text className="text-xs font-black text-[#ff4d4d] uppercase tracking-[0.2em]">Cancelar Canje</Text>
+                    )}
+                 </View>
+               </TouchableOpacity>
            </Animated.View>
         </View>
       </ScrollView>

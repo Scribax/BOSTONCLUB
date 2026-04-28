@@ -251,3 +251,45 @@ export const getRedemptionStatus = async (req: Request, res: Response): Promise<
     res.status(500).json({ message: "Server Error" });
   }
 };
+
+// User cancels their own pending redemption
+export const cancelRedemption = async (req: any, res: Response): Promise<void> => {
+  try {
+    const userId = req.user.id;
+    const { qrToken } = req.body;
+
+    if (!qrToken) {
+      res.status(400).json({ message: "qrToken is required" });
+      return;
+    }
+
+    const redemption = await prisma.redemption.findUnique({
+      where: { qrToken }
+    });
+
+    if (!redemption) {
+      res.status(404).json({ message: "Canje no encontrado" });
+      return;
+    }
+
+    if (redemption.userId !== userId) {
+      res.status(403).json({ message: "No tienes permiso para cancelar este canje" });
+      return;
+    }
+
+    if (redemption.status !== "PENDING") {
+      res.status(400).json({ message: "Solo se pueden cancelar canjes pendientes" });
+      return;
+    }
+
+    await prisma.redemption.update({
+      where: { id: redemption.id },
+      data: { status: "CANCELLED" }
+    });
+
+    res.json({ message: "Canje cancelado exitosamente" });
+  } catch (error) {
+    console.error("Error cancelling redemption:", error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
