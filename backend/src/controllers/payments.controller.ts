@@ -174,8 +174,14 @@ async function processPointsAwarding(idToSearch: string, amount: number, externa
 
     if (trans && !trans.processed) {
       // Read conversion rate from settings (default 1.0 = 1 peso = 1 point)
-      const settings = await prisma.clubSettings.findUnique({ where: { id: "singleton" } });
-      const rate = settings?.pointsPerPeso ?? 1.0;
+      let rate = 1.0;
+      try {
+        const settings = await prisma.clubSettings.findUnique({ where: { id: "singleton" } });
+        rate = settings?.pointsPerPeso ?? 1.0;
+      } catch (e) {
+        console.error("[CRITICAL] Could not read pointsPerPeso, using 1.0 fallback", e);
+      }
+      
       const pointsToAward = Math.ceil(amount * rate); // Always round UP as requested
 
       if (pointsToAward <= 0) return false;

@@ -192,7 +192,8 @@ export default function PuntosSettingsPage() {
         </div>
 
         <p className="text-white/20 text-[10px] font-bold uppercase tracking-widest mt-4 text-center">
-          * Los puntos siempre se redondean para arriba (Math.ceil)
+          * Los puntos siempre se redondean para arriba (Math.ceil). <br/>
+          <span className="text-boston-gold/40">Nota: El sistema de "Racha" de la app puede multiplicar estos puntos (x1.5 o x2.0) según la fidelidad del socio.</span>
         </p>
       </div>
     </div>
