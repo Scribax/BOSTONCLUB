@@ -257,16 +257,11 @@ export default function RewardsScreen() {
 
                            <View style={{ 
                              paddingVertical: 10, 
-                             backgroundColor: canRedeem ? 'rgba(255,59,48,0.1)' : 'rgba(255,255,255,0.05)', 
+                             backgroundColor: canRedeem ? '#2a0808' : 'rgba(255,255,255,0.05)', 
                              borderRadius: 12, 
                              borderWidth: 1,
                              borderColor: canRedeem ? '#FF3B30' : 'rgba(255,255,255,0.1)',
-                             alignItems: 'center',
-                             shadowColor: canRedeem ? '#FF3B30' : 'transparent',
-                             shadowOffset: { width: 0, height: 0 },
-                             shadowOpacity: canRedeem ? 0.8 : 0,
-                             shadowRadius: 10,
-                             elevation: canRedeem ? 8 : 0
+                             alignItems: 'center'
                            }}>
                               {redeemingId === reward.id ? (
                                  <ActivityIndicator size="small" color="white" />
