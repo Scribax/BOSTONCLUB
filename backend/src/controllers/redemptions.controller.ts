@@ -8,10 +8,10 @@ const prisma = new PrismaClient();
 export const generateRedemptionQR = async (req: any, res: Response): Promise<void> => {
   try {
     const userId = req.user.id;
-    const { rewardId, eventId } = req.body;
+    const { rewardId, eventId, vipBenefitId } = req.body;
 
-    if (!rewardId && !eventId) {
-      res.status(400).json({ message: "rewardId or eventId is required" });
+    if (!rewardId && !eventId && !vipBenefitId) {
+      res.status(400).json({ message: "rewardId, eventId or vipBenefitId is required" });
       return;
     }
 
@@ -136,6 +136,47 @@ export const generateRedemptionQR = async (req: any, res: Response): Promise<voi
       res.json({ redemptionId: redemption.id, qrToken, expiresAt });
       return;
     }
+
+    // --- VIP BENEFIT REDEMPTION ---
+    if (vipBenefitId) {
+      const benefit = await prisma.vipBenefit.findUnique({ where: { id: vipBenefitId } });
+      if (!benefit || !benefit.isActive) {
+        res.status(404).json({ message: "Beneficio no encontrado" });
+        return;
+      }
+
+      // Check policy
+      if (benefit.redemptionPolicy === "ONCE_TOTAL") {
+        const existing = await prisma.redemption.findFirst({
+          where: { userId, vipBenefitId, status: { in: ["PENDING", "COMPLETED"] } }
+        });
+        if (existing) {
+          res.status(400).json({ message: "Ya has canjeado este beneficio permanentemente." });
+          return;
+        }
+      } else if (benefit.redemptionPolicy === "ONCE_PER_NIGHT") {
+        const twelveHoursAgo = new Date(Date.now() - 12 * 60 * 60 * 1000);
+        const existing = await prisma.redemption.findFirst({
+          where: {
+            userId,
+            vipBenefitId,
+            createdAt: { gte: twelveHoursAgo },
+            status: { in: ["PENDING", "COMPLETED"] }
+          }
+        });
+        if (existing) {
+          res.status(400).json({ message: "Ya usaste este beneficio esta noche. Vuelve mañana 🌙" });
+          return;
+        }
+      }
+
+      const redemption = await prisma.redemption.create({
+        data: { userId, vipBenefitId, qrToken, expiresAt, status: "PENDING" }
+      });
+
+      res.json({ redemptionId: redemption.id, qrToken, expiresAt });
+      return;
+    }
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server Error" });
@@ -149,7 +190,7 @@ export const confirmRedemption = async (req: Request, res: Response): Promise<vo
 
     const redemption = await prisma.redemption.findUnique({
       where: { qrToken },
-      include: { user: true, reward: true, event: true }
+      include: { user: true, reward: true, event: true, vipBenefit: true }
     });
 
     if (!redemption) {
@@ -199,7 +240,7 @@ export const confirmRedemption = async (req: Request, res: Response): Promise<vo
         });
       });
     } else if (redemption.eventId && redemption.event) {
-      // Promo-specific logic (Mark as completed + log activity for user history)
+      // Promo-specific logic
       await prisma.$transaction([
         prisma.redemption.update({
           where: { id: redemption.id },
@@ -208,9 +249,25 @@ export const confirmRedemption = async (req: Request, res: Response): Promise<vo
         prisma.pointHistory.create({
           data: {
             userId: redemption.userId,
-            pointsGained: 0, // 0 points — it's a benefit, not a purchase
+            pointsGained: 0,
             source: "CANJE_PROMO",
             description: `Beneficio canjeado: ${redemption.event.title}`
+          }
+        })
+      ]);
+    } else if (redemption.vipBenefitId && redemption.vipBenefit) {
+      // VIP Benefit - just mark as completed, log history
+      await prisma.$transaction([
+        prisma.redemption.update({
+          where: { id: redemption.id },
+          data: { status: "COMPLETED" }
+        }),
+        prisma.pointHistory.create({
+          data: {
+            userId: redemption.userId,
+            pointsGained: 0,
+            source: "CANJE_VIP",
+            description: `Beneficio VIP canjeado: ${redemption.vipBenefit.title}`
           }
         })
       ]);
@@ -218,8 +275,8 @@ export const confirmRedemption = async (req: Request, res: Response): Promise<vo
 
     res.json({ 
       message: "Canje confirmado con éxito!",
-      type: redemption.rewardId ? 'REWARD' : 'PROMO',
-      details: redemption.reward?.name || redemption.event?.title
+      type: redemption.rewardId ? 'REWARD' : (redemption.vipBenefitId ? 'VIP_BENEFIT' : 'PROMO'),
+      details: redemption.reward?.name || redemption.vipBenefit?.title || redemption.event?.title
     });
   } catch (error) {
     console.error(error);

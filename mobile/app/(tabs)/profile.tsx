@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, Alert, ActivityIndicator, TextInput, Modal, Share, ScrollView } from 'react-native';
 import { router } from 'expo-router';
-import { LogOut, User, ShieldCheck, Mail, Edit2, X, Phone, Check, Users, Share2, Flame, Fingerprint, Shield } from 'lucide-react-native';
+import { LogOut, User, ShieldCheck, Mail, Edit2, X, Phone, Check, Users, Share2, Flame, Fingerprint, Shield, Crown, Lock, ChevronRight, RefreshCcw, Zap } from 'lucide-react-native';
 import api, { logout } from '../../lib/api';
 import { StatusBar } from 'expo-status-bar';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -16,12 +16,54 @@ export default function ProfileScreen() {
   const [saving, setSaving] = useState(false);
   const [isBiometricSupported, setIsBiometricSupported] = useState(false);
   const [biometricsEnabled, setBiometricsEnabled] = useState(false);
+  // VIP Benefits
+  const [showBenefitsModal, setShowBenefitsModal] = useState(false);
+  const [vipBenefits, setVipBenefits] = useState<any[]>([]);
+  const [benefitsLoading, setBenefitsLoading] = useState(false);
+  const [redeemingId, setRedeemingId] = useState<string | null>(null);
 
   // Usamos useEffect para cargar datos al montar el componente
   useEffect(() => {
     fetchUser();
     checkBiometrics();
   }, []);
+
+  const fetchVipBenefits = async () => {
+    setBenefitsLoading(true);
+    try {
+      const res = await api.get('/vip-benefits/me');
+      setVipBenefits(res.data);
+    } catch (err) {
+      console.error('Error fetching VIP benefits', err);
+    } finally {
+      setBenefitsLoading(false);
+    }
+  };
+
+  const handleOpenBenefits = () => {
+    fetchVipBenefits();
+    setShowBenefitsModal(true);
+  };
+
+  const handleRedeemBenefit = async (benefit: any) => {
+    if (benefit.isLocked) {
+      Alert.alert('Bloqueado 🔒', benefit.lockReason || 'Este beneficio no está disponible ahora');
+      return;
+    }
+    setRedeemingId(benefit.id);
+    try {
+      const res = await api.post('/redemptions/generate', { vipBenefitId: benefit.id });
+      setShowBenefitsModal(false);
+      router.push({
+        pathname: '/reward-qr',
+        params: { token: res.data.qrToken, reward: benefit.title }
+      });
+    } catch (err: any) {
+      Alert.alert('Error', err.response?.data?.message || 'Error al generar el QR');
+    } finally {
+      setRedeemingId(null);
+    }
+  };
 
   const checkBiometrics = async () => {
     const compatible = await LocalAuthentication.hasHardwareAsync();
@@ -200,10 +242,16 @@ export default function ProfileScreen() {
               <Text className="text-white text-3xl font-black italic uppercase tracking-tighter shadow-lg">
                 {user.firstName} <Text className="text-boston-gold">{user.lastName}</Text>
               </Text>
-              <View className="flex-row items-center mt-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 shadow-xl">
-                 <View className={`w-2 h-2 rounded-full mr-3 ${level.aura} animate-pulse`} />
-                 <Text className="text-white/80 text-[10px] font-black uppercase tracking-[0.3em]">{level.label}</Text>
-              </View>
+              {/* Tappable Level Badge */}
+              <TouchableOpacity activeOpacity={0.8} onPress={handleOpenBenefits} style={{ marginTop: 8 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 100, backgroundColor: 'rgba(255,255,255,0.05)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)' }}>
+                  <View style={{ width: 8, height: 8, borderRadius: 4, marginRight: 8, backgroundColor: level.color }} />
+                  <Text style={{ color: 'rgba(255,255,255,0.8)', fontSize: 10, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 3 }}>{level.label}</Text>
+                  <Crown size={12} color={level.color} style={{ marginLeft: 8 }} />
+                  <ChevronRight size={12} color="rgba(255,255,255,0.3)" style={{ marginLeft: 4 }} />
+                </View>
+                <Text style={{ color: 'rgba(255,255,255,0.2)', fontSize: 8, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 2, textAlign: 'center', marginTop: 4 }}>Toca para ver tus beneficios</Text>
+              </TouchableOpacity>
             </View>
 
             {/* Main Stats Bar */}
@@ -401,6 +449,91 @@ export default function ProfileScreen() {
                  </TouchableOpacity>
               </View>
            </View>
+        </View>
+      </Modal>
+
+      {/* VIP Benefits Modal */}
+      <Modal visible={showBenefitsModal} transparent animationType="slide" onRequestClose={() => setShowBenefitsModal(false)}>
+        <View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.85)' }}>
+          <TouchableOpacity style={{ flex: 1 }} onPress={() => setShowBenefitsModal(false)} activeOpacity={1} />
+          <View style={{ backgroundColor: '#0c0c0c', borderTopLeftRadius: 40, borderTopRightRadius: 40, borderTopWidth: 1, borderColor: 'rgba(255,255,255,0.08)', paddingBottom: 40 }}>
+            
+            {/* Handle */}
+            <View style={{ alignItems: 'center', paddingTop: 16, paddingBottom: 8 }}>
+              <View style={{ width: 40, height: 4, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.1)' }} />
+            </View>
+
+            {/* Header */}
+            <View style={{ paddingHorizontal: 28, paddingTop: 16, paddingBottom: 24, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+              <View>
+                <Text style={{ color: '#D4AF37', fontWeight: '900', fontSize: 10, textTransform: 'uppercase', letterSpacing: 3 }}>Tus Beneficios</Text>
+                <Text style={{ color: 'white', fontWeight: '900', fontSize: 22, fontStyle: 'italic', textTransform: 'uppercase', letterSpacing: -0.5, marginTop: 2 }}>Nivel {user?.membershipLevel || 'Bronce'}</Text>
+              </View>
+              <TouchableOpacity onPress={() => setShowBenefitsModal(false)} style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.05)', alignItems: 'center', justifyContent: 'center' }}>
+                <X size={20} color="rgba(255,255,255,0.4)" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={{ maxHeight: 480 }} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 20 }} showsVerticalScrollIndicator={false}>
+              {benefitsLoading ? (
+                <View style={{ paddingVertical: 60, alignItems: 'center' }}>
+                  <ActivityIndicator size="large" color="#D4AF37" />
+                </View>
+              ) : vipBenefits.length === 0 ? (
+                <View style={{ paddingVertical: 60, alignItems: 'center' }}>
+                  <Crown size={40} color="rgba(255,255,255,0.1)" />
+                  <Text style={{ color: 'rgba(255,255,255,0.2)', fontWeight: '900', fontSize: 10, textTransform: 'uppercase', letterSpacing: 2, marginTop: 16, textAlign: 'center' }}>No hay beneficios disponibles para tu nivel actual</Text>
+                </View>
+              ) : (
+                vipBenefits.map((benefit) => (
+                  <View key={benefit.id} style={{ marginBottom: 12, backgroundColor: benefit.isLocked ? '#0a0a0a' : '#111', borderRadius: 24, borderWidth: 1, borderColor: benefit.isLocked ? 'rgba(255,255,255,0.05)' : 'rgba(212,175,55,0.25)', padding: 20, opacity: benefit.isLocked ? 0.7 : 1 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 12 }}>
+                      <View style={{ flex: 1, marginRight: 12 }}>
+                        <Text style={{ color: benefit.isLocked ? 'rgba(255,255,255,0.4)' : 'white', fontWeight: '900', fontSize: 16, textTransform: 'uppercase', fontStyle: 'italic' }} numberOfLines={2}>
+                          {benefit.title}
+                        </Text>
+                        {benefit.description ? (
+                          <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11, marginTop: 4 }}>{benefit.description}</Text>
+                        ) : null}
+                        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
+                          {benefit.redemptionPolicy === 'ONCE_PER_NIGHT' && <RefreshCcw size={10} color="rgba(255,255,255,0.2)" />}
+                          {benefit.redemptionPolicy === 'UNLIMITED' && <Zap size={10} color="rgba(255,255,255,0.2)" />}
+                          {benefit.redemptionPolicy === 'ONCE_TOTAL' && <Shield size={10} color="rgba(255,255,255,0.2)" />}
+                          <Text style={{ color: 'rgba(255,255,255,0.2)', fontSize: 9, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 1, marginLeft: 4 }}>
+                            {benefit.redemptionPolicy === 'ONCE_TOTAL' ? 'Una sola vez' : benefit.redemptionPolicy === 'ONCE_PER_NIGHT' ? 'Una vez por noche' : 'Ilimitado'}
+                          </Text>
+                        </View>
+                      </View>
+                      {benefit.isLocked && <Lock size={20} color="rgba(255,255,255,0.2)" />}
+                    </View>
+
+                    {benefit.isLocked ? (
+                      <View style={{ backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: 14, paddingVertical: 12, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' }}>
+                        <Text style={{ color: 'rgba(255,255,255,0.3)', fontWeight: '900', fontSize: 11, textTransform: 'uppercase', letterSpacing: 1 }}>
+                          {benefit.lockReason || 'No disponible'}
+                        </Text>
+                      </View>
+                    ) : (
+                      <TouchableOpacity
+                        activeOpacity={0.8}
+                        onPress={() => handleRedeemBenefit(benefit)}
+                        disabled={redeemingId === benefit.id}
+                        style={{ backgroundColor: 'rgba(212,175,55,0.12)', borderRadius: 14, paddingVertical: 14, alignItems: 'center', borderWidth: 1, borderColor: '#D4AF37' }}
+                      >
+                        {redeemingId === benefit.id ? (
+                          <ActivityIndicator size="small" color="#D4AF37" />
+                        ) : (
+                          <Text style={{ color: '#D4AF37', fontWeight: '900', fontSize: 12, textTransform: 'uppercase', letterSpacing: 2 }}>
+                            ✦ Activar Beneficio
+                          </Text>
+                        )}
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                ))
+              )}
+            </ScrollView>
+          </View>
         </View>
       </Modal>
     </View>

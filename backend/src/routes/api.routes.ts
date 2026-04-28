@@ -9,6 +9,7 @@ import { getAdminStats } from "../controllers/admin.controller";
 import { generatePromoToken, claimPromoToken } from "../controllers/promo.controller";
 import { getSettings, updateSettings, uploadVideo, upload } from "../controllers/settings.controller";
 import { handleMediaUpload, uploadMedia } from "../controllers/media.controller";
+import { getAllVipBenefits, getMyVipBenefits, createVipBenefit, updateVipBenefit, deleteVipBenefit } from "../controllers/vip-benefits.controller";
 
 const router = Router();
 
@@ -64,5 +65,12 @@ router.post("/promo/claim", authenticate, claimPromoToken);
 router.get("/settings", getSettings);
 router.post("/settings", authenticate, requireAdmin, updateSettings);
 router.post("/settings/upload-video", authenticate, requireAdmin, upload.single("video"), uploadVideo);
+
+// VIP Benefits
+router.get("/vip-benefits", authenticate, requireAdmin, getAllVipBenefits);
+router.get("/vip-benefits/me", authenticate, getMyVipBenefits);
+router.post("/vip-benefits", authenticate, requireAdmin, createVipBenefit);
+router.patch("/vip-benefits/:id", authenticate, requireAdmin, updateVipBenefit);
+router.delete("/vip-benefits/:id", authenticate, requireAdmin, deleteVipBenefit);
 
 export default router;

@@ -74,15 +74,30 @@ model Redemption {
   id        String    @id @default(uuid())
   userId    String
   rewardId  String?
-  eventId   String?
-  status    String    @default("PENDING")
-  qrToken   String?   @unique
-  expiresAt DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  reward    Reward?   @relation(fields: [rewardId], references: [id])
-  event     Event?    @relation(fields: [eventId], references: [id])
-  user      User      @relation(fields: [userId], references: [id])
+  eventId      String?
+  vipBenefitId String?
+  status       String      @default("PENDING")
+  qrToken      String?     @unique
+  expiresAt    DateTime?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  reward       Reward?     @relation(fields: [rewardId], references: [id])
+  event        Event?      @relation(fields: [eventId], references: [id])
+  vipBenefit   VipBenefit? @relation(fields: [vipBenefitId], references: [id])
+  user         User        @relation(fields: [userId], references: [id])
+}
+
+model VipBenefit {
+  id               String   @id @default(uuid())
+  level            String   // ORO, PLATINO, DIAMANTE, SÚPER VIP
+  title            String
+  description      String?
+  redemptionPolicy String   @default("ONCE_PER_NIGHT") // ONCE_TOTAL, ONCE_PER_NIGHT, UNLIMITED
+  isActive         Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  
+  redemptions      Redemption[]
 }
 
 model Event {
