@@ -23,7 +23,7 @@ export default function ScannerScreen() {
           const res = await api.get(`/payments/status/${currentOrderId}`);
           if (res.data.status === 'SUCCESS') {
             setStatus('success');
-            setMessage(`PAGO REALIZADO\nSe han acreditado ${res.data.amount} puntos en tu cuenta.`);
+            setMessage(`PAGO REALIZADO\nSe han acreditado ${res.data.pointsAwarded || res.data.amount} puntos en tu cuenta.`);
             clearInterval(interval);
             clearTimeout(timeout);
           }

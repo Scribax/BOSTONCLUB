@@ -59,10 +59,24 @@ export const checkPosStatus = async (req: any, res: Response): Promise<void> => 
       return;
     }
 
+    let pointsAwarded = 0;
+    if (trans.processed) {
+      const history = await prisma.pointHistory.findFirst({
+        where: { 
+          userId,
+          source: "COMPRA_POSNET",
+          description: { contains: orderId }
+        },
+        orderBy: { createdAt: 'desc' }
+      });
+      pointsAwarded = history?.pointsGained || 0;
+    }
+
     res.json({ 
       status: trans.status, 
       processed: trans.processed, 
-      amount: trans.amount 
+      amount: trans.amount,
+      pointsAwarded
     });
   } catch (error) {
     console.error("Error checking POS status:", error);
