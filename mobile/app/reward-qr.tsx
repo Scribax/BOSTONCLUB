@@ -44,6 +44,27 @@ export default function RewardQRScreen() {
   const [isCompleted, setIsCompleted] = useState(false);
 
   useEffect(() => {
+    // Handle Android back button
+    const backAction = () => {
+      if (!isCompleted) {
+        Alert.alert("Canje Pendiente", "Tu código QR sigue activo. Puedes encontrarlo en la sección de 'Mis Canjes' si sales de esta pantalla.", [
+          {
+            text: "Entendido",
+            onPress: () => router.back(),
+            style: "cancel"
+          },
+          { text: "Seguir Aquí", onPress: () => null }
+        ]);
+        return true;
+      }
+      return false;
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      backAction
+    );
+
     Animated.timing(fadeAnim, {
       toValue: 1,
       duration: 500,
@@ -64,8 +85,13 @@ export default function RewardQRScreen() {
         }
       }, 3000); // Check every 3 seconds
 
-      return () => clearInterval(interval);
+      return () => {
+        clearInterval(interval);
+        backHandler.remove();
+      };
     }
+
+    return () => backHandler.remove();
   }, [token, isCompleted]);
 
   if (!token) {

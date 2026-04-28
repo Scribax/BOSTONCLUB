@@ -454,19 +454,48 @@ export const updateMe = async (req: AuthRequest, res: Response): Promise<void> =
       res.status(401).json({ message: "No autorizado" });
       return;
     }
-    const { whatsapp } = req.body;
+    const { whatsapp, email: newEmail } = req.body;
     
     if (whatsapp && !/^\d+$/.test(whatsapp)) {
        res.status(400).json({ message: "El WhatsApp debe contener solo números." });
        return;
     }
 
+    const current = await prisma.user.findUnique({ where: { id: req.user.id } });
+    if (!current) {
+      res.status(404).json({ message: "Usuario no encontrado" });
+      return;
+    }
+
+    const updateData: any = { whatsapp };
+
+    // Security: If email changes, force re-verification
+    if (newEmail && newEmail.toLowerCase().trim() !== current.email.toLowerCase().trim()) {
+      const emailLower = newEmail.toLowerCase().trim();
+      
+      // Check if email already exists
+      const existing = await prisma.user.findFirst({ where: { email: emailLower, id: { not: current.id } } });
+      if (existing) {
+        res.status(400).json({ message: "Este correo electrónico ya está en uso." });
+        return;
+      }
+
+      const verificationCode = generateSixDigitCode();
+      const verificationCodeExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+      updateData.email = emailLower;
+      updateData.isEmailVerified = false;
+      updateData.verificationCode = verificationCode;
+      updateData.verificationCodeExpires = verificationCodeExpires;
+
+      // Send new code in background
+      sendVerificationEmail(emailLower, verificationCode).catch(console.error);
+    }
+
     const user = await prisma.user.update({
       where: { id: req.user.id },
-      data: {
-        whatsapp
-      },
-      select: { id: true, firstName: true, lastName: true, whatsapp: true, email: true }
+      data: updateData,
+      select: { id: true, firstName: true, lastName: true, whatsapp: true, email: true, isEmailVerified: true }
     });
 
     const settings = await prisma.clubSettings.findUnique({ where: { id: "singleton" } });

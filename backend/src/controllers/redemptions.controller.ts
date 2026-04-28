@@ -213,7 +213,11 @@ export const confirmRedemption = async (req: Request, res: Response): Promise<vo
     const staffName = staff ? `${staff.firstName} ${staff.lastName}` : "Staff";
 
     // Reward-specific logic (Deduct points)
-    if (redemption.rewardId && redemption.reward) {
+    if (redemption.rewardId) {
+      if (!redemption.reward) {
+        res.status(404).json({ message: "Este premio ya no está disponible en el sistema." });
+        return;
+      }
       await prisma.$transaction(async (tx) => {
         // 1 & 2. Atomic check and deduction
         const updated = await tx.user.updateMany({
@@ -244,7 +248,11 @@ export const confirmRedemption = async (req: Request, res: Response): Promise<vo
           }
         });
       });
-    } else if (redemption.eventId && redemption.event) {
+    } else if (redemption.eventId) {
+      if (!redemption.event) {
+        res.status(404).json({ message: "Esta promoción ya no está disponible." });
+        return;
+      }
       // Promo-specific logic
       await prisma.$transaction([
         prisma.redemption.update({
@@ -260,7 +268,11 @@ export const confirmRedemption = async (req: Request, res: Response): Promise<vo
           }
         })
       ]);
-    } else if (redemption.vipBenefitId && redemption.vipBenefit) {
+    } else if (redemption.vipBenefitId) {
+      if (!redemption.vipBenefit) {
+        res.status(404).json({ message: "Este beneficio VIP ya no está disponible." });
+        return;
+      }
       // VIP Benefit - just mark as completed, log history
       await prisma.$transaction([
         prisma.redemption.update({
