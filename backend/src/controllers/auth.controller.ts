@@ -49,11 +49,15 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     }
 
     const existingUser = await prisma.user.findFirst({
-      where: { OR: [{ dni }, { email }] }
+      where: { OR: [{ dni }, { email }, { whatsapp }] }
     });
     
     if (existingUser) {
-       res.status(400).json({ message: "El DNI o Email ya están registrados." });
+       if (existingUser.whatsapp === whatsapp) {
+         res.status(400).json({ message: "Este número de WhatsApp ya está registrado." });
+       } else {
+         res.status(400).json({ message: "El DNI o Email ya están registrados." });
+       }
        return;
     }
     
@@ -184,25 +188,32 @@ export const verifyEmail = async (req: AuthRequest, res: Response): Promise<void
         });
         
         if (!alreadyPaid) {
-          // Bonus for the referrer
-          const updatedReferrer = await tx.user.update({
-            where: { id: user.referredById! },
-            data: { points: { increment: referrerReward } }
-          });
-          await tx.pointHistory.create({
-            data: { userId: user.referredById!, pointsGained: referrerReward, source: 'REFERIDO', description: `Amigo ${user.firstName} verificó su cuenta con tu código` }
+          // Check how many referrals this referrer already has to prevent farming
+          const referralCount = await tx.pointHistory.count({
+            where: { userId: user.referredById!, source: 'REFERIDO', description: { contains: 'verificó su cuenta' } }
           });
 
-          // Upgrade referrer level if needed
-          if (settings) {
-            const { calculateMembershipLevel } = await import("../services/user.service");
-            const newLevel = calculateMembershipLevel(updatedReferrer.points, settings);
-            if (updatedReferrer.membershipLevel !== newLevel) {
-              await tx.user.update({ where: { id: user.referredById! }, data: { membershipLevel: newLevel } });
+          if (referralCount < 10) { // Limit to 10 rewarded referrals per person
+            // Bonus for the referrer
+            const updatedReferrer = await tx.user.update({
+              where: { id: user.referredById! },
+              data: { points: { increment: referrerReward } }
+            });
+            await tx.pointHistory.create({
+              data: { userId: user.referredById!, pointsGained: referrerReward, source: 'REFERIDO', description: `Amigo ${user.firstName} verificó su cuenta con tu código` }
+            });
+
+            // Upgrade referrer level if needed
+            if (settings) {
+              const { calculateMembershipLevel } = await import("../services/user.service");
+              const newLevel = calculateMembershipLevel(updatedReferrer.points, settings);
+              if (updatedReferrer.membershipLevel !== newLevel) {
+                await tx.user.update({ where: { id: user.referredById! }, data: { membershipLevel: newLevel } });
+              }
             }
           }
 
-          // Bonus for the new user
+          // Bonus for the new user (they always get it, even if referrer is at limit)
           await tx.user.update({ where: { id: user.id }, data: { points: { increment: refereeReward } } });
           await tx.pointHistory.create({
             data: { userId: user.id, pointsGained: refereeReward, source: 'REFERIDO', description: 'Bono por unirte con código de amigo' }
