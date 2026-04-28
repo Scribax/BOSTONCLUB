@@ -115,7 +115,7 @@ export const createVipBenefit = async (req: Request, res: Response) => {
 // Admin: Update
 export const updateVipBenefit = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = String(req.params.id);
     const { level, title, description, redemptionPolicy, isActive } = req.body;
     const updated = await prisma.vipBenefit.update({
       where: { id },
@@ -131,7 +131,7 @@ export const updateVipBenefit = async (req: Request, res: Response) => {
 // Admin: Delete
 export const deleteVipBenefit = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = String(req.params.id);
     await prisma.vipBenefit.delete({ where: { id } });
     res.json({ success: true });
   } catch (error) {
