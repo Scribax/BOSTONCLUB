@@ -194,8 +194,8 @@ export default function RewardsScreen() {
             <Text style={{ color: 'white', fontSize: 16, fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', letterSpacing: 1 }}>Catálogo de Premios</Text>
          </View>
 
-         {/* Rewards Grid */}
-         <View style={{ paddingHorizontal: 24, flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
+         {/* Rewards List */}
+         <View style={{ paddingHorizontal: 24, flexDirection: 'column' }}>
             {filteredRewards.map((reward, index) => {
                const canRedeem = pts >= reward.pointsRequired;
                const progress = Math.min(1, pts / reward.pointsRequired);
@@ -204,57 +204,74 @@ export default function RewardsScreen() {
                   <Animated.View 
                     entering={FadeInDown.delay(index * 100)}
                     key={reward.id}
-                    style={{ width: (SCREEN_WIDTH - 60) / 2, marginBottom: 20 }}
+                    style={{ width: '100%', marginBottom: 16 }}
                   >
                      <TouchableOpacity 
                        activeOpacity={canRedeem ? 0.8 : 1}
                        onPress={() => canRedeem && setConfirmModal({ visible: true, reward })}
                        style={{ 
                          backgroundColor: '#0c0c0c', 
-                         borderRadius: 24, 
+                         borderRadius: 20, 
                          borderWidth: 1, 
                          borderColor: canRedeem ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.05)',
                          overflow: 'hidden',
-                         opacity: canRedeem ? 1 : 0.6
+                         opacity: canRedeem ? 1 : 0.6,
+                         flexDirection: 'row',
+                         height: 140
                        }}
                      >
-                        <View style={{ width: '100%', height: 140, backgroundColor: '#1a1a1a' }}>
+                        {/* Left side: Image */}
+                        <View style={{ width: 140, height: '100%', backgroundColor: '#1a1a1a', position: 'relative' }}>
                            {reward.imageUrl ? (
                               <Image source={{ uri: resolveImageUrl(reward.imageUrl) || '' }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
                            ) : (
                               <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-                                 <Text style={{ fontSize: 40 }}>{reward.type === 'BEBIDA' ? '🍺' : '🍔'}</Text>
+                                 <Text style={{ fontSize: 50 }}>{reward.type === 'BEBIDA' ? '🍺' : '🍔'}</Text>
                               </View>
                            )}
                            
-                           {/* Points overlay */}
-                           <View style={{ position: 'absolute', bottom: 8, right: 8, backgroundColor: 'rgba(0,0,0,0.8)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' }}>
-                              <Text style={{ color: canRedeem ? '#FF3B30' : 'white', fontWeight: '900', fontSize: 9 }}>{reward.pointsRequired} PTS</Text>
-                           </View>
+                           {/* Gradient to blend with background */}
+                           <LinearGradient
+                             colors={['transparent', 'rgba(12,12,12,1)']}
+                             start={{ x: 0.5, y: 0 }}
+                             end={{ x: 1, y: 0 }}
+                             style={{ position: 'absolute', top: 0, right: 0, bottom: 0, width: 30 }}
+                           />
                         </View>
 
-                        <View style={{ padding: 12 }}>
-                           <Text style={{ color: 'white', fontWeight: '900', fontSize: 13, textTransform: 'uppercase', fontStyle: 'italic' }} numberOfLines={1}>{reward.name}</Text>
-                           <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 9, fontWeight: '500', marginTop: 2 }} numberOfLines={1}>{reward.description || 'Premio exclusivo'}</Text>
+                        {/* Right side: Content */}
+                        <View style={{ flex: 1, padding: 16, justifyContent: 'center' }}>
+                           <Text style={{ color: 'white', fontWeight: '900', fontSize: 18, textTransform: 'uppercase', fontStyle: 'italic', marginBottom: 2, lineHeight: 20 }} numberOfLines={2}>
+                              {reward.name}
+                           </Text>
+                           <Text style={{ color: '#D4AF37', fontWeight: '900', fontSize: 14, textTransform: 'uppercase', marginBottom: 12 }}>
+                              {reward.pointsRequired} PTS
+                           </Text>
                            
                            {/* Progress Bar for non-redeemable items */}
                            {!canRedeem && (
-                              <View style={{ height: 3, backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 2, marginTop: 12, overflow: 'hidden' }}>
+                              <View style={{ height: 3, backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 2, marginBottom: 12, overflow: 'hidden' }}>
                                  <View style={{ width: `${progress * 100}%`, height: '100%', backgroundColor: 'rgba(255,255,255,0.2)' }} />
                               </View>
                            )}
 
                            <View style={{ 
-                             marginTop: 12, 
-                             paddingVertical: 8, 
-                             backgroundColor: canRedeem ? '#FF3B30' : 'rgba(255,255,255,0.05)', 
+                             paddingVertical: 10, 
+                             backgroundColor: canRedeem ? 'rgba(255,59,48,0.1)' : 'rgba(255,255,255,0.05)', 
                              borderRadius: 12, 
-                             alignItems: 'center' 
+                             borderWidth: 1,
+                             borderColor: canRedeem ? '#FF3B30' : 'rgba(255,255,255,0.1)',
+                             alignItems: 'center',
+                             shadowColor: canRedeem ? '#FF3B30' : 'transparent',
+                             shadowOffset: { width: 0, height: 0 },
+                             shadowOpacity: canRedeem ? 0.8 : 0,
+                             shadowRadius: 10,
+                             elevation: canRedeem ? 8 : 0
                            }}>
                               {redeemingId === reward.id ? (
                                  <ActivityIndicator size="small" color="white" />
                               ) : (
-                                 <Text style={{ color: canRedeem ? 'white' : 'rgba(255,255,255,0.2)', fontWeight: '900', fontSize: 10, textTransform: 'uppercase' }}>
+                                 <Text style={{ color: canRedeem ? 'white' : 'rgba(255,255,255,0.3)', fontWeight: '900', fontSize: 12, textTransform: 'uppercase', letterSpacing: 1 }}>
                                     {canRedeem ? 'Canjear' : `Faltan ${reward.pointsRequired - pts}`}
                                  </Text>
                               )}
