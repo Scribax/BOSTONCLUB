@@ -230,8 +230,8 @@ export const confirmRedemption = async (req: Request, res: Response): Promise<vo
 
     // Reward-specific logic (Deduct points)
     if (redemption.rewardId) {
-      if (!redemption.reward) {
-        res.status(404).json({ message: "Este premio ya no está disponible en el sistema." });
+      if (!redemption.reward || !redemption.reward.isActive) {
+        res.status(404).json({ message: "Este premio ya no está disponible o se quedó sin stock." });
         return;
       }
       await prisma.$transaction(async (tx) => {
@@ -320,9 +320,10 @@ export const confirmRedemption = async (req: Request, res: Response): Promise<vo
     }
 
     res.json({ 
-      message: "Canje confirmado con éxito!",
+      message: "¡Canje confirmado con éxito!",
       type: redemption.rewardId ? 'REWARD' : (redemption.vipBenefitId ? 'VIP_BENEFIT' : 'PROMO'),
-      details: redemption.reward?.name || redemption.vipBenefit?.title || redemption.event?.title
+      details: redemption.reward?.name || redemption.vipBenefit?.title || redemption.event?.title,
+      requiresIdCheck: redemption.reward?.isAdultOnly || false
     });
   } catch (error) {
     console.error(error);
