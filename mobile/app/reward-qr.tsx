@@ -18,7 +18,7 @@ export default function RewardQRScreen() {
   const handleCancel = async () => {
     Alert.alert(
       'Cancelar Canje',
-      '¿Estás seguro de que deseas cancelar este código QR y recuperar tus puntos?',
+      '¿Estás seguro de que deseas cancelar este código QR?',
       [
         { text: 'No', style: 'cancel' },
         { 
@@ -28,7 +28,7 @@ export default function RewardQRScreen() {
             setCancelling(true);
             try {
               await api.post('/redemptions/cancel', { qrToken: token });
-              Alert.alert('Cancelado', 'Tu canje ha sido cancelado y tus puntos están disponibles nuevamente.');
+              Alert.alert('Cancelado', 'Tu código QR ha sido cancelado exitosamente.');
               router.replace('/(tabs)/rewards');
             } catch (err: any) {
               Alert.alert('Error', err.response?.data?.message || 'Hubo un error al cancelar.');

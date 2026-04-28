@@ -215,17 +215,18 @@ export const confirmRedemption = async (req: Request, res: Response): Promise<vo
     // Reward-specific logic (Deduct points)
     if (redemption.rewardId && redemption.reward) {
       await prisma.$transaction(async (tx) => {
-        // 1. RE-FETCH user inside transaction to get latest points
-        const freshUser = await tx.user.findUnique({ where: { id: redemption.userId } });
-        if (!freshUser || freshUser.points < redemption.reward!.pointsRequired) {
-          throw new Error("Puntos insuficientes para este canje");
-        }
-
-        // 2. Deduct points
-        await tx.user.update({
-          where: { id: redemption.userId },
+        // 1 & 2. Atomic check and deduction
+        const updated = await tx.user.updateMany({
+          where: { 
+            id: redemption.userId,
+            points: { gte: redemption.reward!.pointsRequired }
+          },
           data: { points: { decrement: redemption.reward!.pointsRequired } }
         });
+
+        if (updated.count === 0) {
+          throw new Error("Puntos insuficientes para este canje");
+        }
 
         // 3. Mark as completed
         await tx.redemption.update({

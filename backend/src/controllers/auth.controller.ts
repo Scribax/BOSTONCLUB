@@ -107,38 +107,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       }
     });
 
-    // Reward both users if referred
-    if (referredById) {
-      const settings = await prisma.clubSettings.findUnique({ where: { id: "singleton" } });
-      const referrerReward = settings?.referralRewardReferrer || 500;
-      const refereeReward = settings?.referralRewardReferee || 200;
-
-      await prisma.$transaction(async (tx) => {
-        // Bonus for the referrer
-        const updatedReferrer = await tx.user.update({
-          where: { id: referredById! },
-          data: { points: { increment: referrerReward } }
-        });
-        await tx.pointHistory.create({
-          data: { userId: referredById!, pointsGained: referrerReward, source: 'REFERIDO', description: `Amigo ${firstName} se unió con tu código` }
-        });
-
-        // Upgrade referrer level if needed
-        if (settings) {
-          const { calculateMembershipLevel } = await import("../services/user.service");
-          const newLevel = calculateMembershipLevel(updatedReferrer.points, settings);
-          if (updatedReferrer.membershipLevel !== newLevel) {
-            await tx.user.update({ where: { id: referredById! }, data: { membershipLevel: newLevel } });
-          }
-        }
-
-        // Bonus for the new user (no level upgrade needed — they start at 0 + refereeReward which is usually < goldThreshold)
-        await tx.user.update({ where: { id: user.id }, data: { points: { increment: refereeReward } } });
-        await tx.pointHistory.create({
-          data: { userId: user.id, pointsGained: refereeReward, source: 'REFERIDO', description: 'Bono por unirte con código de amigo' }
-        });
-      });
-    }
+    // Referral logic moved to verifyEmail for security
 
     // Send email in background
     sendVerificationEmail(user.email, verificationCode).catch(console.error);
@@ -198,6 +167,46 @@ export const verifyEmail = async (req: AuthRequest, res: Response): Promise<void
         verificationCodeExpires: null
       }
     });
+
+    // Reward both users if referred, NOW that email is verified
+    if (user.referredById) {
+      const settings = await prisma.clubSettings.findUnique({ where: { id: "singleton" } });
+      const referrerReward = settings?.referralRewardReferrer || 500;
+      const refereeReward = settings?.referralRewardReferee || 200;
+
+      await prisma.$transaction(async (tx) => {
+        // Check if referral was already paid (prevent double paying if somehow verifyEmail runs twice before updating isEmailVerified)
+        const alreadyPaid = await tx.pointHistory.findFirst({
+          where: { userId: user.id, source: 'REFERIDO' }
+        });
+        
+        if (!alreadyPaid) {
+          // Bonus for the referrer
+          const updatedReferrer = await tx.user.update({
+            where: { id: user.referredById! },
+            data: { points: { increment: referrerReward } }
+          });
+          await tx.pointHistory.create({
+            data: { userId: user.referredById!, pointsGained: referrerReward, source: 'REFERIDO', description: `Amigo ${user.firstName} verificó su cuenta con tu código` }
+          });
+
+          // Upgrade referrer level if needed
+          if (settings) {
+            const { calculateMembershipLevel } = await import("../services/user.service");
+            const newLevel = calculateMembershipLevel(updatedReferrer.points, settings);
+            if (updatedReferrer.membershipLevel !== newLevel) {
+              await tx.user.update({ where: { id: user.referredById! }, data: { membershipLevel: newLevel } });
+            }
+          }
+
+          // Bonus for the new user
+          await tx.user.update({ where: { id: user.id }, data: { points: { increment: refereeReward } } });
+          await tx.pointHistory.create({
+            data: { userId: user.id, pointsGained: refereeReward, source: 'REFERIDO', description: 'Bono por unirte con código de amigo' }
+          });
+        }
+      });
+    }
 
     res.json({ message: "Email verificado correctamente" });
   } catch (error) {
