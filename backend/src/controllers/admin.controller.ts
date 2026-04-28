@@ -92,7 +92,7 @@ export const exportAudits = async (req: Request, res: Response): Promise<void> =
     // but a quick way to generate CSV is just map PointHistory.
     
     // Create CSV content
-    const header = "FECHA,HORA,TIPO DE OPERACIÓN,DESCRIPCIÓN,SOCIO,EMAIL,PUNTOS INVOLUCRADOS\n";
+    const header = "FECHA;HORA;TIPO DE OPERACIÓN;DESCRIPCIÓN;SOCIO;EMAIL;PUNTOS INVOLUCRADOS\n";
     const rows = history.map(h => {
       const date = new Date(h.createdAt);
       const fecha = date.toLocaleDateString('es-AR');
@@ -103,10 +103,10 @@ export const exportAudits = async (req: Request, res: Response): Promise<void> =
       const tipo = h.pointsGained < 0 ? "CANJE" : (h.pointsGained > 0 ? "ACREDITACIÓN" : "VALIDACIÓN BENEFICIO");
       const puntos = h.pointsGained;
 
-      return `${fecha},${hora},${tipo},${descripcion},${socio},${email},${puntos}`;
+      return `${fecha};${hora};${tipo};${descripcion};${socio};${email};${puntos}`;
     }).join("\n");
 
-    const csvData = header + rows;
+    const csvData = "\uFEFF" + header + rows;
 
     res.setHeader("Content-Type", "text/csv");
     res.setHeader("Content-Disposition", 'attachment; filename="auditoria_movimientos.csv"');
