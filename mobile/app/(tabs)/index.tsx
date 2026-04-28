@@ -78,6 +78,9 @@ export default function DashboardScreen() {
   const [showBenefits, setShowBenefits] = useState(false);
   const [errorStatus, setErrorStatus] = useState<null | 'connection' | 'session'>(null);
   const [isScreenFocused, setIsScreenFocused] = useState(true);
+  const [vipBenefits, setVipBenefits] = useState<any[]>([]);
+  const [vipBenefitsLoading, setVipBenefitsLoading] = useState(false);
+  const [redeemingVipId, setRedeemingVipId] = useState<string | null>(null);
 
   // FIX: New Architecture requiere que estas referencias sean estables (no recreadas en cada render)
   const onViewableItemsChangedRef = useRef(({ viewableItems }: any) => {
@@ -142,18 +145,47 @@ export default function DashboardScreen() {
       setPromoBanners(bottomPromos);
     } catch (err: any) {
       console.error('Load Profile Error:', err);
-      // Solo mandamos al login si es un error de credenciales (401/403)
       if (err.response?.status === 401 || err.response?.status === 403) {
         setErrorStatus('session');
-        // Si la sesión expiró, forzamos el logout global para evitar loops
         await logout();
       } else {
-        // Es un error de red o de servidor (500, Timeout, etc)
         setErrorStatus('connection');
       }
     } finally {
       setLoading(false);
       setRefreshing(false);
+    }
+  };
+
+  const fetchVipBenefits = async () => {
+    setVipBenefitsLoading(true);
+    try {
+      const res = await api.get('/vip-benefits/me');
+      setVipBenefits(res.data);
+    } catch (err) {
+      console.error('Error fetching VIP benefits', err);
+    } finally {
+      setVipBenefitsLoading(false);
+    }
+  };
+
+  const handleRedeemVipBenefit = async (benefit: any) => {
+    if (benefit.isLocked) {
+      Alert.alert('Bloqueado 🔒', benefit.lockReason || 'Este beneficio no está disponible ahora');
+      return;
+    }
+    setRedeemingVipId(benefit.id);
+    try {
+      const res = await api.post('/redemptions/generate', { vipBenefitId: benefit.id });
+      setShowBenefits(false);
+      router.push({
+        pathname: '/reward-qr',
+        params: { token: res.data.qrToken, reward: benefit.title }
+      });
+    } catch (err: any) {
+      Alert.alert('Error', err.response?.data?.message || 'No se pudo generar el QR');
+    } finally {
+      setRedeemingVipId(null);
     }
   };
 
@@ -395,7 +427,7 @@ export default function DashboardScreen() {
           <FadeInView delay={500} className="px-6 -mt-12 z-50">
              <TouchableOpacity 
                activeOpacity={0.9}
-               onPress={() => setShowBenefits(true)}
+               onPress={() => { setShowBenefits(true); fetchVipBenefits(); }}
                style={{
                  shadowColor: '#ff0000',
                  shadowOffset: { width: 0, height: 10 },
@@ -731,26 +763,52 @@ export default function DashboardScreen() {
                </View>
 
                <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 32, paddingBottom: 60 }}>
-                  {/* Current Benefits */}
-                  <View style={{ marginBottom: 40 }}>
-                     <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
-                        <Crown size={18} color="#D4AF37" />
-                        <Text style={{ color: 'white', fontSize: 12, fontWeight: '900', textTransform: 'uppercase', fontStyle: 'italic', marginLeft: 12, letterSpacing: 1 }}>Tus Privilegios</Text>
-                     </View>
-                     
-                     <View style={{ gap: 12 }}>
-                        {settings && (settings[`${user.membershipLevel.toLowerCase() === 'bronce' || user.membershipLevel.toLowerCase() === 'bronze' ? 'bronce' : (user.membershipLevel === 'ORO' ? 'gold' : (user.membershipLevel === 'PLATINO' ? 'platinum' : (user.membershipLevel === 'DIAMANTE' ? 'diamond' : 'superVip')))}Benefits`] || "- No hay beneficios configurados").split('\n').map((benefit: string, i: number) => (
-                           <View key={i} style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.03)', padding: 16, borderRadius: 20, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' }}>
-                              <View style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: 'rgba(212,175,55,0.1)', alignItems: 'center', justifyContent: 'center', marginRight: 16 }}>
-                                 <Star size={10} color="#D4AF37" fill="#D4AF37" />
+                                     {/* Current Benefits - Dynamic VIP */}
+                   <View style={{ marginBottom: 40 }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
+                         <Crown size={18} color="#D4AF37" />
+                         <Text style={{ color: 'white', fontSize: 12, fontWeight: '900', textTransform: 'uppercase', fontStyle: 'italic', marginLeft: 12, letterSpacing: 1 }}>Tus Beneficios</Text>
+                      </View>
+                      {vipBenefitsLoading ? (
+                        <View style={{ alignItems: 'center', paddingVertical: 30 }}>
+                          <ActivityIndicator color="#D4AF37" />
+                        </View>
+                      ) : vipBenefits.length === 0 ? (
+                        <View style={{ padding: 24, backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: 20, alignItems: 'center' }}>
+                          <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11, fontWeight: '700', textTransform: 'uppercase', textAlign: 'center' }}>No hay beneficios configurados para tu nivel</Text>
+                        </View>
+                      ) : (
+                        <View style={{ gap: 12 }}>
+                          {vipBenefits.map((benefit: any) => (
+                            <View key={benefit.id} style={{ backgroundColor: benefit.isLocked ? 'rgba(255,255,255,0.02)' : 'rgba(212,175,55,0.05)', borderRadius: 20, borderWidth: 1, borderColor: benefit.isLocked ? 'rgba(255,255,255,0.05)' : 'rgba(212,175,55,0.2)', overflow: 'hidden', opacity: benefit.isLocked ? 0.7 : 1 }}>
+                              <View style={{ padding: 16 }}>
+                                <Text style={{ color: benefit.isLocked ? 'rgba(255,255,255,0.4)' : 'white', fontSize: 14, fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase' }} numberOfLines={2}>{benefit.title}</Text>
+                                {benefit.description ? <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 10, marginTop: 2 }}>{benefit.description}</Text> : null}
                               </View>
-                              <Text style={{ flex: 1, color: 'white', fontSize: 13, fontWeight: '600', fontStyle: 'italic' }}>{benefit.replace(/^-\s*/, '')}</Text>
-                           </View>
-                        ))}
-                     </View>
-                  </View>
+                              {benefit.isLocked ? (
+                                <View style={{ marginHorizontal: 16, marginBottom: 16, backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: 12, paddingVertical: 10, alignItems: 'center' }}>
+                                  <Text style={{ color: 'rgba(255,255,255,0.25)', fontWeight: '900', fontSize: 10, textTransform: 'uppercase', letterSpacing: 1 }}>{benefit.lockReason || 'No disponible'}</Text>
+                                </View>
+                              ) : (
+                                <TouchableOpacity
+                                  onPress={() => handleRedeemVipBenefit(benefit)}
+                                  disabled={redeemingVipId === benefit.id}
+                                  style={{ marginHorizontal: 16, marginBottom: 16, backgroundColor: 'rgba(212,175,55,0.15)', borderRadius: 12, paddingVertical: 12, alignItems: 'center', borderWidth: 1, borderColor: '#D4AF37' }}
+                                >
+                                  {redeemingVipId === benefit.id ? (
+                                    <ActivityIndicator size="small" color="#D4AF37" />
+                                  ) : (
+                                    <Text style={{ color: '#D4AF37', fontWeight: '900', fontSize: 11, textTransform: 'uppercase', letterSpacing: 2 }}>✦ Activar Beneficio</Text>
+                                  )}
+                                </TouchableOpacity>
+                              )}
+                            </View>
+                          ))}
+                        </View>
+                      )}
+                   </View>
 
-                  {/* Next Level Incentive (What you're missing) */}
+                   {/* Next Level Incentive (What you're missing) */}
                   {calculateNextTier() && (
                     <View style={{ marginBottom: 40 }}>
                        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
