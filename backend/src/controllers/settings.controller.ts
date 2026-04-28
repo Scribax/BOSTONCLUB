@@ -76,62 +76,57 @@ export const updateSettings = async (req: Request, res: Response): Promise<void>
       checkinPoints,
       referralRewardReferrer,
       referralRewardReferee,
-      pointsPerPeso
+      pointsPerPeso,
+      isEventDay,
+      eventCheckinPoints,
+      loginVideoUrl
     } = req.body;
 
-    // Validate pointsPerPeso
-    const parsedRate = parseFloat(pointsPerPeso);
-    if (pointsPerPeso !== undefined && (isNaN(parsedRate) || parsedRate <= 0)) {
-      res.status(400).json({ message: "La tasa de puntos por peso debe ser un número positivo mayor a 0." });
-      return;
+    // Validate pointsPerPeso if provided
+    let parsedRate: number | undefined;
+    if (pointsPerPeso !== undefined) {
+      parsedRate = parseFloat(pointsPerPeso);
+      if (isNaN(parsedRate) || parsedRate <= 0) {
+        res.status(400).json({ message: "La tasa de puntos por peso debe ser un número positivo mayor a 0." });
+        return;
+      }
     }
+
+    // Build update object dynamically (only include fields that are not undefined)
+    const data: any = {};
+    if (vipThreshold !== undefined) data.vipThreshold = Number(vipThreshold);
+    if (vipMessageTemplate !== undefined) data.vipMessageTemplate = vipMessageTemplate;
+    if (rewardListText !== undefined) data.rewardListText = rewardListText;
+    if (goldThreshold !== undefined) data.goldThreshold = Number(goldThreshold);
+    if (platinumThreshold !== undefined) data.platinumThreshold = Number(platinumThreshold);
+    if (diamondThreshold !== undefined) data.diamondThreshold = Number(diamondThreshold);
+    if (superVipThreshold !== undefined) data.superVipThreshold = Number(superVipThreshold);
+    if (bronceBenefits !== undefined) data.bronceBenefits = bronceBenefits;
+    if (goldBenefits !== undefined) data.goldBenefits = goldBenefits;
+    if (platinumBenefits !== undefined) data.platinumBenefits = platinumBenefits;
+    if (diamondBenefits !== undefined) data.diamondBenefits = diamondBenefits;
+    if (superVipBenefits !== undefined) data.superVipBenefits = superVipBenefits;
+    if (checkinPoints !== undefined) data.checkinPoints = Number(checkinPoints);
+    if (isEventDay !== undefined) data.isEventDay = Boolean(isEventDay);
+    if (eventCheckinPoints !== undefined) data.eventCheckinPoints = Number(eventCheckinPoints);
+    if (loginVideoUrl !== undefined) data.loginVideoUrl = loginVideoUrl;
+    if (referralRewardReferrer !== undefined) data.referralRewardReferrer = Number(referralRewardReferrer);
+    if (referralRewardReferee !== undefined) data.referralRewardReferee = Number(referralRewardReferee);
+    if (parsedRate !== undefined) data.pointsPerPeso = parsedRate;
 
     const settings = await prisma.clubSettings.upsert({
       where: { id: "singleton" },
-      update: {
-        vipThreshold: Number(vipThreshold),
-        vipMessageTemplate: vipMessageTemplate,
-        rewardListText,
-        goldThreshold: Number(goldThreshold),
-        platinumThreshold: Number(platinumThreshold),
-        diamondThreshold: Number(diamondThreshold),
-        superVipThreshold: Number(superVipThreshold),
-        bronceBenefits,
-        goldBenefits,
-        platinumBenefits,
-        diamondBenefits,
-        superVipBenefits,
-        checkinPoints: Number(checkinPoints),
-        isEventDay: Boolean(req.body.isEventDay),
-        eventCheckinPoints: Number(req.body.eventCheckinPoints),
-        loginVideoUrl: req.body.loginVideoUrl,
-        referralRewardReferrer: Number(referralRewardReferrer),
-        referralRewardReferee: Number(referralRewardReferee),
-        pointsPerPeso: pointsPerPeso !== undefined ? parsedRate : undefined
-      },
+      update: data,
       create: {
         id: "singleton",
-        vipThreshold: Number(vipThreshold),
-        vipMessageTemplate: vipMessageTemplate,
-        rewardListText,
-        goldThreshold: Number(goldThreshold),
-        platinumThreshold: Number(platinumThreshold),
-        diamondThreshold: Number(diamondThreshold),
-        superVipThreshold: Number(superVipThreshold),
-        bronceBenefits,
-        goldBenefits,
-        platinumBenefits,
-        diamondBenefits,
-        superVipBenefits,
-        checkinPoints: Number(checkinPoints),
-        isEventDay: Boolean(req.body.isEventDay),
-        eventCheckinPoints: Number(req.body.eventCheckinPoints),
-        loginVideoUrl: req.body.loginVideoUrl,
-        referralRewardReferrer: Number(referralRewardReferrer),
-        referralRewardReferee: Number(referralRewardReferee),
-        pointsPerPeso: pointsPerPeso !== undefined ? parsedRate : 1.0
+        ...data,
+        // Ensure required fields have defaults if creating for the first time
+        vipThreshold: data.vipThreshold ?? 1000,
+        pointsPerPeso: data.pointsPerPeso ?? 1.0
       }
     });
+
+    res.json(settings);
 
     res.json(settings);
   } catch (error) {
