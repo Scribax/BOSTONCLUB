@@ -187,6 +187,7 @@ model ClubSettings {
   diamondBenefits    String   @default("- 30% Off en toda la carta\n- Zona VIP sin cargo\n- Regalo de cumpleaños")
   superVipBenefits   String   @default("- 50% Off en toda la carta\n- Todo incluido en eventos seleccionados\n- Concierge privado")
   loginVideoUrl      String?
+  pointsPerPeso      Float    @default(1.0)
   updatedAt          DateTime @updatedAt
 }
 

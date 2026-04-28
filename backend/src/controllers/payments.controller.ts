@@ -173,7 +173,11 @@ async function processPointsAwarding(idToSearch: string, amount: number, externa
     });
 
     if (trans && !trans.processed) {
-      const pointsToAward = Math.floor(amount);
+      // Read conversion rate from settings (default 1.0 = 1 peso = 1 point)
+      const settings = await prisma.clubSettings.findUnique({ where: { id: "singleton" } });
+      const rate = settings?.pointsPerPeso ?? 1.0;
+      const pointsToAward = Math.ceil(amount * rate); // Always round UP as requested
+
       if (pointsToAward <= 0) return false;
 
       await prisma.$transaction(async (tx) => {
@@ -183,7 +187,7 @@ async function processPointsAwarding(idToSearch: string, amount: number, externa
           trans.userId,
           pointsToAward,
           "COMPRA_POSNET",
-          `Puntos por pago en POSNET (${idToSearch})`
+          `Puntos por pago en POSNET $${amount.toLocaleString('es-AR')} × ${rate} pts/peso = ${pointsToAward} pts (${idToSearch})`
         );
 
         // Mark transaction as processed
@@ -198,7 +202,7 @@ async function processPointsAwarding(idToSearch: string, amount: number, externa
         });
       });
 
-      console.log(`[POINTS] ✅ ${pointsToAward} puntos acreditados con éxito al socio.`);
+      console.log(`[POINTS] ✅ $${amount} × ${rate} pts/peso = ${pointsToAward} puntos acreditados.`);
       return true;
     }
     return false;

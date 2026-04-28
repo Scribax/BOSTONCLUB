@@ -75,8 +75,16 @@ export const updateSettings = async (req: Request, res: Response): Promise<void>
       superVipBenefits,
       checkinPoints,
       referralRewardReferrer,
-      referralRewardReferee
+      referralRewardReferee,
+      pointsPerPeso
     } = req.body;
+
+    // Validate pointsPerPeso
+    const parsedRate = parseFloat(pointsPerPeso);
+    if (pointsPerPeso !== undefined && (isNaN(parsedRate) || parsedRate <= 0)) {
+      res.status(400).json({ message: "La tasa de puntos por peso debe ser un número positivo mayor a 0." });
+      return;
+    }
 
     const settings = await prisma.clubSettings.upsert({
       where: { id: "singleton" },
@@ -98,7 +106,8 @@ export const updateSettings = async (req: Request, res: Response): Promise<void>
         eventCheckinPoints: Number(req.body.eventCheckinPoints),
         loginVideoUrl: req.body.loginVideoUrl,
         referralRewardReferrer: Number(referralRewardReferrer),
-        referralRewardReferee: Number(referralRewardReferee)
+        referralRewardReferee: Number(referralRewardReferee),
+        pointsPerPeso: pointsPerPeso !== undefined ? parsedRate : undefined
       },
       create: {
         id: "singleton",
@@ -119,7 +128,8 @@ export const updateSettings = async (req: Request, res: Response): Promise<void>
         eventCheckinPoints: Number(req.body.eventCheckinPoints),
         loginVideoUrl: req.body.loginVideoUrl,
         referralRewardReferrer: Number(referralRewardReferrer),
-        referralRewardReferee: Number(referralRewardReferee)
+        referralRewardReferee: Number(referralRewardReferee),
+        pointsPerPeso: pointsPerPeso !== undefined ? parsedRate : 1.0
       }
     });
 
