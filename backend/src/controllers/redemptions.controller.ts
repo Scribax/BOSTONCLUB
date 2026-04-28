@@ -39,6 +39,33 @@ export const generateRedemptionQR = async (req: any, res: Response): Promise<voi
       if (age >= 18) isAdult = true;
     }
 
+    // --- GLOBAL PENDING CHECK ---
+    // 1. Auto-cleanup expired ones first
+    await prisma.redemption.updateMany({
+      where: {
+        userId,
+        status: "PENDING",
+        expiresAt: { lte: new Date() }
+      },
+      data: { status: "CANCELLED" }
+    });
+
+    // 2. Check if user already has ONE active redemption (any type)
+    const activeRedemption = await prisma.redemption.findFirst({
+      where: {
+        userId,
+        status: "PENDING",
+        expiresAt: { gt: new Date() }
+      }
+    });
+
+    if (activeRedemption) {
+      res.status(400).json({ 
+        message: "Ya tienes un código QR pendiente. Úsalo o cancélalo antes de generar uno nuevo." 
+      });
+      return;
+    }
+
     if (rewardId) {
       const reward = await prisma.reward.findUnique({ where: { id: rewardId } });
       if (!reward) {
@@ -51,35 +78,8 @@ export const generateRedemptionQR = async (req: any, res: Response): Promise<voi
         return;
       }
 
-    // AUTO-CLEANUP: Mark expired PENDING redemptions as EXPIRED/CANCELLED before checking points
-    await prisma.redemption.updateMany({
-      where: {
-        userId,
-        status: "PENDING",
-        expiresAt: { lte: new Date() }
-      },
-      data: { status: "CANCELLED" }
-    });
-
-    const pendingRedemptions = await prisma.redemption.findMany({
-        where: {
-          userId,
-          status: "PENDING",
-          expiresAt: { gt: new Date() },
-          rewardId: { not: null }
-        },
-        include: { reward: true }
-      });
-
-      const pendingPoints = pendingRedemptions.reduce((sum, r) => sum + (r.reward?.pointsRequired || 0), 0);
-      const totalPointsNeeded = pendingPoints + reward.pointsRequired;
-
-      if (user.points < totalPointsNeeded) {
-        if (pendingPoints > 0 && user.points >= reward.pointsRequired) {
-          res.status(400).json({ message: "Ya tienes códigos QR pendientes. Cancélalos o úsalos antes de generar más." });
-        } else {
-          res.status(400).json({ message: "No tienes puntos suficientes." });
-        }
+      if (user.points < reward.pointsRequired) {
+        res.status(400).json({ message: "No tienes puntos suficientes." });
         return;
       }
 
