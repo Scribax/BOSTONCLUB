@@ -779,7 +779,7 @@ export default function DashboardScreen() {
                         </View>
                       ) : (
                         <View style={{ gap: 12 }}>
-                          {vipBenefits.map((benefit: any) => (
+                          {vipBenefits.filter(b => ["BRONCE", "ORO", "PLATINO", "DIAMANTE", "SÚPER VIP"].indexOf(b.level) <= ["BRONCE", "ORO", "PLATINO", "DIAMANTE", "SÚPER VIP"].indexOf(user.membershipLevel)).map((benefit: any) => (
                             <View key={benefit.id} style={{ backgroundColor: benefit.isLocked ? 'rgba(255,255,255,0.02)' : 'rgba(212,175,55,0.05)', borderRadius: 20, borderWidth: 1, borderColor: benefit.isLocked ? 'rgba(255,255,255,0.05)' : 'rgba(212,175,55,0.2)', overflow: 'hidden', opacity: benefit.isLocked ? 0.7 : 1 }}>
                               <View style={{ padding: 16 }}>
                                 <Text style={{ color: benefit.isLocked ? 'rgba(255,255,255,0.4)' : 'white', fontSize: 14, fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase' }} numberOfLines={2}>{benefit.title}</Text>
@@ -819,13 +819,16 @@ export default function DashboardScreen() {
                        <View style={{ padding: 24, backgroundColor: 'rgba(255,59,48,0.05)', borderRadius: 32, borderWidth: 1, borderColor: 'rgba(255,59,48,0.2)', borderStyle: 'dashed' }}>
                           <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, fontWeight: '900', textTransform: 'uppercase', textAlign: 'center', marginBottom: 16 }}>Lo que te estás perdiendo:</Text>
                           <View style={{ gap: 16 }}>
-                             {settings && (settings[`${calculateNextTier()?.name === 'ORO' ? 'gold' : (calculateNextTier()?.name === 'PLATINO' ? 'platinum' : (calculateNextTier()?.name === 'DIAMANTE' ? 'diamond' : 'superVip'))}Benefits`] || "").split('\n').slice(0, 3).map((benefit: string, i: number) => (
-                                <View key={i} style={{ flexDirection: 'row', alignItems: 'center', opacity: 0.6 }}>
-                                   <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: 'rgba(255,255,255,0.2)', marginRight: 12 }} />
-                                   <Text style={{ flex: 1, color: 'white', fontSize: 12, fontWeight: '500', fontStyle: 'italic' }}>{benefit.replace(/^-\s*/, '')}</Text>
-                                </View>
-                             ))}
-                          </View>
+                              {vipBenefits.filter(b => b.level === calculateNextTier()?.name).slice(0, 3).map((benefit: any) => (
+                                 <View key={benefit.id} style={{ flexDirection: 'row', alignItems: 'center', opacity: 0.6 }}>
+                                    <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: 'rgba(255,255,255,0.2)', marginRight: 12 }} />
+                                    <Text style={{ flex: 1, color: 'white', fontSize: 12, fontWeight: '500', fontStyle: 'italic' }}>{benefit.title}</Text>
+                                 </View>
+                              ))}
+                              {vipBenefits.filter(b => b.level === calculateNextTier()?.name).length === 0 && (
+                                <Text style={{ color: 'rgba(255,255,255,0.2)', fontSize: 10, textAlign: 'center', fontStyle: 'italic' }}>Beneficios a confirmar por el staff</Text>
+                              )}
+                           </View>
                           
                           <View style={{ marginTop: 24, alignItems: 'center' }}>
                              <View style={{ backgroundColor: '#FF3B30', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 12 }}>

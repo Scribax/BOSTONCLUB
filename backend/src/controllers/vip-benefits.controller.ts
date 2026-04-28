@@ -33,7 +33,7 @@ export const getAllVipBenefits = async (req: Request, res: Response) => {
   }
 };
 
-// User: Get their own unlocked benefits + lock status
+// User: Get all benefits + lock status (including higher levels for incentive)
 export const getMyVipBenefits = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user?.userId || (req as any).user?.id;
@@ -41,21 +41,26 @@ export const getMyVipBenefits = async (req: Request, res: Response) => {
 
     const userLevel = await getUserLevel(userId);
     const userLevelIdx = LEVEL_ORDER.indexOf(userLevel);
-    // User can see benefits from their level and all lower levels
-    const unlockedLevels = LEVEL_ORDER.slice(0, userLevelIdx + 1);
 
     const benefits = await prisma.vipBenefit.findMany({
-      where: { isActive: true, level: { in: unlockedLevels } },
-      orderBy: { createdAt: "desc" }
+      where: { isActive: true },
+      orderBy: { level: "asc" } // Sort by level to make it easier for frontend
     });
 
     const twelveHoursAgo = new Date(Date.now() - 12 * 60 * 60 * 1000);
 
     const finalBenefits = await Promise.all(benefits.map(async (benefit) => {
+      const benefitLevelIdx = LEVEL_ORDER.indexOf(benefit.level);
       let isLocked = false;
       let lockReason: string | null = null;
 
-      if (benefit.redemptionPolicy === "ONCE_TOTAL") {
+      // 1. Check Level Lock
+      if (benefitLevelIdx > userLevelIdx) {
+        isLocked = true;
+        lockReason = `Desbloquea en nivel ${benefit.level}`;
+      } 
+      // 2. Check Usage Lock (only if level is reached)
+      else if (benefit.redemptionPolicy === "ONCE_TOTAL") {
         const hasUsed = await prisma.redemption.findFirst({
           where: {
             userId,
@@ -85,7 +90,22 @@ export const getMyVipBenefits = async (req: Request, res: Response) => {
       return { ...benefit, isLocked, lockReason };
     }));
 
-    res.json(finalBenefits);
+    // Sort: Unlocked first, then by level
+    const sortedBenefits = finalBenefits.sort((a, b) => {
+      const aLvl = LEVEL_ORDER.indexOf(a.level);
+      const bLvl = LEVEL_ORDER.indexOf(b.level);
+      
+      // If one is unlocked and other is level-locked
+      const aIsLevelLocked = aLvl > userLevelIdx;
+      const bIsLevelLocked = bLvl > userLevelIdx;
+
+      if (!aIsLevelLocked && bIsLevelLocked) return -1;
+      if (aIsLevelLocked && !bIsLevelLocked) return 1;
+      
+      return aLvl - bLvl;
+    });
+
+    res.json(sortedBenefits);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Error fetching your benefits" });
