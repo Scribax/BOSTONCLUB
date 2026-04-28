@@ -370,29 +370,34 @@ export default function VipSettingsPage() {
         {showBenefitModal && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-black/95 backdrop-blur-md" onClick={() => setShowBenefitModal(false)} />
-            <motion.div initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 20 }} className="glass-panel w-full max-w-lg p-10 rounded-[3rem] border border-white/10 relative z-10 shadow-2xl">
-              <div className="flex justify-between items-center mb-8">
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0, y: 20 }} 
+              animate={{ scale: 1, opacity: 1, y: 0 }} 
+              exit={{ scale: 0.9, opacity: 0, y: 20 }} 
+              className="glass-panel w-full max-w-lg p-8 rounded-[2.5rem] border border-white/10 relative z-10 shadow-2xl max-h-[90vh] flex flex-col"
+            >
+              <div className="flex justify-between items-center mb-6 flex-shrink-0">
                 <div>
-                  <h2 className="text-2xl font-black text-white italic uppercase tracking-tighter">{editingBenefit ? "Editar Beneficio" : "Nuevo Beneficio VIP"}</h2>
-                  <p className="text-boston-gold text-[10px] font-black uppercase tracking-widest mt-1">Canjeable desde la app</p>
+                  <h2 className="text-xl font-black text-white italic uppercase tracking-tighter">{editingBenefit ? "Editar Beneficio" : "Nuevo Beneficio VIP"}</h2>
+                  <p className="text-boston-gold text-[9px] font-black uppercase tracking-widest mt-0.5">Canjeable desde la app</p>
                 </div>
                 <button onClick={() => setShowBenefitModal(false)} className="p-2 hover:bg-white/5 rounded-full transition-all">
-                  <X className="w-6 h-6 text-white/40" />
+                  <X className="w-5 h-5 text-white/40" />
                 </button>
               </div>
 
-              <div className="space-y-5">
+              <div className="space-y-5 overflow-y-auto pr-2 custom-scrollbar flex-1 pb-2">
                 {/* Level */}
                 <div>
-                  <label className="text-[10px] text-white/40 uppercase font-black tracking-widest mb-3 block">Nivel Requerido</label>
-                  <div className="grid grid-cols-2 gap-2">
+                  <label className="text-[9px] text-white/40 uppercase font-black tracking-widest mb-2 block">Nivel Requerido</label>
+                  <div className="grid grid-cols-3 gap-2">
                     {LEVELS.map(l => (
                       <button
                         key={l}
                         onClick={() => setBLevel(l)}
-                        className={`py-3 px-4 rounded-xl border font-black text-[10px] uppercase tracking-widest transition-all text-left ${bLevel === l ? `${LEVEL_BG[l]} ${LEVEL_COLORS[l]}` : 'bg-white/5 text-white/30 border-white/5'}`}
+                        className={`py-2 px-3 rounded-xl border font-black text-[9px] uppercase tracking-widest transition-all text-center ${bLevel === l ? `${LEVEL_BG[l]} ${LEVEL_COLORS[l]}` : 'bg-white/5 text-white/30 border-white/5'}`}
                       >
-                        {l}
+                        {l === "SÚPER VIP" ? "S. VIP" : l}
                       </button>
                     ))}
                   </div>
@@ -400,32 +405,32 @@ export default function VipSettingsPage() {
 
                 {/* Title */}
                 <div>
-                  <label className="text-[10px] text-white/40 uppercase font-black tracking-widest mb-3 block">Título del Beneficio</label>
+                  <label className="text-[9px] text-white/40 uppercase font-black tracking-widest mb-2 block">Título del Beneficio</label>
                   <input
                     type="text"
                     value={bTitle}
                     onChange={(e) => setBTitle(e.target.value)}
                     placeholder="Ej: 10% Off en toda la carta"
-                    className="w-full bg-black/50 text-white border border-white/10 rounded-2xl py-4 px-6 focus:border-boston-gold transition-all outline-none text-sm font-bold"
+                    className="w-full bg-black/50 text-white border border-white/10 rounded-xl py-3 px-4 focus:border-boston-gold transition-all outline-none text-xs font-bold"
                   />
                 </div>
 
                 {/* Description */}
                 <div>
-                  <label className="text-[10px] text-white/40 uppercase font-black tracking-widest mb-3 block">Descripción (opcional)</label>
+                  <label className="text-[9px] text-white/40 uppercase font-black tracking-widest mb-2 block">Descripción (opcional)</label>
                   <input
                     type="text"
                     value={bDescription}
                     onChange={(e) => setBDescription(e.target.value)}
                     placeholder="Ej: Válido en food y cocktails"
-                    className="w-full bg-black/50 text-white border border-white/10 rounded-2xl py-4 px-6 focus:border-boston-gold transition-all outline-none text-sm"
+                    className="w-full bg-black/50 text-white border border-white/10 rounded-xl py-3 px-4 focus:border-boston-gold transition-all outline-none text-xs"
                   />
                 </div>
 
                 {/* Policy */}
                 <div>
-                  <label className="text-[10px] text-white/40 uppercase font-black tracking-widest mb-3 block">Política de Uso</label>
-                  <div className="grid grid-cols-1 gap-2">
+                  <label className="text-[9px] text-white/40 uppercase font-black tracking-widest mb-2 block">Política de Uso</label>
+                  <div className="grid grid-cols-1 gap-1.5">
                     {[
                       { id: "ONCE_TOTAL", label: "Una sola vez (Permanente)", icon: Shield },
                       { id: "ONCE_PER_NIGHT", label: "Una vez por noche (12hs)", icon: RefreshCcw },
@@ -434,28 +439,30 @@ export default function VipSettingsPage() {
                       <button
                         key={p.id}
                         onClick={() => setBPolicy(p.id)}
-                        className={`flex items-center gap-3 p-4 rounded-xl border transition-all text-left ${bPolicy === p.id ? 'bg-white text-black border-white' : 'bg-black/20 text-white/40 border-white/5 hover:border-white/20'}`}
+                        className={`flex items-center gap-3 p-3 rounded-xl border transition-all text-left ${bPolicy === p.id ? 'bg-white text-black border-white' : 'bg-black/20 text-white/40 border-white/5 hover:border-white/20'}`}
                       >
-                        <p.icon className="w-4 h-4" />
-                        <span className="text-[10px] font-black uppercase tracking-widest">{p.label}</span>
-                        {bPolicy === p.id && <Check className="w-4 h-4 ml-auto" />}
+                        <p.icon className="w-3.5 h-3.5" />
+                        <span className="text-[9px] font-black uppercase tracking-widest">{p.label}</span>
+                        {bPolicy === p.id && <Check className="w-3.5 h-3.5 ml-auto" />}
                       </button>
                     ))}
                   </div>
                 </div>
 
                 {/* Active toggle */}
-                <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
-                  <span className="text-[11px] font-black uppercase tracking-widest text-white/80">Activo en la App</span>
-                  <button onClick={() => setBActive(!bActive)} className={`w-14 h-7 rounded-full relative transition-all ${bActive ? 'bg-boston-gold' : 'bg-white/10'}`}>
-                    <div className={`absolute top-1 w-5 h-5 rounded-full bg-white transition-all ${bActive ? 'right-1' : 'left-1'}`} />
+                <div className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/5">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-white/80">Activo en la App</span>
+                  <button onClick={() => setBActive(!bActive)} className={`w-12 h-6 rounded-full relative transition-all ${bActive ? 'bg-boston-gold' : 'bg-white/10'}`}>
+                    <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${bActive ? 'right-1' : 'left-1'}`} />
                   </button>
                 </div>
+              </div>
 
+              <div className="mt-6 flex-shrink-0">
                 <button
                   onClick={handleSaveBenefit}
                   disabled={savingBenefit}
-                  className="w-full bg-boston-gold text-black py-5 rounded-2xl font-black uppercase text-[11px] tracking-[0.2em] shadow-xl shadow-boston-gold/20 hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-50"
+                  className="w-full bg-boston-gold text-black py-4 rounded-xl font-black uppercase text-[10px] tracking-[0.2em] shadow-xl shadow-boston-gold/20 hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-50"
                 >
                   {savingBenefit ? "Guardando..." : (editingBenefit ? "Guardar Cambios" : "Crear Beneficio")}
                 </button>
