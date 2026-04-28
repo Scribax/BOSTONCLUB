@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { View, Text, ScrollView, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl, Image, Modal, Animated, useWindowDimensions } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { Crown, Star, Flame, Ticket, ArrowRight, User as UserIcon, MapPin, CreditCard, Gift, QrCode, History, X, Calendar, TrendingUp } from 'lucide-react-native';
+import { Crown, Star, Flame, Ticket, ArrowRight, User as UserIcon, MapPin, CreditCard, Gift, QrCode, History, X, Calendar, TrendingUp, Zap } from 'lucide-react-native';
 import api, { getAuthToken, logout } from '../../lib/api';
 import { StatusBar } from 'expo-status-bar';
 import * as Device from 'expo-device';
@@ -489,11 +489,15 @@ export default function DashboardScreen() {
                       </View>
                       
                       <View>
-                         <Text className="text-white/40 font-black text-[10px] uppercase tracking-widest mb-1 italic">NIVEL</Text>
-                         <Text className="text-white text-3xl font-black uppercase italic tracking-tighter leading-none">
-                            {user.membershipLevel.toUpperCase()}
-                         </Text>
-                         <StreakBadge streak={user.streak || 0} />
+                          <View className="flex-row items-center">
+                            <Text className="text-white/40 font-black text-[10px] uppercase tracking-widest mb-1 italic">NIVEL</Text>
+                          </View>
+                          <Text className="text-white text-3xl font-black uppercase italic tracking-tighter leading-none">
+                             {user.membershipLevel.toUpperCase()}
+                          </Text>
+                          <TouchableOpacity onPress={() => router.push('/club-info')} activeOpacity={0.7}>
+                            <StreakBadge streak={user.streak || 0} />
+                          </TouchableOpacity>
                          <View className="flex-row items-center mt-2">
                             <View className="h-[1px] flex-1 bg-boston-red/30" />
                             <Star size={8} color="white" fill="white" className="mx-2" />
@@ -569,6 +573,37 @@ export default function DashboardScreen() {
                 </View>
              </TouchableOpacity>
           </FadeInView>
+           {/* Premium Guide Banner */}
+           <FadeInView delay={600} className="px-6 mt-8">
+              <TouchableOpacity 
+                activeOpacity={0.9}
+                onPress={() => router.push('/club-info')}
+                className="relative overflow-hidden"
+              >
+                 <LinearGradient
+                   colors={['#D4AF37', '#8A6D3B']}
+                   start={{ x: 0, y: 0 }}
+                   end={{ x: 1, y: 0 }}
+                   style={{ borderRadius: 24, padding: 1, overflow: 'hidden' }}
+                 >
+                    <View className="bg-black/90 rounded-[23px] p-5 flex-row items-center justify-between">
+                       <View className="flex-row items-center flex-1">
+                          <View className="w-12 h-12 rounded-2xl bg-boston-gold/10 items-center justify-center border border-boston-gold/20 mr-4">
+                             <Zap size={24} color="#D4AF37" />
+                          </View>
+                          <View className="flex-1">
+                             <Text className="text-white font-black uppercase text-[11px] tracking-widest italic">¿Cómo sumar más puntos?</Text>
+                             <Text className="text-boston-gold font-bold text-[8px] uppercase tracking-tighter mt-0.5">Domina el Club Boston y gana premios</Text>
+                          </View>
+                       </View>
+                       <View className="bg-boston-gold px-4 py-2 rounded-xl">
+                          <ArrowRight size={14} color="black" />
+                       </View>
+                    </View>
+                 </LinearGradient>
+              </TouchableOpacity>
+           </FadeInView>
+
           {/* New Premium Action Grid */}
         <View className="px-6 mt-12">
            <View className="flex-row items-center justify-center mb-8">
