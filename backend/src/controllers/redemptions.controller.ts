@@ -51,7 +51,17 @@ export const generateRedemptionQR = async (req: any, res: Response): Promise<voi
         return;
       }
 
-      const pendingRedemptions = await prisma.redemption.findMany({
+    // AUTO-CLEANUP: Mark expired PENDING redemptions as EXPIRED/CANCELLED before checking points
+    await prisma.redemption.updateMany({
+      where: {
+        userId,
+        status: "PENDING",
+        expiresAt: { lte: new Date() }
+      },
+      data: { status: "CANCELLED" }
+    });
+
+    const pendingRedemptions = await prisma.redemption.findMany({
         where: {
           userId,
           status: "PENDING",
@@ -402,5 +412,39 @@ export const getScannerHistory = async (req: Request, res: Response): Promise<vo
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server Error fetching scanner history" });
+  }
+};
+
+// User: Get active (pending and not expired) redemption for the dashboard
+export const getActiveRedemption = async (req: any, res: Response): Promise<void> => {
+  try {
+    const userId = req.user.id;
+    const active = await prisma.redemption.findFirst({
+      where: {
+        userId,
+        status: "PENDING",
+        expiresAt: { gt: new Date() }
+      },
+      include: {
+        reward: { select: { name: true } },
+        event: { select: { title: true } },
+        vipBenefit: { select: { title: true } }
+      }
+    });
+
+    if (!active) {
+      res.json(null);
+      return;
+    }
+
+    res.json({
+      id: active.id,
+      qrToken: active.qrToken,
+      expiresAt: active.expiresAt,
+      title: active.reward?.name || active.vipBenefit?.title || active.event?.title || "Canje pendiente"
+    });
+  } catch (error) {
+    console.error("Error fetching active redemption:", error);
+    res.status(500).json({ message: "Server Error" });
   }
 };

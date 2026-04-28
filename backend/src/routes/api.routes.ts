@@ -2,7 +2,7 @@ import { Router } from "express";
 import { authenticate, requireAdmin } from "../middlewares/auth";
 import { addPoints, getMyPointsHistory } from "../controllers/points.controller";
 import { getAllRewards, createReward, deleteReward, updateReward, reorderRewards } from "../controllers/rewards.controller";
-import { generateRedemptionQR, confirmRedemption, getRedemptionStatus, cancelRedemption, getScannerHistory } from "../controllers/redemptions.controller";
+import { generateRedemptionQR, confirmRedemption, getRedemptionStatus, cancelRedemption, getScannerHistory, getActiveRedemption } from "../controllers/redemptions.controller";
 import { getAllEvents, createEvent, deleteEvent, notifyEvent, updateEvent, reorderEvents } from "../controllers/events.controller";
 import { getAllUsers, adjustPoints, toggleBlockUser, deleteUser, toggleVipRewardStatus, getUserHistory, getUserReferrals } from "../controllers/users.controller";
 import { getAdminStats, exportAudits } from "../controllers/admin.controller";
@@ -34,6 +34,7 @@ router.delete("/rewards/:id", authenticate, requireAdmin, deleteReward);
 router.post("/redemptions/generate", authenticate, generateRedemptionQR);
 router.post("/redemptions/confirm", authenticate, requireAdmin, confirmRedemption);
 router.post("/redemptions/cancel", authenticate, cancelRedemption);
+router.get("/redemptions/active", authenticate, getActiveRedemption);
 router.get("/redemptions/status/:qrToken", getRedemptionStatus);
 router.get("/redemptions/history", authenticate, requireAdmin, getScannerHistory);
 

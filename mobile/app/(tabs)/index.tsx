@@ -199,12 +199,24 @@ export default function DashboardScreen() {
     return `${rootUrl}${cleanUrl}`;
   };
 
+  const [activeRedemption, setActiveRedemption] = useState<any>(null);
+
+  const fetchActiveRedemption = async () => {
+    try {
+      const res = await api.get('/redemptions/active');
+      setActiveRedemption(res.data);
+    } catch (err) {
+      console.error('Error fetching active redemption', err);
+    }
+  };
+
   useFocusEffect(
     useCallback(() => {
       setIsScreenFocused(true);
       loadProfile().then(() => {
         // Ejecutar petición de notificaciones luego de cargar usuario (si no es Expo Go)
         registerForPushNotificationsAsync();
+        fetchActiveRedemption();
       });
       return () => {
         setIsScreenFocused(false); // Pause video when leaving this tab
@@ -422,6 +434,33 @@ export default function DashboardScreen() {
              </View>
           </View>
         </View>
+
+        {/* Active Ticket Banner - New Dynamic Component */}
+        {activeRedemption && (
+          <FadeInView className="px-6 -mt-8 mb-4 z-[60]">
+            <TouchableOpacity 
+              activeOpacity={0.9}
+              onPress={() => router.push({
+                pathname: '/reward-qr',
+                params: { token: activeRedemption.qrToken, reward: activeRedemption.title }
+              })}
+              className="bg-boston-gold rounded-[2rem] p-5 flex-row items-center shadow-2xl shadow-boston-gold/20"
+            >
+              <View className="w-12 h-12 rounded-2xl bg-black items-center justify-center mr-4">
+                <QrCode size={24} color="#D4AF37" />
+              </View>
+              <View className="flex-1">
+                <Text className="text-black font-black text-[9px] uppercase tracking-[0.2em] mb-1">Tienes un canje listo</Text>
+                <Text className="text-black font-black text-xl italic uppercase tracking-tighter" numberOfLines={1}>
+                  {activeRedemption.title}
+                </Text>
+              </View>
+              <View className="w-10 h-10 rounded-full bg-black/10 items-center justify-center">
+                <ArrowRight size={20} color="black" />
+              </View>
+            </TouchableOpacity>
+          </FadeInView>
+        )}
 
         {/* Floating Tier Card - New Skeuomorphic Style */}
           <FadeInView delay={500} className="px-6 -mt-12 z-50">
