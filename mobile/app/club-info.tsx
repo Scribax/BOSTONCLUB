@@ -191,7 +191,7 @@ export default function ClubInfoScreen() {
                         colors={[GOLD, '#FF3B30']}
                         start={{ x: 0, y: 0.5 }}
                         end={{ x: 1, y: 0.5 }}
-                        style={{ width: progressWidth, height: '100%', borderRadius: 10 }}
+                        style={{ width: progressWidth as any, height: '100%', borderRadius: 10 }}
                      />
                   </View>
 

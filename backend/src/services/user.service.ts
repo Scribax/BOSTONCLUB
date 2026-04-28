@@ -8,8 +8,8 @@
 const STREAK_WINDOW_DAYS = 8;
 const STREAK_INCREMENT_MIN_DAYS = 1;
 
-// Sources that are eligible for streak tracking (Visits/Check-ins only)
-const STREAK_ELIGIBLE_SOURCES = ['QR_CHECKIN', 'DAILY_CHECKIN'];
+// Sources that are eligible for streak tracking (Visits/Check-ins/Purchases)
+const STREAK_ELIGIBLE_SOURCES = ['QR_CHECKIN', 'DAILY_CHECKIN', 'COMPRA_POSNET'];
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
 export function calcStreakMultiplier(streak: number): number {

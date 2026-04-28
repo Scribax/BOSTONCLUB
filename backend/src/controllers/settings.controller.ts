@@ -127,8 +127,6 @@ export const updateSettings = async (req: Request, res: Response): Promise<void>
     });
 
     res.json(settings);
-
-    res.json(settings);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server Error" });

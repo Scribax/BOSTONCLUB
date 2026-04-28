@@ -6,7 +6,7 @@ import api, { getAuthToken, logout } from '../../lib/api';
 import { StatusBar } from 'expo-status-bar';
 import * as Device from 'expo-device';
 import Constants from 'expo-constants';
-import { Platform, Dimensions, LogBox } from 'react-native';
+import { Platform, Dimensions, LogBox, Alert } from 'react-native';
 import { initNotifications, registerForPushNotificationsAsync } from '../../lib/notificationHelper';
 import { VideoPlayer } from '../../components/VideoPlayer';
 import { FadeInView } from '../../components/FadeInView';
