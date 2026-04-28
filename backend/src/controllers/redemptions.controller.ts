@@ -165,17 +165,17 @@ export const generateRedemptionQR = async (req: any, res: Response): Promise<voi
           return;
         }
       } else if (benefit.redemptionPolicy === "ONCE_PER_NIGHT") {
-        const twelveHoursAgo = new Date(Date.now() - 12 * 60 * 60 * 1000);
+        const sixteenHoursAgo = new Date(Date.now() - 16 * 60 * 60 * 1000);
         const existing = await prisma.redemption.findFirst({
           where: {
             userId,
             vipBenefitId,
-            createdAt: { gte: twelveHoursAgo },
+            createdAt: { gte: sixteenHoursAgo },
             status: { in: ["PENDING", "COMPLETED"] }
           }
         });
         if (existing) {
-          res.status(400).json({ message: "Ya usaste este beneficio esta noche. Vuelve mañana 🌙" });
+          res.status(400).json({ message: "Ya usaste este beneficio recientemente. Vuelve más tarde." });
           return;
         }
       }
