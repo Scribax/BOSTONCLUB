@@ -210,13 +210,19 @@ export const confirmRedemption = async (req: Request, res: Response): Promise<vo
     }
 
     if (redemption.status !== "PENDING") {
-      res.status(400).json({ message: "QR already used" });
+      res.status(400).json({ message: "Este QR ya fue utilizado anteriormente." });
       return;
     }
 
     if (redemption.expiresAt && redemption.expiresAt < new Date()) {
-      res.status(400).json({ message: "QR Token expired" });
+      res.status(400).json({ message: "Este QR ha expirado. El usuario debe generar uno nuevo." });
       return;
+    }
+
+    // Security: Ensure user is still verified at the moment of scan
+    if (!redemption.user.isEmailVerified) {
+       res.status(403).json({ message: "El usuario debe verificar su email antes de realizar canjes." });
+       return;
     }
 
     const staff = await prisma.user.findUnique({ where: { id: staffId }, select: { firstName: true, lastName: true } });

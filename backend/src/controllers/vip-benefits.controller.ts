@@ -73,17 +73,19 @@ export const getMyVipBenefits = async (req: Request, res: Response) => {
           lockReason = "Ya canjeaste este beneficio";
         }
       } else if (benefit.redemptionPolicy === "ONCE_PER_NIGHT") {
+        // Use 16h window to cover a full night and prevent double dipping at midnight
+        const sixteenHoursAgo = new Date(Date.now() - 16 * 60 * 60 * 1000);
         const usedTonight = await prisma.redemption.findFirst({
           where: {
             userId,
             vipBenefitId: benefit.id,
-            createdAt: { gte: twelveHoursAgo },
+            createdAt: { gte: sixteenHoursAgo },
             status: { in: ["PENDING", "COMPLETED"] }
           }
         });
         if (usedTonight) {
           isLocked = true;
-          lockReason = "Canjeado · Disponible mañana";
+          lockReason = "Ya usado · Vuelve más tarde";
         }
       }
 

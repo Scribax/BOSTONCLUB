@@ -87,6 +87,9 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       });
       if (referrer) {
         referredById = referrer.id;
+      } else {
+        res.status(400).json({ message: "Código de referido inválido." });
+        return;
       }
     }
 

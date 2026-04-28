@@ -437,7 +437,7 @@ export default function DashboardScreen() {
 
         {/* Active Ticket Banner - New Dynamic Component */}
         {activeRedemption && (
-          <FadeInView className="px-6 -mt-8 mb-4 z-[60]">
+          <FadeInView className="px-6 mt-4 mb-2 z-[60]">
             <TouchableOpacity 
               activeOpacity={0.9}
               onPress={() => router.push({
@@ -463,7 +463,7 @@ export default function DashboardScreen() {
         )}
 
         {/* Floating Tier Card - New Skeuomorphic Style */}
-          <FadeInView delay={500} className="px-6 -mt-12 z-50">
+          <FadeInView delay={500} className="px-6 mt-4 z-50">
              <TouchableOpacity 
                activeOpacity={0.9}
                onPress={() => { setShowBenefits(true); fetchVipBenefits(); }}
