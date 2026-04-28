@@ -200,7 +200,7 @@ export default function AdminDashboard() {
                 const endDate = (document.getElementById('endDate') as HTMLInputElement).value;
                 
                 try {
-                  const token = localStorage.getItem("token");
+                  const token = localStorage.getItem("boston_club_token");
                   let url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api'}/admin/export`;
                   if (startDate && endDate) {
                     url += `?startDate=${startDate}&endDate=${endDate}`;
