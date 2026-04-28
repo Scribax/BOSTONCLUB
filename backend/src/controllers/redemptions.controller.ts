@@ -319,11 +319,30 @@ export const confirmRedemption = async (req: Request, res: Response): Promise<vo
       });
     }
 
+    // Smart ID check: Only alert if reward is adult-only AND user is younger than 25
+    let requiresIdCheck = false;
+    if (redemption.reward?.isAdultOnly) {
+      const birthDate = redemption.user.birthDate ? new Date(redemption.user.birthDate) : null;
+      if (birthDate) {
+        const today = new Date();
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const m = today.getMonth() - birthDate.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
+        
+        if (age < 25) {
+          requiresIdCheck = true;
+        }
+      } else {
+        // No birthdate on record? Better check ID just in case
+        requiresIdCheck = true;
+      }
+    }
+
     res.json({ 
       message: "¡Canje confirmado con éxito!",
       type: redemption.rewardId ? 'REWARD' : (redemption.vipBenefitId ? 'VIP_BENEFIT' : 'PROMO'),
       details: redemption.reward?.name || redemption.vipBenefit?.title || redemption.event?.title,
-      requiresIdCheck: redemption.reward?.isAdultOnly || false
+      requiresIdCheck
     });
   } catch (error) {
     console.error(error);
