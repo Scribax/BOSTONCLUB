@@ -5,7 +5,7 @@ import { getAllRewards, createReward, deleteReward, updateReward, reorderRewards
 import { generateRedemptionQR, confirmRedemption, getRedemptionStatus, cancelRedemption, getScannerHistory } from "../controllers/redemptions.controller";
 import { getAllEvents, createEvent, deleteEvent, notifyEvent, updateEvent, reorderEvents } from "../controllers/events.controller";
 import { getAllUsers, adjustPoints, toggleBlockUser, deleteUser, toggleVipRewardStatus, getUserHistory, getUserReferrals } from "../controllers/users.controller";
-import { getAdminStats } from "../controllers/admin.controller";
+import { getAdminStats, exportAudits } from "../controllers/admin.controller";
 import { generatePromoToken, claimPromoToken } from "../controllers/promo.controller";
 import { getSettings, updateSettings, uploadVideo, upload } from "../controllers/settings.controller";
 import { handleMediaUpload, uploadMedia } from "../controllers/media.controller";
@@ -57,6 +57,7 @@ router.delete("/users/:id", authenticate, requireAdmin, deleteUser);
 
 // Admin Stats
 router.get("/admin/stats", authenticate, requireAdmin, getAdminStats);
+router.get("/admin/export", authenticate, requireAdmin, exportAudits);
 
 // Promo Tokens
 router.post("/promo/generate", authenticate, requireAdmin, generatePromoToken);

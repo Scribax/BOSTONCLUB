@@ -167,6 +167,72 @@ export default function AdminDashboard() {
            </div>
          )}
       </div>
+
+      {/* Export Section */}
+      <div className="mt-8 glass-panel p-8 rounded-[2.5rem] border border-white/5">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+          <div>
+            <h3 className="text-white font-black tracking-widest uppercase text-lg mb-1">Exportar Auditoría</h3>
+            <p className="text-white/40 text-xs">Descarga todos los movimientos en formato Excel/CSV</p>
+          </div>
+          
+          <div className="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto">
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <span className="text-[10px] uppercase font-black text-white/30 tracking-widest">Desde</span>
+              <input 
+                type="date" 
+                id="startDate"
+                className="bg-black border border-white/10 rounded-xl px-4 py-2 text-white text-sm outline-none focus:border-boston-gold transition-colors"
+              />
+            </div>
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <span className="text-[10px] uppercase font-black text-white/30 tracking-widest">Hasta</span>
+              <input 
+                type="date" 
+                id="endDate"
+                className="bg-black border border-white/10 rounded-xl px-4 py-2 text-white text-sm outline-none focus:border-boston-gold transition-colors"
+              />
+            </div>
+            
+            <button 
+              onClick={async () => {
+                const startDate = (document.getElementById('startDate') as HTMLInputElement).value;
+                const endDate = (document.getElementById('endDate') as HTMLInputElement).value;
+                
+                try {
+                  const token = localStorage.getItem("token");
+                  let url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api'}/admin/export`;
+                  if (startDate && endDate) {
+                    url += `?startDate=${startDate}&endDate=${endDate}`;
+                  }
+                  
+                  const response = await fetch(url, {
+                    headers: { Authorization: `Bearer ${token}` }
+                  });
+                  
+                  if (!response.ok) throw new Error("Error exporting");
+                  
+                  const blob = await response.blob();
+                  const downloadUrl = window.URL.createObjectURL(blob);
+                  const a = document.createElement("a");
+                  a.href = downloadUrl;
+                  a.download = `auditoria_movimientos_${new Date().toISOString().split('T')[0]}.csv`;
+                  document.body.appendChild(a);
+                  a.click();
+                  a.remove();
+                  window.URL.revokeObjectURL(downloadUrl);
+                } catch (err) {
+                  console.error(err);
+                  alert("Error al exportar los datos.");
+                }
+              }}
+              className="w-full sm:w-auto bg-boston-gold text-black px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest hover:brightness-110 transition-all flex justify-center items-center gap-2"
+            >
+              <Ticket className="w-4 h-4" /> Exportar CSV
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

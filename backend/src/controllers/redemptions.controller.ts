@@ -209,6 +209,9 @@ export const confirmRedemption = async (req: Request, res: Response): Promise<vo
       return;
     }
 
+    const staff = await prisma.user.findUnique({ where: { id: staffId }, select: { firstName: true, lastName: true } });
+    const staffName = staff ? `${staff.firstName} ${staff.lastName}` : "Staff";
+
     // Reward-specific logic (Deduct points)
     if (redemption.rewardId && redemption.reward) {
       await prisma.$transaction(async (tx) => {
@@ -236,7 +239,7 @@ export const confirmRedemption = async (req: Request, res: Response): Promise<vo
             userId: redemption.userId,
             pointsGained: -redemption.reward!.pointsRequired,
             source: "ADMIN",
-            description: `Canje de premio: ${redemption.reward!.name}`
+            description: `Canje de premio: ${redemption.reward!.name} (Staff: ${staffName})`
           }
         });
       });
@@ -252,7 +255,7 @@ export const confirmRedemption = async (req: Request, res: Response): Promise<vo
             userId: redemption.userId,
             pointsGained: 0,
             source: "CANJE_PROMO",
-            description: `Beneficio canjeado: ${redemption.event.title}`
+            description: `Beneficio canjeado: ${redemption.event.title} (Staff: ${staffName})`
           }
         })
       ]);
@@ -268,7 +271,7 @@ export const confirmRedemption = async (req: Request, res: Response): Promise<vo
             userId: redemption.userId,
             pointsGained: 0,
             source: "CANJE_VIP",
-            description: `Beneficio VIP canjeado: ${redemption.vipBenefit.title}`
+            description: `Beneficio VIP canjeado: ${redemption.vipBenefit.title} (Staff: ${staffName})`
           }
         })
       ]);
