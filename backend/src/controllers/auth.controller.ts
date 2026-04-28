@@ -31,7 +31,7 @@ const generateReferralCode = () => {
 export const register = async (req: Request, res: Response): Promise<void> => {
   try {
     const { dni, firstName, lastName, password, whatsapp, birthDate, referralCode: incomingReferralCode } = req.body;
-    const email = req.body.email?.toLowerCase().trim();
+    const email = (req.body.email || "").toLowerCase().trim();
 
     if (!whatsapp || whatsapp.trim() === "") {
         res.status(400).json({ message: "El WhatsApp es obligatorio para el registro." });

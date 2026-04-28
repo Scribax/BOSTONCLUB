@@ -51,8 +51,25 @@ export const generateRedemptionQR = async (req: any, res: Response): Promise<voi
         return;
       }
 
-      if (user.points < reward.pointsRequired) {
-        res.status(400).json({ message: "Not enough points" });
+      const pendingRedemptions = await prisma.redemption.findMany({
+        where: {
+          userId,
+          status: "PENDING",
+          expiresAt: { gt: new Date() },
+          rewardId: { not: null }
+        },
+        include: { reward: true }
+      });
+
+      const pendingPoints = pendingRedemptions.reduce((sum, r) => sum + (r.reward?.pointsRequired || 0), 0);
+      const totalPointsNeeded = pendingPoints + reward.pointsRequired;
+
+      if (user.points < totalPointsNeeded) {
+        if (pendingPoints > 0 && user.points >= reward.pointsRequired) {
+          res.status(400).json({ message: "Ya tienes códigos QR pendientes. Cancélalos o úsalos antes de generar más." });
+        } else {
+          res.status(400).json({ message: "No tienes puntos suficientes." });
+        }
         return;
       }
 

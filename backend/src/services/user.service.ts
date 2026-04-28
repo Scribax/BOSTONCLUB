@@ -5,7 +5,7 @@
  */
 
 // ─── Constants ─────────────────────────────────────────────────────────────
-const STREAK_WINDOW_DAYS = 14;
+const STREAK_WINDOW_DAYS = 8;
 const STREAK_INCREMENT_MIN_DAYS = 1;
 
 // Sources that are eligible for streak tracking
