@@ -41,7 +41,8 @@ model User {
   notifications           Notification[]
   pointHistory            PointHistory[]
   posTransactions         PosTransaction[]
-  redemptions             Redemption[]
+  redemptions             Redemption[]     @relation("UserRedemptions")
+  scannedRedemptions      Redemption[]     @relation("StaffRedemptions")
   visits                  Visit[]
 }
 
@@ -84,7 +85,9 @@ model Redemption {
   reward       Reward?     @relation(fields: [rewardId], references: [id])
   event        Event?      @relation(fields: [eventId], references: [id])
   vipBenefit   VipBenefit? @relation(fields: [vipBenefitId], references: [id])
-  user         User        @relation(fields: [userId], references: [id])
+  user         User        @relation("UserRedemptions", fields: [userId], references: [id])
+  scannedById  String?
+  scannedBy    User?       @relation("StaffRedemptions", fields: [scannedById], references: [id])
 }
 
 model VipBenefit {

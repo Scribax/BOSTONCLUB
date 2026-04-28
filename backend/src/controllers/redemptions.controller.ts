@@ -187,6 +187,7 @@ export const generateRedemptionQR = async (req: any, res: Response): Promise<voi
 export const confirmRedemption = async (req: Request, res: Response): Promise<void> => {
   try {
     const { qrToken } = req.body;
+    const staffId = (req as any).user?.userId || (req as any).user?.id;
 
     const redemption = await prisma.redemption.findUnique({
       where: { qrToken },
@@ -226,7 +227,7 @@ export const confirmRedemption = async (req: Request, res: Response): Promise<vo
         // 3. Mark as completed
         await tx.redemption.update({
           where: { id: redemption.id },
-          data: { status: "COMPLETED" }
+          data: { status: "COMPLETED", scannedById: staffId }
         });
 
         // 4. Create history
@@ -244,7 +245,7 @@ export const confirmRedemption = async (req: Request, res: Response): Promise<vo
       await prisma.$transaction([
         prisma.redemption.update({
           where: { id: redemption.id },
-          data: { status: "COMPLETED" }
+          data: { status: "COMPLETED", scannedById: staffId }
         }),
         prisma.pointHistory.create({
           data: {
@@ -260,7 +261,7 @@ export const confirmRedemption = async (req: Request, res: Response): Promise<vo
       await prisma.$transaction([
         prisma.redemption.update({
           where: { id: redemption.id },
-          data: { status: "COMPLETED" }
+          data: { status: "COMPLETED", scannedById: staffId }
         }),
         prisma.pointHistory.create({
           data: {
@@ -348,5 +349,42 @@ export const cancelRedemption = async (req: any, res: Response): Promise<void> =
   } catch (error) {
     console.error("Error cancelling redemption:", error);
     res.status(500).json({ message: "Server Error" });
+  }
+};
+
+// Admin: Get history of scanned redemptions (tonight or overall)
+export const getScannerHistory = async (req: Request, res: Response): Promise<void> => {
+  try {
+    // Return all completed redemptions from the last 24 hours
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+    const history = await prisma.redemption.findMany({
+      where: {
+        status: "COMPLETED",
+        updatedAt: { gte: twentyFourHoursAgo }
+      },
+      include: {
+        user: { select: { firstName: true, lastName: true, email: true } },
+        scannedBy: { select: { firstName: true, lastName: true } },
+        reward: true,
+        event: true,
+        vipBenefit: true
+      },
+      orderBy: { updatedAt: 'desc' }
+    });
+
+    const formattedHistory = history.map(h => ({
+      id: h.id,
+      time: h.updatedAt,
+      scannedByName: h.scannedBy ? `${h.scannedBy.firstName} ${h.scannedBy.lastName}` : 'Sistema',
+      userName: `${h.user.firstName} ${h.user.lastName}`,
+      type: h.rewardId ? 'REWARD' : (h.vipBenefitId ? 'VIP_BENEFIT' : 'PROMO'),
+      details: h.reward?.name || h.vipBenefit?.title || h.event?.title || 'Premio desconocido'
+    }));
+
+    res.json(formattedHistory);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server Error fetching scanner history" });
   }
 };
