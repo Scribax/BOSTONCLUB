@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   ArrowLeft, Save, Crown, MessageSquare, ListCheck, Loader2, Users, 
@@ -171,7 +171,7 @@ export default function VipSettingsPage() {
     ONCE_PER_NIGHT: "Una vez por noche (12hs)",
     UNLIMITED: "Ilimitado",
   };
-  const policyIcon: Record<string, JSX.Element> = {
+  const policyIcon: Record<string, React.ReactElement> = {
     ONCE_TOTAL: <Shield className="w-3 h-3" />,
     ONCE_PER_NIGHT: <RefreshCcw className="w-3 h-3" />,
     UNLIMITED: <Zap className="w-3 h-3" />,
