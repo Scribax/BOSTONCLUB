@@ -43,20 +43,25 @@ export const register = async (req: Request, res: Response): Promise<void> => {
         return;
     }
 
-    if (!/^\d{1,8}$/.test(dni)) {
+    // Sanitize DNI (ensure only numbers)
+    const sanitizedDni = dni.toString().replace(/\D/g, '');
+
+    if (!sanitizedDni || sanitizedDni.length > 8) {
       res.status(400).json({ message: "DNI inválido. Debe contener solo números (máximo 8)." });
       return;
     }
 
     const existingUser = await prisma.user.findFirst({
-      where: { OR: [{ dni }, { email }, { whatsapp }] }
+      where: { OR: [{ dni: sanitizedDni }, { email }, { whatsapp }] }
     });
     
     if (existingUser) {
        if (existingUser.whatsapp === whatsapp) {
          res.status(400).json({ message: "Este número de WhatsApp ya está registrado." });
+       } else if (existingUser.dni === sanitizedDni) {
+         res.status(400).json({ message: "Este DNI ya está registrado." });
        } else {
-         res.status(400).json({ message: "El DNI o Email ya están registrados." });
+         res.status(400).json({ message: "Este email ya está registrado." });
        }
        return;
     }
@@ -244,6 +249,16 @@ export const resendVerificationCode = async (req: AuthRequest, res: Response): P
     if (user.isEmailVerified) {
       res.status(400).json({ message: "El email ya está verificado" });
       return;
+    }
+
+    // Anti-Spam: Check if a code was sent recently (60s cooldown)
+    if (user.verificationCodeExpires) {
+      const lastSent = new Date(user.verificationCodeExpires.getTime() - 24 * 60 * 60 * 1000);
+      const secondsSinceLast = (Date.now() - lastSent.getTime()) / 1000;
+      if (secondsSinceLast < 60) {
+        res.status(429).json({ message: `Espera ${Math.round(60 - secondsSinceLast)} segundos para reenviar.` });
+        return;
+      }
     }
 
     const verificationCode = generateSixDigitCode();
@@ -481,7 +496,19 @@ export const updateMe = async (req: AuthRequest, res: Response): Promise<void> =
       return;
     }
 
-    const updateData: any = { whatsapp };
+    const updateData: any = {};
+
+    // Security: If WhatsApp changes, check for uniqueness
+    if (whatsapp && whatsapp.trim() !== current.whatsapp) {
+      const existingWh = await prisma.user.findFirst({ 
+        where: { whatsapp: whatsapp.trim(), id: { not: current.id } } 
+      });
+      if (existingWh) {
+        res.status(400).json({ message: "Este número de WhatsApp ya está registrado por otro usuario." });
+        return;
+      }
+      updateData.whatsapp = whatsapp.trim();
+    }
 
     // Security: If email changes, force re-verification
     if (newEmail && newEmail.toLowerCase().trim() !== current.email.toLowerCase().trim()) {
