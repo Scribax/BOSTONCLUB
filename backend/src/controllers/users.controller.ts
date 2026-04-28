@@ -68,13 +68,12 @@ export const adjustPoints = async (req: Request, res: Response): Promise<void> =
       select: { points: true }
     });
 
-    const updateData = mode === "set" 
-      ? { points: points }           // Set to absolute value
-      : { points: { increment: points } }; // Increment/Decrement
+    const newPointsValue = mode === "set" ? points : (currentUser?.points ?? 0) + points;
+    const finalPointsValue = Math.max(0, newPointsValue); // Prevent negative points
 
     let user = await prisma.user.update({
       where: { id: id as string },
-      data: updateData,
+      data: { points: finalPointsValue },
     });
 
     // Check for level upgrade
@@ -89,18 +88,16 @@ export const adjustPoints = async (req: Request, res: Response): Promise<void> =
       }
     }
 
-    // Log in history — in "set" mode record the actual change
-    const historyDelta = mode === "set"
-      ? points - (currentUser?.points ?? 0)  // Real delta
-      : points;                               // Already a delta
+    // Log in history — record the real change
+    const actualDelta = user.points - (currentUser?.points ?? 0);
 
-    if (historyDelta !== 0) {
+    if (actualDelta !== 0) {
       await prisma.pointHistory.create({
         data: {
           userId: id as string,
-          pointsGained: historyDelta,
+          pointsGained: actualDelta,
           source: "ADMIN",
-          description: reason || (historyDelta > 0 ? "Puntos agregados por Admin" : "Puntos deducidos por Admin"),
+          description: reason || (actualDelta > 0 ? "Puntos agregados por Admin" : "Puntos deducidos por Admin"),
         },
       });
     }

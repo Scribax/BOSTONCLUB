@@ -235,8 +235,18 @@ export const confirmRedemption = async (req: Request, res: Response): Promise<vo
         return;
       }
       await prisma.$transaction(async (tx) => {
-        // 1 & 2. Atomic check and deduction
-        const updated = await tx.user.updateMany({
+        // 1. Mark as completed ONLY if it is still pending (Atomic update)
+        const updateResult = await tx.redemption.updateMany({
+          where: { id: redemption.id, status: "PENDING" },
+          data: { status: "COMPLETED", scannedById: staffId }
+        });
+
+        if (updateResult.count === 0) {
+          throw new Error("Este QR ya fue procesado o no es válido.");
+        }
+
+        // 2. Deduct points atomically
+        const userUpdate = await tx.user.updateMany({
           where: { 
             id: redemption.userId,
             points: { gte: redemption.reward!.pointsRequired }
@@ -244,17 +254,11 @@ export const confirmRedemption = async (req: Request, res: Response): Promise<vo
           data: { points: { decrement: redemption.reward!.pointsRequired } }
         });
 
-        if (updated.count === 0) {
-          throw new Error("Puntos insuficientes para este canje");
+        if (userUpdate.count === 0) {
+          throw new Error("El usuario no tiene puntos suficientes para completar este canje.");
         }
 
-        // 3. Mark as completed
-        await tx.redemption.update({
-          where: { id: redemption.id },
-          data: { status: "COMPLETED", scannedById: staffId }
-        });
-
-        // 4. Create history
+        // 3. Create history
         await tx.pointHistory.create({
           data: {
             userId: redemption.userId,
@@ -270,40 +274,49 @@ export const confirmRedemption = async (req: Request, res: Response): Promise<vo
         return;
       }
       // Promo-specific logic
-      await prisma.$transaction([
-        prisma.redemption.update({
-          where: { id: redemption.id },
+      await prisma.$transaction(async (tx) => {
+        const updateResult = await tx.redemption.updateMany({
+          where: { id: redemption.id, status: "PENDING" },
           data: { status: "COMPLETED", scannedById: staffId }
-        }),
-        prisma.pointHistory.create({
+        });
+
+        if (updateResult.count === 0) {
+          throw new Error("Este QR ya fue procesado.");
+        }
+
+        await tx.pointHistory.create({
           data: {
             userId: redemption.userId,
             pointsGained: 0,
             source: "CANJE_PROMO",
-            description: `Beneficio canjeado: ${redemption.event.title} (Staff: ${staffName})`
+            description: `Beneficio canjeado: ${redemption.event!.title} (Staff: ${staffName})`
           }
-        })
-      ]);
+        });
+      });
     } else if (redemption.vipBenefitId) {
       if (!redemption.vipBenefit) {
         res.status(404).json({ message: "Este beneficio VIP ya no está disponible." });
         return;
       }
-      // VIP Benefit - just mark as completed, log history
-      await prisma.$transaction([
-        prisma.redemption.update({
-          where: { id: redemption.id },
+      await prisma.$transaction(async (tx) => {
+        const updateResult = await tx.redemption.updateMany({
+          where: { id: redemption.id, status: "PENDING" },
           data: { status: "COMPLETED", scannedById: staffId }
-        }),
-        prisma.pointHistory.create({
+        });
+
+        if (updateResult.count === 0) {
+          throw new Error("Este QR ya fue procesado.");
+        }
+
+        await tx.pointHistory.create({
           data: {
             userId: redemption.userId,
             pointsGained: 0,
             source: "CANJE_VIP",
-            description: `Beneficio VIP canjeado: ${redemption.vipBenefit.title} (Staff: ${staffName})`
+            description: `Beneficio VIP canjeado: ${redemption.vipBenefit!.title} (Staff: ${staffName})`
           }
-        })
-      ]);
+        });
+      });
     }
 
     res.json({ 
