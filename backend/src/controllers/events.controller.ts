@@ -48,9 +48,7 @@ export const getAllEvents = async (req: Request, res: Response): Promise<void> =
         whereClause.isAdultOnly = false;
      }
 
-     if (!isAdmin) {
-       whereClause.isActive = true; // Non-admins never see soft-deleted events
-     }
+     whereClause.isActive = true; 
 
      const { type } = req.query;
      if (type) {
