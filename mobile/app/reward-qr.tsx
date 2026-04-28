@@ -41,13 +41,32 @@ export default function RewardQRScreen() {
     );
   };
 
+  const [isCompleted, setIsCompleted] = useState(false);
+
   useEffect(() => {
     Animated.timing(fadeAnim, {
       toValue: 1,
       duration: 500,
       useNativeDriver: true,
     }).start();
-  }, []);
+
+    // Polling logic to check if admin scanned the QR
+    if (token && !isCompleted) {
+      const interval = setInterval(async () => {
+        try {
+          const res = await api.get(`/redemptions/status/${token}`);
+          if (res.data?.status === 'COMPLETED') {
+            setIsCompleted(true);
+            clearInterval(interval);
+          }
+        } catch (err) {
+          console.error("Error checking status", err);
+        }
+      }, 3000); // Check every 3 seconds
+
+      return () => clearInterval(interval);
+    }
+  }, [token, isCompleted]);
 
   if (!token) {
     return (
@@ -86,34 +105,43 @@ export default function RewardQRScreen() {
                  <View className="absolute -right-6 top-1/2 w-12 h-12 bg-[#050505] rounded-full border border-boston-gold/20" />
                  
                  <View className="flex-row items-center w-full mb-8">
-                   <View className="w-12 h-12 bg-green-500/20 rounded-full items-center justify-center mr-4 border border-green-500/30">
-                     <CheckCircle2 size={24} color="#22c55e" />
+                   <View className={`w-12 h-12 rounded-full items-center justify-center mr-4 border ${isCompleted ? 'bg-green-500/20 border-green-500/30' : 'bg-boston-gold/20 border-boston-gold/30'}`}>
+                     {isCompleted ? <CheckCircle2 size={24} color="#22c55e" /> : <Ticket size={24} color="#D4AF37" />}
                    </View>
                    <View className="flex-1">
-                     <Text className="text-[10px] text-green-400 font-bold uppercase tracking-widest leading-none mb-1">
-                       Canje Aprobado
+                     <Text className={`text-[10px] font-bold uppercase tracking-widest leading-none mb-1 ${isCompleted ? 'text-green-400' : 'text-boston-gold'}`}>
+                       {isCompleted ? 'Premio Entregado' : 'Canje Aprobado'}
                      </Text>
-                     <Text className="text-white font-black text-xl italic uppercase tracking-tighter" numberOfLines={1}>
+                     <Text className="text-white font-black text-xl italic uppercase tracking-tighter" numberOfLines={2}>
                        {reward}
                      </Text>
                    </View>
                  </View>
 
-                 <View className="bg-white p-6 rounded-3xl shadow-xl mb-8">
-                    <QRCode
-                      value={token}
-                      size={200}
-                      color="#000"
-                      backgroundColor="#fff"
-                    />
-                 </View>
+                 {isCompleted ? (
+                   <View className="py-10 items-center">
+                     <Text className="text-white font-black text-3xl uppercase tracking-tighter mb-2 text-center">¡A Disfrutar!</Text>
+                     <Text className="text-white/50 text-xs font-medium text-center uppercase tracking-widest leading-relaxed">Tu premio ha sido entregado exitosamente por el staff.</Text>
+                   </View>
+                 ) : (
+                   <>
+                     <View className="bg-white p-6 rounded-3xl shadow-xl mb-8">
+                        <QRCode
+                          value={token}
+                          size={200}
+                          color="#000"
+                          backgroundColor="#fff"
+                        />
+                     </View>
 
-                 <Text className="text-boston-gold text-[10px] font-black uppercase tracking-[0.4em] mb-2 text-center">
-                   Instrucciones
-                 </Text>
-                 <Text className="text-white/50 text-xs font-medium text-center uppercase tracking-tight leading-relaxed">
-                   Presenta este código QR en la barra de Boston Club para recibir tu premio.
-                 </Text>
+                     <Text className="text-boston-gold text-[10px] font-black uppercase tracking-[0.4em] mb-2 text-center">
+                       Instrucciones
+                     </Text>
+                     <Text className="text-white/50 text-xs font-medium text-center uppercase tracking-tight leading-relaxed">
+                       Presenta este código QR en la barra de Boston Club para recibir tu premio.
+                     </Text>
+                   </>
+                 )}
               </View>
 
               <TouchableOpacity 
@@ -129,21 +157,23 @@ export default function RewardQRScreen() {
                </TouchableOpacity>
 
                {/* Botón de Cancelar Canje */}
-               <TouchableOpacity 
-                 activeOpacity={0.8}
-                 onPress={handleCancel}
-                 disabled={cancelling}
-                 className="w-full mt-4 rounded-[1.5rem] p-[1px] relative overflow-hidden"
-               >
-                 <View className="absolute inset-0 bg-[#ff4d4d] opacity-20" />
-                 <View className="flex-row items-center justify-center bg-boston-black py-4 rounded-[1.5rem] border border-[#ff4d4d]/30 space-x-3">
-                    {cancelling ? (
-                       <ActivityIndicator size="small" color="#ff4d4d" />
-                    ) : (
-                       <Text className="text-xs font-black text-[#ff4d4d] uppercase tracking-[0.2em]">Cancelar Canje</Text>
-                    )}
-                 </View>
-               </TouchableOpacity>
+               {!isCompleted && (
+                 <TouchableOpacity 
+                   activeOpacity={0.8}
+                   onPress={handleCancel}
+                   disabled={cancelling}
+                   className="w-full mt-4 rounded-[1.5rem] p-[1px] relative overflow-hidden"
+                 >
+                   <View className="absolute inset-0 bg-[#ff4d4d] opacity-20" />
+                   <View className="flex-row items-center justify-center bg-boston-black py-4 rounded-[1.5rem] border border-[#ff4d4d]/30 space-x-3">
+                      {cancelling ? (
+                         <ActivityIndicator size="small" color="#ff4d4d" />
+                      ) : (
+                         <Text className="text-xs font-black text-[#ff4d4d] uppercase tracking-[0.2em]">Cancelar Canje</Text>
+                      )}
+                   </View>
+                 </TouchableOpacity>
+               )}
            </Animated.View>
         </View>
       </ScrollView>
