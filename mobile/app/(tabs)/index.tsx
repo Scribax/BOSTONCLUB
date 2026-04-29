@@ -144,6 +144,7 @@ export default function DashboardScreen() {
       
       setBanners(topBanners);
       setPromoBanners(bottomPromos);
+      return true;
     } catch (err: any) {
       console.error('Load Profile Error:', err);
       if (err.response?.status === 401 || err.response?.status === 403) {
@@ -152,6 +153,7 @@ export default function DashboardScreen() {
       } else {
         setErrorStatus('connection');
       }
+      return false;
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -201,13 +203,26 @@ export default function DashboardScreen() {
   useFocusEffect(
     useCallback(() => {
       setIsScreenFocused(true);
-      loadProfile().then(() => {
-        // Ejecutar petición de notificaciones luego de cargar usuario (si no es Expo Go)
-        registerForPushNotificationsAsync();
-        fetchActiveRedemption();
-      });
+      
+      const initDashboard = async () => {
+        try {
+          // Primero cargamos perfil. Si falla con 401, se maneja dentro de loadProfile (logout).
+          const success = await loadProfile();
+          if (success) {
+            // Solo si cargó el perfil intentamos las demás peticiones
+            registerForPushNotificationsAsync();
+            fetchActiveRedemption();
+            fetchVipBenefits();
+          }
+        } catch (e) {
+          console.error("Dashboard Init Error:", e);
+        }
+      };
+
+      initDashboard();
+
       return () => {
-        setIsScreenFocused(false); // Pause video when leaving this tab
+        setIsScreenFocused(false);
       };
     }, [])
   );

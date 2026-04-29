@@ -483,7 +483,7 @@ export const getActiveRedemption = async (req: any, res: Response): Promise<void
       title: active.reward?.name || active.vipBenefit?.title || active.event?.title || "Canje pendiente"
     });
   } catch (error) {
-    console.error("Error fetching active redemption:", error);
+    console.error("[GetActiveRedemption Error]", error);
     res.status(500).json({ message: "Server Error" });
   }
 };

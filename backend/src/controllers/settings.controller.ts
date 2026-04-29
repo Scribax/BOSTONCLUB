@@ -54,6 +54,7 @@ export const getSettings = async (req: Request, res: Response): Promise<void> =>
 
     res.json(settings);
   } catch (error) {
+    console.error("[GetSettings Error]", error);
     res.status(500).json({ message: "Server Error" });
   }
 };
