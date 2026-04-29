@@ -46,8 +46,9 @@ export const getAllRewards = async (req: Request, res: Response): Promise<void> 
         whereClause.isAdultOnly = false;
      }
 
-     // Regular users only see active ones; Admins see everything
-     if (!isAdmin) {
+     // Only include inactive rewards if explicitly requested by an admin
+     const showAll = req.query.all === 'true';
+     if (!(showAll && isAdmin)) {
         whereClause.isActive = true; 
      }
 
@@ -99,8 +100,8 @@ export const deleteReward = async (req: Request, res: Response): Promise<void> =
     // Si ya está desactivado, intentamos borrado permanente
     if (!reward.isActive) {
       if (reward._count.redemptions > 0) {
-        res.status(400).json({ 
-          message: "No se puede eliminar permanentemente porque tiene historial de canjes. Permanecerá desactivado." 
+        res.json({ 
+          message: "Aviso: El premio se mantendrá desactivado (no se borra permanentemente por tener historial de canjes)." 
         });
         return;
       }

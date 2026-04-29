@@ -49,7 +49,7 @@ export default function AdminRewardsPage() {
   const fetchRewards = async () => {
     setLoading(true);
     try {
-      const data = await apiFetch("/rewards");
+      const data = await apiFetch("/rewards?all=true");
       setRewards(data);
     } catch (err) {
       console.error("Error fetching rewards", err);
@@ -141,7 +141,7 @@ export default function AdminRewardsPage() {
       
       setTimeout(() => setMessage(null), 3000);
     } catch (err: any) {
-      const errorMsg = err.response?.data?.message || "Error al procesar la solicitud";
+      const errorMsg = err.message || "Error al procesar la solicitud";
       setMessage({ text: errorMsg, type: 'error' });
       setTimeout(() => setMessage(null), 5000);
     }
