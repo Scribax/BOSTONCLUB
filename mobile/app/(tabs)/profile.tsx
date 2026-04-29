@@ -427,7 +427,9 @@ export default function ProfileScreen() {
                       <Text className="text-black font-black uppercase text-xs tracking-[0.3em]">Confirmar Cambios</Text>
                     )}
                  </TouchableOpacity>
-              </View>
+               </View>
+            </View>
+         </View>
       </Modal>
 
       {/* VIP Status & Benefits Unified Modal */}

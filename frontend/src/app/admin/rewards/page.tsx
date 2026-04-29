@@ -21,6 +21,8 @@ export default function AdminRewardsPage() {
   const [loading, setLoading] = useState(true);
   const [isAdding, setIsAdding] = useState(false);
   const [editingReward, setEditingReward] = useState<Reward | null>(null);
+  const [showInactive, setShowInactive] = useState(false);
+  const [message, setMessage] = useState<{ text: string, type: 'error' | 'success' } | null>(null);
 
   // Form State
   const [newName, setNewName] = useState("");
@@ -121,13 +123,27 @@ export default function AdminRewardsPage() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("¿Seguro que quieres dar de baja este premio?")) return;
+  const handleDelete = async (reward: Reward) => {
+    const action = reward.isActive ? "desactivar" : "eliminar permanentemente";
+    if (!confirm(`¿Seguro que quieres ${action} este premio?`)) return;
+    
     try {
-      await apiFetch(`/rewards/${id}`, { method: "DELETE" });
-      setRewards(rewards.filter(r => r.id !== id));
-    } catch (err) {
-      alert("Error al eliminar premio");
+      const res = await apiFetch(`/rewards/${reward.id}`, { method: "DELETE" });
+      
+      if (res.message?.includes("permanentemente")) {
+        setRewards(rewards.filter(r => r.id !== reward.id));
+        setMessage({ text: "Premio eliminado permanentemente", type: 'success' });
+      } else {
+        // Just deactivated
+        fetchRewards();
+        setMessage({ text: res.message || "Premio desactivado", type: 'success' });
+      }
+      
+      setTimeout(() => setMessage(null), 3000);
+    } catch (err: any) {
+      const errorMsg = err.response?.data?.message || "Error al procesar la solicitud";
+      setMessage({ text: errorMsg, type: 'error' });
+      setTimeout(() => setMessage(null), 5000);
     }
   };
 
@@ -150,20 +166,38 @@ export default function AdminRewardsPage() {
     <div className="space-y-6 pb-12">
       <header className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-black text-white tracking-widest uppercase">Catálogo de Premios</h1>
-          <p className="text-white/50 text-sm">Gestiona los premios disponibles para los socios.</p>
+          <h1 className="text-2xl font-black text-white tracking-widest uppercase italic">Catálogo de Premios</h1>
+          <p className="text-white/50 text-sm font-bold uppercase tracking-wider mt-1">Gestión de Recompensas</p>
         </div>
-        <button 
-          onClick={() => {
-            setEditingReward(null);
-            resetForm();
-            setIsAdding(true);
-          }}
-          className="bg-boston-gold text-black px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest flex items-center gap-2 hover:scale-105 transition-all shadow-lg shadow-boston-gold/20"
-        >
-          <Plus className="w-4 h-4" /> Nuevo Premio
-        </button>
+        <div className="flex items-center gap-4">
+          <button 
+            onClick={() => setShowInactive(!showInactive)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${showInactive ? 'bg-white/10 text-white' : 'bg-transparent text-white/30 border border-white/10 hover:text-white'}`}
+          >
+            {showInactive ? "Ocultar Desactivados" : "Ver Desactivados"}
+          </button>
+          <button 
+            onClick={() => {
+              setEditingReward(null);
+              resetForm();
+              setIsAdding(true);
+            }}
+            className="bg-boston-gold text-black px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest flex items-center gap-2 hover:scale-105 transition-all shadow-lg shadow-boston-gold/20"
+          >
+            <Plus className="w-4 h-4" /> Nuevo Premio
+          </button>
+        </div>
       </header>
+
+      {message && (
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className={`p-4 rounded-2xl mb-6 font-black text-[10px] uppercase tracking-widest text-center ${message.type === 'error' ? 'bg-red-500/10 text-red-500 border border-red-500/20' : 'bg-green-500/10 text-green-500 border border-green-500/20'}`}
+        >
+          {message.text}
+        </motion.div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <AnimatePresence>
@@ -259,25 +293,36 @@ export default function AdminRewardsPage() {
         {loading ? (
           [1, 2, 3].map(i => <div key={i} className="glass-panel h-48 rounded-[2rem] animate-pulse bg-white/5 border border-white/5" />)
         ) : (
-          rewards.map((r, idx) => (
+          rewards
+            .filter(r => showInactive ? true : r.isActive)
+            .map((r, idx) => (
             <motion.div 
               key={r.id}
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: idx * 0.1 }}
               className={`glass-panel p-6 rounded-[2rem] border group hover:border-white/10 transition-all relative overflow-hidden ${
-                idx === 0 ? 'border-boston-gold/40 shadow-lg shadow-boston-gold/10' : 'border-white/5'
+                !r.isActive ? 'opacity-40 grayscale-[0.5]' : ''
+              } ${
+                idx === 0 && r.isActive ? 'border-boston-gold/40 shadow-lg shadow-boston-gold/10' : 'border-white/5'
               }`}
             >
+              {/* Deactivated Badge */}
+              {!r.isActive && (
+                <div className="absolute top-4 left-4 z-20 bg-red-600 text-white px-3 py-1 rounded-full border border-red-500/50 shadow-lg">
+                  <span className="text-[9px] font-black uppercase tracking-widest italic">DESACTIVADO</span>
+                </div>
+              )}
+
               {/* Featured badge */}
-              {idx === 0 && (
+              {idx === 0 && r.isActive && (
                 <div className="absolute top-4 left-4 z-20 flex items-center gap-1.5 bg-boston-gold text-black px-3 py-1 rounded-full">
                   <Star className="w-3 h-3 fill-black" />
                   <span className="text-[9px] font-black uppercase tracking-widest">Destacado en App</span>
                 </div>
               )}
 
-              <div className="flex justify-between items-start mb-4 relative z-10" style={{ marginTop: idx === 0 ? '28px' : '0' }}>
+              <div className="flex justify-between items-start mb-4 relative z-10" style={{ marginTop: (idx === 0 || !r.isActive) ? '28px' : '0' }}>
                 <div className="flex flex-col gap-2">
                    <div className={`p-3 rounded-xl self-start ${r.type === 'BEBIDA' ? 'bg-blue-500/10 text-blue-400' : 'bg-orange-500/10 text-orange-400'}`}>
                      {r.type === 'BEBIDA' ? <Beer className="w-6 h-6" /> : <Utensils className="w-6 h-6" />}
@@ -289,8 +334,8 @@ export default function AdminRewardsPage() {
                    )}
                 </div>
                 <div className="flex gap-2">
-                  {/* Highlight button - only show if not already featured */}
-                  {idx !== 0 && (
+                  {/* Highlight button - only show if not already featured and active */}
+                  {idx !== 0 && r.isActive && (
                     <button 
                       onClick={() => handleToggleFeatured(r)}
                       title="Destacar en app"
@@ -306,8 +351,8 @@ export default function AdminRewardsPage() {
                     <Edit3 className="w-5 h-5" />
                   </button>
                   <button 
-                    onClick={() => handleDelete(r.id)}
-                    className="p-2 text-white bg-black/60 rounded-lg hover:text-red-500 hover:bg-black/80 transition-colors"
+                    onClick={() => handleDelete(r)}
+                    className={`p-2 text-white bg-black/60 rounded-lg transition-colors ${r.isActive ? 'hover:text-red-500' : 'hover:text-red-600 border border-red-500/20'}`}
                   >
                     <Trash2 className="w-5 h-5" />
                   </button>
