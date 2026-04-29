@@ -5,13 +5,41 @@
  */
 
 // ─── Constants ─────────────────────────────────────────────────────────────
-const STREAK_WINDOW_DAYS = 8;
+const STREAK_WINDOW_DAYS = 2; // Max gap between visits to keep streak
 const STREAK_INCREMENT_MIN_DAYS = 1;
 
 // Sources that are eligible for streak tracking (Visits/Check-ins/Purchases)
 const STREAK_ELIGIBLE_SOURCES = ['QR_CHECKIN', 'DAILY_CHECKIN', 'COMPRA_POSNET'];
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
+/**
+ * Returns YYYY-MM-DD for a date in Argentina timezone.
+ */
+function getArgentinaDateString(date: Date): string {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Argentina/Buenos_Aires',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  }).format(date);
+}
+
+/**
+ * Checks if two dates are consecutive calendar days in Argentina.
+ */
+function isConsecutiveDay(lastDate: Date, nowDate: Date): boolean {
+  const lastStr = getArgentinaDateString(lastDate);
+  const nowStr = getArgentinaDateString(nowDate);
+  
+  if (lastStr === nowStr) return false; // Same day
+
+  const lastTime = new Date(lastStr).getTime();
+  const nowTime = new Date(nowStr).getTime();
+  const diffDays = Math.round((nowTime - lastTime) / (1000 * 60 * 60 * 24));
+  
+  return diffDays === 1;
+}
+
 export function calcStreakMultiplier(streak: number): number {
   if (streak >= 7) return 2.0;
   if (streak >= 3) return 1.5;
@@ -65,13 +93,19 @@ export async function awardPointsToUser(
     if (!lastDate) {
       newStreak = 1;
     } else {
-      const daysSinceLast = (now.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24);
-      if (daysSinceLast >= STREAK_INCREMENT_MIN_DAYS && daysSinceLast <= STREAK_WINDOW_DAYS) {
+      const lastDayStr = getArgentinaDateString(lastDate);
+      const todayStr = getArgentinaDateString(now);
+
+      if (lastDayStr === todayStr) {
+        // Already counted today, keep current streak
+        newStreak = user.streak || 1;
+      } else if (isConsecutiveDay(lastDate, now)) {
+        // Consecutive day!
         newStreak = (user.streak || 0) + 1;
-      } else if (daysSinceLast > STREAK_WINDOW_DAYS) {
-        newStreak = 1; // reset
+      } else {
+        // Gap too large or not consecutive
+        newStreak = 1;
       }
-      // < 1 day: keep same (already counted today)
     }
   }
 

@@ -836,7 +836,17 @@ export default function DashboardScreen() {
                   </View>
                </View>
 
-               <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 32, paddingBottom: 60 }}>
+               <ScrollView 
+                 showsVerticalScrollIndicator={false} 
+                 contentContainerStyle={{ padding: 32, paddingBottom: 60 }}
+                 refreshControl={
+                   <RefreshControl 
+                     refreshing={vipBenefitsLoading} 
+                     onRefresh={fetchVipBenefits} 
+                     tintColor="#D4AF37" 
+                   />
+                 }
+               >
                                      {/* Current Benefits - Dynamic VIP */}
                    <View style={{ marginBottom: 40 }}>
                       <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>

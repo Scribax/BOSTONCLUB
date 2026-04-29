@@ -867,7 +867,7 @@ function SortableItem({ item, activeTab, getFullUrl, openEdit, handleDelete, han
     <div 
       ref={setNodeRef} 
       style={style} 
-      className="bg-white/[0.02] border border-white/5 p-4 rounded-3xl flex items-center gap-5 group hover:bg-white/5 transition-all"
+      className={`bg-white/[0.02] border border-white/5 p-4 rounded-3xl flex items-center gap-5 group hover:bg-white/5 transition-all ${!item.isActive ? 'opacity-60 border-red-500/10' : ''}`}
     >
       {activeTab !== 'EVENTO' && (
         <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing p-1 text-white/10 hover:text-white/40 transition-colors">
@@ -877,7 +877,7 @@ function SortableItem({ item, activeTab, getFullUrl, openEdit, handleDelete, han
 
       <div className="w-24 h-24 bg-black rounded-2xl overflow-hidden border border-white/10 flex items-center justify-center">
           {item.imageUrl ? (
-            <img src={getFullUrl(item.imageUrl)} className="w-full h-full object-cover opacity-60" />
+            <img src={getFullUrl(item.imageUrl)} className={`w-full h-full object-cover ${!item.isActive ? 'grayscale' : 'opacity-60'}`} />
           ) : (
             <ImageIcon className="w-6 h-6 text-white/10" />
           )}
@@ -885,9 +885,13 @@ function SortableItem({ item, activeTab, getFullUrl, openEdit, handleDelete, han
       
       <div className="flex-1">
           <div className="flex items-center gap-2 mb-1">
-            <h3 className="text-white font-black text-sm uppercase italic tracking-tighter">{item.title}</h3>
-            {item.isActive && <Check className="w-3 h-3 text-green-500" />}
-            {item.isRedeemable && <QrCode className="w-3 h-3 text-boston-gold" />}
+            <h3 className={`font-black text-sm uppercase italic tracking-tighter ${!item.isActive ? 'text-white/40' : 'text-white'}`}>{item.title}</h3>
+            {item.isActive ? (
+              <Check className="w-3 h-3 text-green-500" />
+            ) : (
+              <span className="text-[7px] bg-red-500/20 text-red-500 px-1.5 py-0.5 rounded-full font-black uppercase tracking-tighter">DESACTIVADO</span>
+            )}
+            {item.isRedeemable && <QrCode className={`w-3 h-3 ${!item.isActive ? 'text-boston-gold/30' : 'text-boston-gold'}`} />}
           </div>
           <p className="text-white/30 text-[9px] font-bold uppercase tracking-widest line-clamp-1">{item.description}</p>
           <div className="flex items-center gap-3 mt-3">

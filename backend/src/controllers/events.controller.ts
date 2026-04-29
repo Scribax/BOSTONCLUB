@@ -48,7 +48,10 @@ export const getAllEvents = async (req: Request, res: Response): Promise<void> =
         whereClause.isAdultOnly = false;
      }
 
-     whereClause.isActive = true; 
+     // Regular users only see active ones; Admins see everything
+     if (!isAdmin) {
+        whereClause.isActive = true; 
+     }
 
      const { type } = req.query;
      if (type) {
