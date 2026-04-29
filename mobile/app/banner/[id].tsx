@@ -8,12 +8,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { FadeInView } from '../../components/FadeInView';
 import { StatusBar } from 'expo-status-bar';
 import { BlurView } from 'expo-blur';
-import QRCode from 'react-native-qrcode-svg';
-
-LogBox.ignoreLogs([
-  '[Reanimated] Reading from `value` during component render',
-  '[Reanimated] Writing to `value` during component render'
-]);
 
 const resolveImageUrl = (url: string) => {
   if (!url) return '';
@@ -32,9 +26,6 @@ export default function BannerDetailScreen() {
   const [banner, setBanner] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [redemptionLoading, setRedemptionLoading] = useState(false);
-  const [qrToken, setQrToken] = useState<string | null>(null);
-  const [showQRModal, setShowQRModal] = useState(false);
-  const [redemptionStatus, setRedemptionStatus] = useState<'PENDING' | 'COMPLETED' | 'CANCELLED' | null>(null);
   
   const scrollY = useRef(new Animated.Value(0)).current;
   const HEADER_HEIGHT = 100;
@@ -55,25 +46,6 @@ export default function BannerDetailScreen() {
   useEffect(() => {
     fetchBanner();
   }, [id]);
-
-  // Polling for redemption status
-  useEffect(() => {
-    let interval: ReturnType<typeof setInterval>;
-    if (showQRModal && qrToken && redemptionStatus !== 'COMPLETED') {
-      interval = setInterval(async () => {
-        try {
-          const res = await api.get(`/redemptions/status/${qrToken}`);
-          if (res.data.status === 'COMPLETED') {
-            setRedemptionStatus('COMPLETED');
-            clearInterval(interval);
-          }
-        } catch (e) {
-          console.log('Polling error:', e);
-        }
-      }, 3000);
-    }
-    return () => clearInterval(interval);
-  }, [showQRModal, qrToken, redemptionStatus]);
 
   const fetchBanner = async () => {
     try {
@@ -98,9 +70,11 @@ export default function BannerDetailScreen() {
     try {
       setRedemptionLoading(true);
       const res = await api.post('/redemptions/generate', { eventId: id });
-      setQrToken(res.data.qrToken);
-      setRedemptionStatus('PENDING');
-      setShowQRModal(true);
+      
+      router.push({
+        pathname: '/reward-qr',
+        params: { token: res.data.qrToken, reward: banner.title }
+      });
     } catch (err: any) {
       alert(err.response?.data?.message || 'Error al generar cupón');
     } finally {
@@ -334,78 +308,6 @@ export default function BannerDetailScreen() {
            <View className="h-40" />
         </View>
       </Animated.ScrollView>
-
-      {/* Redemption QR Modal */}
-      <Modal visible={showQRModal} transparent animationType="slide">
-         <View className="flex-1 justify-end bg-black/80">
-            <TouchableOpacity 
-              activeOpacity={1} 
-              onPress={() => setShowQRModal(false)} 
-              className="absolute inset-0"
-            />
-            
-            <View className="bg-[#0c0c0c] rounded-t-[3rem] p-10 border-t border-white/10 shadow-2xl">
-               <View className="items-center mb-8">
-                  <View className="w-12 h-1.5 bg-white/10 rounded-full mb-8" />
-                  
-                  {redemptionStatus === 'COMPLETED' ? (
-                    <FadeInView className="items-center py-10">
-                       <View className="w-24 h-24 bg-green-500/20 rounded-full items-center justify-center mb-6">
-                          <CheckCircle2 color="#22C55E" size={60} />
-                       </View>
-                       <Text className="text-white text-3xl font-black uppercase italic tracking-tighter text-center mb-2">¡CANJEADO!</Text>
-                       <Text className="text-white/40 text-sm font-bold uppercase tracking-widest text-center">Promoción validada correctamente</Text>
-                       <TouchableOpacity 
-                         onPress={() => { setShowQRModal(false); router.back(); }}
-                         className="mt-10 bg-white/5 border border-white/10 px-8 py-4 rounded-2xl"
-                       >
-                          <Text className="text-white font-black uppercase text-xs">LISTO</Text>
-                       </TouchableOpacity>
-                    </FadeInView>
-                  ) : (
-                    <>
-                      <View className="bg-white p-8 rounded-[2.5rem] shadow-2xl">
-                        {qrToken ? (
-                           <QRCode value={qrToken} size={200} backgroundColor="white" />
-                        ) : (
-                           <ActivityIndicator color="black" />
-                        )}
-                      </View>
-                      
-                      <View className="mt-10 items-center">
-                         <Text className="text-boston-gold text-2xl font-black uppercase italic tracking-tighter mb-2">
-                            {banner.benefitValue || 'Canje de Promoción'}
-                         </Text>
-                         <Text className="text-white/40 text-[10px] font-black uppercase tracking-[0.2em] mb-8">
-                            Mostrá este código al staff
-                         </Text>
-                         
-                         <View className="bg-white/5 border border-white/5 p-6 rounded-3xl flex-row items-center gap-4 w-full">
-                            <ShieldAlert color="#555" size={24} />
-                            <View className="flex-1">
-                               <Text className="text-white/60 font-bold text-[10px] uppercase mb-1">Protección de Canje</Text>
-                               <Text className="text-white/20 text-[9px] uppercase leading-relaxed">
-                                  Este código es de un solo uso y expira en 15 minutos. No compartas capturas de pantalla.
-                               </Text>
-                            </View>
-                         </View>
-                      </View>
-                    </>
-                  )}
-               </View>
-
-               {redemptionStatus !== 'COMPLETED' && (
-                 <TouchableOpacity 
-                   onPress={() => setShowQRModal(false)}
-                   className="w-full py-4 items-center"
-                 >
-                    <Text className="text-white/20 font-black uppercase text-[10px] tracking-widest">Cerrar</Text>
-                 </TouchableOpacity>
-               )}
-            </View>
-         </View>
-      </Modal>
-
     </View>
   );
 }

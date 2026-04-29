@@ -4,7 +4,7 @@ import {
   Image, RefreshControl, Dimensions, Modal
 } from 'react-native';
 import { useRouter, useFocusEffect, useLocalSearchParams } from 'expo-router';
-import { ArrowLeft, Calendar, MapPin, Clock, Star, ExternalLink } from 'lucide-react-native';
+import { ArrowLeft, Calendar, MapPin, Clock, Star, ExternalLink, QrCode } from 'lucide-react-native';
 import * as Linking from 'expo-linking';
 import api from '../lib/api';
 import { StatusBar } from 'expo-status-bar';
@@ -212,6 +212,7 @@ export default function EventsScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<EventData | null>(null);
+  const [redemptionLoading, setRedemptionLoading] = useState(false);
 
   const curtainAnim = useSharedValue(0);
   const scrollY = useSharedValue(0);
@@ -257,6 +258,23 @@ export default function EventsScreen() {
       runOnJS(setSelectedEvent)(null);
       scrollY.value = 0;
     });
+  };
+
+  const handleRedeem = async (event: EventData) => {
+    try {
+      setRedemptionLoading(true);
+      const res = await api.post('/redemptions/generate', { eventId: event.id });
+      
+      handleCloseEvent();
+      router.push({
+        pathname: '/reward-qr',
+        params: { token: res.data.qrToken, reward: event.title }
+      });
+    } catch (err: any) {
+      Alert.alert('Error', err.response?.data?.message || 'Error al generar cupón');
+    } finally {
+      setRedemptionLoading(false);
+    }
   };
 
   const topCurtainStyle = useAnimatedStyle(() => ({
@@ -422,17 +440,40 @@ export default function EventsScreen() {
                     </View>
                   )}
 
-                  {/* CTA Button */}
-                  {selectedEvent.externalLink && (
-                    <TouchableOpacity onPress={() => Linking.openURL(selectedEvent.externalLink)} activeOpacity={0.88} style={{ marginTop: 4 }}>
-                      <LinearGradient colors={['#FF3B30', '#CC2E26']} style={{ paddingVertical: 22, borderRadius: 24, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', shadowColor: '#FF3B30', shadowOffset: { width: 0, height: 12 }, shadowOpacity: 0.4, shadowRadius: 24 }}>
-                        <Text style={{ color: 'white', fontWeight: '900', textTransform: 'uppercase', letterSpacing: 3, fontSize: 14, marginRight: 12 }}>
-                          {selectedEvent.buttonText || 'RESERVAR MESA'}
-                        </Text>
-                        <ExternalLink size={18} color="white" />
-                      </LinearGradient>
-                    </TouchableOpacity>
-                  )}
+                  {/* CTA Buttons */}
+                  <View style={{ gap: 12, marginTop: 4 }}>
+                    {(selectedEvent as any).isRedeemable && (
+                      <TouchableOpacity 
+                        onPress={() => handleRedeem(selectedEvent)} 
+                        disabled={redemptionLoading}
+                        activeOpacity={0.88}
+                      >
+                        <LinearGradient colors={['#D4AF37', '#B38B2E']} style={{ paddingVertical: 22, borderRadius: 24, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', shadowColor: '#D4AF37', shadowOffset: { width: 0, height: 12 }, shadowOpacity: 0.3, shadowRadius: 20 }}>
+                          {redemptionLoading ? (
+                            <ActivityIndicator color="black" />
+                          ) : (
+                            <>
+                              <Text style={{ color: 'black', fontWeight: '900', textTransform: 'uppercase', letterSpacing: 3, fontSize: 14, marginRight: 12 }}>
+                                {selectedEvent.buttonText || '¡RECLAMAR AHORA!'}
+                              </Text>
+                              <QrCode size={18} color="black" />
+                            </>
+                          )}
+                        </LinearGradient>
+                      </TouchableOpacity>
+                    )}
+
+                    {selectedEvent.externalLink && (
+                      <TouchableOpacity onPress={() => Linking.openURL(selectedEvent.externalLink)} activeOpacity={0.88}>
+                        <LinearGradient colors={['#FF3B30', '#CC2E26']} style={{ paddingVertical: 22, borderRadius: 24, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', shadowColor: '#FF3B30', shadowOffset: { width: 0, height: 12 }, shadowOpacity: 0.4, shadowRadius: 24 }}>
+                          <Text style={{ color: 'white', fontWeight: '900', textTransform: 'uppercase', letterSpacing: 3, fontSize: 14, marginRight: 12 }}>
+                            {selectedEvent.buttonText || 'RESERVAR MESA'}
+                          </Text>
+                          <ExternalLink size={18} color="white" />
+                        </LinearGradient>
+                      </TouchableOpacity>
+                    )}
+                  </View>
                 </View>
               </Animated.ScrollView>
             </Animated.View>

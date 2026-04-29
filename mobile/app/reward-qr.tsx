@@ -29,7 +29,7 @@ export default function RewardQRScreen() {
             try {
               await api.post('/redemptions/cancel', { qrToken: token });
               Alert.alert('Cancelado', 'Tu código QR ha sido cancelado exitosamente.');
-              router.replace('/(tabs)/rewards');
+              router.replace('/(tabs)');
             } catch (err: any) {
               Alert.alert('Error', err.response?.data?.message || 'Hubo un error al cancelar.');
             } finally {
@@ -46,7 +46,7 @@ export default function RewardQRScreen() {
   useEffect(() => {
     // Handle Android back button
     const backAction = () => {
-      if (!isCompleted) {
+      if (!isCompleted && !cancelling) {
         Alert.alert("Canje Pendiente", "Tu código QR sigue activo. Puedes encontrarlo en la sección de 'Mis Canjes' si sales de esta pantalla.", [
           {
             text: "Entendido",
@@ -172,7 +172,7 @@ export default function RewardQRScreen() {
 
               <TouchableOpacity 
                 activeOpacity={0.8}
-                onPress={() => router.push('/(tabs)')}
+                onPress={() => router.replace('/(tabs)')}
                 className="w-full mt-8 rounded-[1.5rem] p-[1px] relative overflow-hidden"
               >
                  <View className="absolute inset-0 bg-boston-gold opacity-50" />
