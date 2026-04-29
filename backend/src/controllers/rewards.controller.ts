@@ -7,6 +7,7 @@ const prisma = new PrismaClient();
 export const getAllRewards = async (req: Request, res: Response): Promise<void> => {
   try {
      let isMinor = true; 
+     let isAdmin = false;
 
      const authHeader = req.headers.authorization;
      if (authHeader && authHeader.startsWith("Bearer ")) {
@@ -20,6 +21,7 @@ export const getAllRewards = async (req: Request, res: Response): Promise<void> 
                });
                
                if (user && user.role === "ADMIN") {
+                  isAdmin = true;
                   isMinor = false; 
                } else if (user && user.birthDate) {
                   const today = new Date();
@@ -39,9 +41,14 @@ export const getAllRewards = async (req: Request, res: Response): Promise<void> 
          }
      }
 
-     const whereClause: any = { isActive: true };
+     const whereClause: any = {};
      if (isMinor) {
         whereClause.isAdultOnly = false;
+     }
+
+     // Regular users only see active ones; Admins see everything
+     if (!isAdmin) {
+        whereClause.isActive = true; 
      }
 
     const rewards = await prisma.reward.findMany({
@@ -78,12 +85,38 @@ export const createReward = async (req: Request, res: Response): Promise<void> =
 export const deleteReward = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
+
+    const reward = await prisma.reward.findUnique({
+      where: { id: id as string },
+      include: { _count: { select: { redemptions: true } } }
+    });
+
+    if (!reward) {
+      res.status(404).json({ message: "Premio no encontrado" });
+      return;
+    }
+
+    // Si ya está desactivado, intentamos borrado permanente
+    if (!reward.isActive) {
+      if (reward._count.redemptions > 0) {
+        res.status(400).json({ 
+          message: "No se puede eliminar permanentemente porque tiene historial de canjes. Permanecerá desactivado." 
+        });
+        return;
+      }
+      await prisma.reward.delete({ where: { id: id as string } });
+      res.json({ message: "Premio eliminado permanentemente" });
+      return;
+    }
+
+    // Si está activo, lo desactivamos
     await prisma.reward.update({
       where: { id: id as string },
       data: { isActive: false }
     });
-    res.json({ message: "Reward deactivated" });
+    res.json({ message: "Premio desactivado" });
   } catch (error) {
+    console.error("[Delete Reward Error]", error);
     res.status(500).json({ message: "Server Error" });
   }
 };

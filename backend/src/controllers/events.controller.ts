@@ -243,12 +243,38 @@ export const updateEvent = async (req: Request, res: Response): Promise<void> =>
 export const deleteEvent = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
+
+    const event = await prisma.event.findUnique({
+      where: { id: id as string },
+      include: { _count: { select: { redemptions: true } } }
+    });
+
+    if (!event) {
+      res.status(404).json({ message: "Contenido no encontrado" });
+      return;
+    }
+
+    // Si ya está desactivado, intentamos borrado permanente
+    if (!event.isActive) {
+      if (event._count.redemptions > 0) {
+        res.status(400).json({ 
+          message: "No se puede eliminar permanentemente porque tiene historial de canjes. Permanecerá en la lista de desactivados." 
+        });
+        return;
+      }
+      await prisma.event.delete({ where: { id: id as string } });
+      res.json({ message: "Contenido eliminado permanentemente" });
+      return;
+    }
+
+    // Si está activo, solo desactivamos (Soft Delete)
     await prisma.event.update({
       where: { id: id as string },
       data: { isActive: false }
     });
-    res.json({ message: "Event deactivated successfully" });
+    res.json({ message: "Contenido desactivado con éxito" });
   } catch (error) {
+    console.error("[Delete Event Error]", error);
     res.status(500).json({ message: "Server Error" });
   }
 };
