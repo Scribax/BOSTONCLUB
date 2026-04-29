@@ -87,6 +87,7 @@ export default function AppContentManager() {
   const [isUploading, setIsUploading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [editingItem, setEditingItem] = useState<ContentItem | null>(null);
+  const [showInactive, setShowInactive] = useState(false);
 
   // Form State
   const [title, setTitle] = useState("");
@@ -191,7 +192,11 @@ export default function AppContentManager() {
   };
 
   const filteredItems = items
-    .filter(item => item.type === activeTab)
+    .filter(item => {
+      const matchesTab = item.type === activeTab;
+      if (showInactive) return matchesTab;
+      return matchesTab && item.isActive;
+    })
     .sort((a, b) => {
         if (activeTab === 'BANNER') return a.order - b.order;
         if (activeTab === 'EVENTO') return new Date(a.eventDate || '').getTime() - new Date(b.eventDate || '').getTime();
@@ -482,12 +487,21 @@ export default function AppContentManager() {
                   <h2 className="text-white font-black tracking-widest uppercase text-base italic">
                     {activeTab === 'BANNER' ? 'Banners Superiores' : (activeTab === 'EVENTO' ? 'Próximos Eventos' : 'Tarjetas de Promoción')}
                   </h2>
-                  <button 
-                    onClick={() => { resetForm(); setShowModal(true); }}
-                    className="bg-boston-red text-white px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest hover:brightness-110 transition-all shadow-lg shadow-boston-red/20"
-                  >
-                    <Plus className="w-4 h-4 inline mr-2" /> Nuevo {activeTab}
-                  </button>
+                  <div className="flex items-center gap-4">
+                    <button 
+                      onClick={() => setShowInactive(!showInactive)}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${showInactive ? 'bg-white/10 text-white' : 'bg-transparent text-white/30 border border-white/10 hover:text-white'}`}
+                    >
+                      {showInactive ? <Eye className="w-4 h-4" /> : <Eye className="w-4 h-4 opacity-50" />}
+                      {showInactive ? "Ocultar Ocultos" : "Ver Desactivados"}
+                    </button>
+                    <button 
+                      onClick={() => { resetForm(); setShowModal(true); }}
+                      className="bg-boston-red text-white px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest hover:brightness-110 transition-all shadow-lg shadow-boston-red/20"
+                    >
+                      <Plus className="w-4 h-4 inline mr-2" /> Nuevo {activeTab}
+                    </button>
+                  </div>
                </div>
 
                {loading ? (
