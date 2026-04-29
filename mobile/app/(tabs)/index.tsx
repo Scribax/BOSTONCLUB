@@ -11,6 +11,7 @@ import { initNotifications, registerForPushNotificationsAsync } from '../../lib/
 import { VideoPlayer } from '../../components/VideoPlayer';
 import { FadeInView } from '../../components/FadeInView';
 import { LinearGradient } from 'expo-linear-gradient';
+import { VipStatusModal } from '../../components/VipStatusModal';
 
 LogBox.ignoreLogs([
   '[Reanimated] Reading from `value` during component render',
@@ -169,24 +170,11 @@ export default function DashboardScreen() {
     }
   };
 
-  const handleRedeemVipBenefit = async (benefit: any) => {
-    if (benefit.isLocked) {
-      Alert.alert('Bloqueado 🔒', benefit.lockReason || 'Este beneficio no está disponible ahora');
-      return;
-    }
-    setRedeemingVipId(benefit.id);
-    try {
-      const res = await api.post('/redemptions/generate', { vipBenefitId: benefit.id });
-      setShowBenefits(false);
-      router.push({
-        pathname: '/reward-qr',
-        params: { token: res.data.qrToken, reward: benefit.title }
-      });
-    } catch (err: any) {
-      Alert.alert('Error', err.response?.data?.message || 'No se pudo generar el QR');
-    } finally {
-      setRedeemingVipId(null);
-    }
+  const handleRedeemVipBenefit = (token: string, reward: string) => {
+    router.push({
+      pathname: '/reward-qr',
+      params: { token, reward }
+    });
   };
 
   const resolveImageUrl = (url: string | undefined | null) => {
@@ -813,148 +801,14 @@ export default function DashboardScreen() {
         </View>
       </Modal>
 
-      {/* Benefits Modal - Motivational Redesign */}
-       <Modal visible={showBenefits} transparent animationType="slide" onRequestClose={() => setShowBenefits(false)}>
-         <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.9)', justifyContent: 'flex-end' }}>
-            <View style={{ width: '100%', backgroundColor: '#0c0c0c', borderTopLeftRadius: 40, borderTopRightRadius: 40, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.1)', height: '85%', overflow: 'hidden' }}>
-               {/* Modal Header with Gradient */}
-               <View style={{ height: 180, position: 'relative' }}>
-                  <LinearGradient 
-                    colors={['#FF3B30', '#881B16', '#0c0c0c']} 
-                    style={{ position: 'absolute', inset: 0 }}
-                  />
-                  <View style={{ padding: 32, flex: 1, justifyContent: 'flex-end' }}>
-                     <TouchableOpacity 
-                       onPress={() => setShowBenefits(false)} 
-                       style={{ position: 'absolute', top: 24, right: 24, width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.2)', alignItems: 'center', justifyContent: 'center' }}
-                     >
-                        <X size={20} color="white" />
-                     </TouchableOpacity>
-                     
-                     <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 10, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 2 }}>Tu Estatus Actual</Text>
-                     <Text style={{ color: 'white', fontSize: 44, fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', letterSpacing: -2 }}>{user.membershipLevel}</Text>
-                  </View>
-               </View>
-
-               <ScrollView 
-                 showsVerticalScrollIndicator={false} 
-                 contentContainerStyle={{ padding: 32, paddingBottom: 60 }}
-                 refreshControl={
-                   <RefreshControl 
-                     refreshing={vipBenefitsLoading} 
-                     onRefresh={fetchVipBenefits} 
-                     tintColor="#D4AF37" 
-                   />
-                 }
-               >
-                                     {/* Current Benefits - Dynamic VIP */}
-                   <View style={{ marginBottom: 40 }}>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
-                         <Crown size={18} color="#D4AF37" />
-                         <Text style={{ color: 'white', fontSize: 12, fontWeight: '900', textTransform: 'uppercase', fontStyle: 'italic', marginLeft: 12, letterSpacing: 1 }}>Tus Beneficios</Text>
-                      </View>
-                      {vipBenefitsLoading ? (
-                        <View style={{ alignItems: 'center', paddingVertical: 30 }}>
-                          <ActivityIndicator color="#D4AF37" />
-                        </View>
-                      ) : vipBenefits.length === 0 ? (
-                        <View style={{ padding: 24, backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: 20, alignItems: 'center' }}>
-                          <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11, fontWeight: '700', textTransform: 'uppercase', textAlign: 'center' }}>No hay beneficios configurados para tu nivel</Text>
-                        </View>
-                      ) : (
-                        <View style={{ gap: 12 }}>
-                          {vipBenefits.filter(b => ["BRONCE", "ORO", "PLATINO", "DIAMANTE", "SÚPER VIP"].indexOf(b.level) <= ["BRONCE", "ORO", "PLATINO", "DIAMANTE", "SÚPER VIP"].indexOf(user.membershipLevel)).map((benefit: any) => (
-                            <View key={benefit.id} style={{ backgroundColor: benefit.isLocked ? 'rgba(255,255,255,0.02)' : 'rgba(212,175,55,0.05)', borderRadius: 20, borderWidth: 1, borderColor: benefit.isLocked ? 'rgba(255,255,255,0.05)' : 'rgba(212,175,55,0.2)', overflow: 'hidden', opacity: benefit.isLocked ? 0.7 : 1 }}>
-                              <View style={{ padding: 16 }}>
-                                <Text style={{ color: benefit.isLocked ? 'rgba(255,255,255,0.4)' : 'white', fontSize: 14, fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase' }} numberOfLines={2}>{benefit.title}</Text>
-                                {benefit.description ? <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 10, marginTop: 2 }}>{benefit.description}</Text> : null}
-                              </View>
-                              {benefit.isLocked ? (
-                                <View style={{ marginHorizontal: 16, marginBottom: 16, backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: 12, paddingVertical: 10, alignItems: 'center' }}>
-                                  <Text style={{ color: 'rgba(255,255,255,0.25)', fontWeight: '900', fontSize: 10, textTransform: 'uppercase', letterSpacing: 1 }}>{benefit.lockReason || 'No disponible'}</Text>
-                                </View>
-                              ) : (
-                                <TouchableOpacity
-                                  onPress={() => handleRedeemVipBenefit(benefit)}
-                                  disabled={redeemingVipId === benefit.id}
-                                  style={{ marginHorizontal: 16, marginBottom: 16, backgroundColor: 'rgba(212,175,55,0.15)', borderRadius: 12, paddingVertical: 12, alignItems: 'center', borderWidth: 1, borderColor: '#D4AF37' }}
-                                >
-                                  {redeemingVipId === benefit.id ? (
-                                    <ActivityIndicator size="small" color="#D4AF37" />
-                                  ) : (
-                                    <Text style={{ color: '#D4AF37', fontWeight: '900', fontSize: 11, textTransform: 'uppercase', letterSpacing: 2 }}>✦ Activar Beneficio</Text>
-                                  )}
-                                </TouchableOpacity>
-                              )}
-                            </View>
-                          ))}
-                        </View>
-                      )}
-                   </View>
-
-                   {/* Next Level Incentive (What you're missing) */}
-                  {calculateNextTier() && (
-                    <View style={{ marginBottom: 40 }}>
-                       <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
-                          <Flame size={18} color="#FF3B30" />
-                          <Text style={{ color: '#FF3B30', fontSize: 12, fontWeight: '900', textTransform: 'uppercase', fontStyle: 'italic', marginLeft: 12, letterSpacing: 1 }}>Desbloquea en Rango {calculateNextTier()?.name}</Text>
-                       </View>
-                       
-                       <View style={{ padding: 24, backgroundColor: 'rgba(255,59,48,0.05)', borderRadius: 32, borderWidth: 1, borderColor: 'rgba(255,59,48,0.2)', borderStyle: 'dashed' }}>
-                          <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, fontWeight: '900', textTransform: 'uppercase', textAlign: 'center', marginBottom: 16 }}>Lo que te estás perdiendo:</Text>
-                          <View style={{ gap: 16 }}>
-                              {vipBenefits.filter(b => b.level === calculateNextTier()?.name).slice(0, 3).map((benefit: any) => (
-                                 <View key={benefit.id} style={{ flexDirection: 'row', alignItems: 'center', opacity: 0.6 }}>
-                                    <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: 'rgba(255,255,255,0.2)', marginRight: 12 }} />
-                                    <Text style={{ flex: 1, color: 'white', fontSize: 12, fontWeight: '500', fontStyle: 'italic' }}>{benefit.title}</Text>
-                                 </View>
-                              ))}
-                              {vipBenefits.filter(b => b.level === calculateNextTier()?.name).length === 0 && (
-                                <Text style={{ color: 'rgba(255,255,255,0.2)', fontSize: 10, textAlign: 'center', fontStyle: 'italic' }}>Beneficios a confirmar por el staff</Text>
-                              )}
-                           </View>
-                          
-                          <View style={{ marginTop: 24, alignItems: 'center' }}>
-                             <View style={{ backgroundColor: '#FF3B30', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 12 }}>
-                                <Text style={{ color: 'white', fontWeight: '900', fontSize: 10, textTransform: 'uppercase' }}>A solo {calculateNextTier()!.pointsNeeded - pts} pts</Text>
-                             </View>
-                          </View>
-                       </View>
-                    </View>
-                  )}
-
-                  {/* Future Tiers List */}
-                  <View>
-                     <Text style={{ color: 'rgba(255,255,255,0.2)', fontSize: 10, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 2, marginBottom: 20 }}>Próximas Metas</Text>
-                     <View style={{ gap: 12 }}>
-                        {[
-                          { name: "ORO", pts: settings?.goldThreshold || 5000, color: '#D4AF37' },
-                          { name: "PLATINO", pts: settings?.platinumThreshold || 20000, color: '#FFFFFF' },
-                          { name: "DIAMANTE", pts: settings?.diamondThreshold || 50000, color: '#22D3EE' },
-                          { name: "SÚPER VIP", pts: settings?.superVipThreshold || 100000, color: '#FF3B30' },
-                        ].filter(t => {
-                          const tiers = ['BRONCE', 'ORO', 'PLATINO', 'DIAMANTE', 'SÚPER VIP'];
-                          return tiers.indexOf(t.name) > tiers.indexOf(user.membershipLevel);
-                        }).map((tier, idx) => (
-                           <View key={idx} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 20, backgroundColor: 'rgba(255,255,255,0.02)', borderRadius: 24, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' }}>
-                              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                 <View style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.05)', alignItems: 'center', justifyContent: 'center', marginRight: 16 }}>
-                                    <Star size={14} color={tier.color} fill={idx === 0 ? tier.color : 'transparent'} />
-                                 </View>
-                                 <View>
-                                    <Text style={{ color: tier.color, fontWeight: '900', fontSize: 14, fontStyle: 'italic', textTransform: 'uppercase' }}>{tier.name}</Text>
-                                    <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 9, fontWeight: '700' }}>META: {tier.pts} PUNTOS</Text>
-                                 </View>
-                              </View>
-                              <ArrowRight size={16} color="rgba(255,255,255,0.1)" />
-                           </View>
-                        ))}
-                     </View>
-                  </View>
-               </ScrollView>
-            </View>
-         </View>
-       </Modal>
+      {/* VIP Status & Benefits Unified Modal */}
+      <VipStatusModal 
+        isVisible={showBenefits}
+        onClose={() => setShowBenefits(false)}
+        user={user}
+        settings={settings}
+        onRedeemSuccess={handleRedeemVipBenefit}
+      />
 
 
     </View>
