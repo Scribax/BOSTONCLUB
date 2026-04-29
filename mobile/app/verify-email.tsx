@@ -11,7 +11,11 @@ export default function VerifyEmailScreen() {
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
   const router = useRouter();
-  const { email, pendingToken } = useLocalSearchParams<{ email: string; pendingToken: string }>();
+  const { email: initialEmail, pendingToken } = useLocalSearchParams<{ email: string; pendingToken: string }>();
+  const [displayEmail, setDisplayEmail] = useState(initialEmail || '');
+  const [isEditingEmail, setIsEditingEmail] = useState(false);
+  const [newEmail, setNewEmail] = useState(initialEmail || '');
+  const [editingLoading, setEditingLoading] = useState(false);
 
   // Helper para hacer llamadas con el token pendiente (antes de guardarlo)
   const apiWithToken = (token: string) => axios.create({
@@ -71,6 +75,29 @@ export default function VerifyEmailScreen() {
     }
   };
 
+  const handleChangeEmail = async () => {
+    if (!newEmail || !newEmail.includes('@')) {
+      Alert.alert('Error', 'Ingresa un correo válido');
+      return;
+    }
+    setEditingLoading(true);
+    try {
+      if (pendingToken) {
+        await apiWithToken(pendingToken).patch('/auth/me', { email: newEmail });
+      } else {
+        await api.patch('/auth/me', { email: newEmail });
+      }
+      setDisplayEmail(newEmail);
+      setIsEditingEmail(false);
+      Alert.alert('Correo Actualizado', 'Hemos enviado un nuevo código a ' + newEmail);
+    } catch (error: any) {
+      const msg = error.response?.data?.message || 'Error al actualizar el correo';
+      Alert.alert('Error', msg);
+    } finally {
+      setEditingLoading(false);
+    }
+  };
+
   return (
     <KeyboardAvoidingView 
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -84,7 +111,7 @@ export default function VerifyEmailScreen() {
         </View>
         <Text className="text-3xl font-black text-white uppercase italic text-center">Verifica tu Cuenta</Text>
         <Text className="text-white/40 text-center mt-4 px-6 leading-5">
-          Hemos enviado un código de 6 dígitos a su correo electrónico {email ? <Text className="text-boston-gold">{email}</Text> : ''}.
+          Hemos enviado un código de 6 dígitos a su correo electrónico {displayEmail ? <Text className="text-boston-gold">{displayEmail}</Text> : ''}.
         </Text>
       </View>
 
@@ -117,17 +144,57 @@ export default function VerifyEmailScreen() {
 
         <TouchableOpacity 
           onPress={handleResend}
-          disabled={loading || resending}
+          disabled={loading || resending || isEditingEmail}
           className="py-2 items-center"
         >
           {resending ? (
             <ActivityIndicator color="#D4AF37" size="small" />
           ) : (
-            <Text className="text-boston-gold text-[10px] font-black uppercase tracking-widest">
+            <Text className={`text-boston-gold text-[10px] font-black uppercase tracking-widest ${isEditingEmail ? 'opacity-20' : ''}`}>
               ¿No recibiste el código? Reenviar
             </Text>
           )}
         </TouchableOpacity>
+
+        {/* Edit Email Feature */}
+        <View className="mt-4 pt-4 border-t border-white/5">
+          {!isEditingEmail ? (
+            <TouchableOpacity onPress={() => setIsEditingEmail(true)} className="items-center">
+              <Text className="text-white/20 text-[9px] font-black uppercase tracking-[0.2em]">¿Escribiste mal tu correo? Corregir</Text>
+            </TouchableOpacity>
+          ) : (
+            <View>
+              <TextInput 
+                value={newEmail}
+                onChangeText={setNewEmail}
+                placeholder="Nuevo correo electrónico"
+                placeholderTextColor="rgba(255,255,255,0.2)"
+                autoCapitalize="none"
+                keyboardType="email-address"
+                className="w-full bg-black/40 text-white border border-white/10 rounded-xl py-3 px-4 text-xs font-bold mb-3"
+              />
+              <View className="flex-row gap-2">
+                <TouchableOpacity 
+                  onPress={() => setIsEditingEmail(false)}
+                  className="flex-1 bg-white/5 py-3 rounded-xl items-center"
+                >
+                  <Text className="text-white/40 font-black text-[9px] uppercase tracking-widest">Cancelar</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  onPress={handleChangeEmail}
+                  disabled={editingLoading}
+                  className="flex-2 bg-boston-gold/20 border border-boston-gold/40 py-3 rounded-xl items-center px-6"
+                >
+                  {editingLoading ? (
+                    <ActivityIndicator size="small" color="#D4AF37" />
+                  ) : (
+                    <Text className="text-boston-gold font-black text-[9px] uppercase tracking-widest">Guardar y Reenviar</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+        </View>
       </View>
 
       <TouchableOpacity 

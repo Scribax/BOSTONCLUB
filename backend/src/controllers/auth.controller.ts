@@ -55,15 +55,31 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       where: { OR: [{ dni: sanitizedDni }, { email }, { whatsapp }] }
     });
     
+    // Logic for handling existing accounts
     if (existingUser) {
-       if (existingUser.whatsapp === whatsapp) {
-         res.status(400).json({ message: "Este número de WhatsApp ya está registrado." });
-       } else if (existingUser.dni === sanitizedDni) {
-         res.status(400).json({ message: "Este DNI ya está registrado." });
-       } else {
-         res.status(400).json({ message: "Este email ya está registrado." });
+       // If the account is already verified, we block it as usual
+       if (existingUser.isEmailVerified) {
+          if (existingUser.whatsapp === whatsapp) {
+            res.status(400).json({ message: "Este número de WhatsApp ya está registrado y verificado." });
+          } else if (existingUser.dni === sanitizedDni) {
+            res.status(400).json({ message: "Este DNI ya está registrado y verificado." });
+          } else {
+            res.status(400).json({ message: "Este email ya está registrado y verificado." });
+          }
+          return;
        }
-       return;
+       
+       // If NOT verified, we allow "overwriting" the data to fix typos (DNI or WhatsApp match)
+       // But we must check if the NEW email (if different) is already taken by a VERIFIED user
+       if (existingUser.email !== email) {
+          const emailTakenByOther = await prisma.user.findFirst({
+            where: { email, isEmailVerified: true }
+          });
+          if (emailTakenByOther) {
+            res.status(400).json({ message: "El nuevo email ya está en uso por otra cuenta verificada." });
+            return;
+          }
+       }
     }
     
     const salt = await bcrypt.genSalt(10);
@@ -102,22 +118,24 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       }
     }
 
-    const user = await prisma.user.create({
-      data: {
-        dni,
-        firstName,
-        lastName,
-        email,
-        passwordHash,
-        whatsapp,
-        birthDate: birthDate ? new Date(birthDate) : null,
-        verificationCode,
-        verificationCodeExpires,
-        isEmailVerified: false,
-        referralCode,
-        referredById
-      }
-    });
+    const userData = {
+      dni: sanitizedDni,
+      firstName,
+      lastName,
+      email,
+      passwordHash,
+      whatsapp,
+      birthDate: birthDate ? new Date(birthDate) : null,
+      verificationCode,
+      verificationCodeExpires,
+      isEmailVerified: false,
+      referralCode,
+      referredById
+    };
+
+    const user = existingUser 
+      ? await prisma.user.update({ where: { id: existingUser.id }, data: userData })
+      : await prisma.user.create({ data: userData });
 
     // Referral logic moved to verifyEmail for security
 
