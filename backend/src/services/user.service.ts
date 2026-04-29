@@ -8,8 +8,8 @@
 const STREAK_WINDOW_DAYS = 2; // Max gap between visits to keep streak
 const STREAK_INCREMENT_MIN_DAYS = 1;
 
-// Sources that are eligible for streak tracking (Visits/Check-ins/Purchases)
-const STREAK_ELIGIBLE_SOURCES = ['QR_CHECKIN', 'DAILY_CHECKIN', 'COMPRA_POSNET'];
+// Sources that are eligible for streak tracking (User scanning the code at the venue)
+const STREAK_ELIGIBLE_SOURCES = ['DAILY_CHECKIN'];
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
 /**
@@ -24,25 +24,9 @@ function getArgentinaDateString(date: Date): string {
   }).format(date);
 }
 
-/**
- * Checks if two dates are consecutive calendar days in Argentina.
- */
-function isConsecutiveDay(lastDate: Date, nowDate: Date): boolean {
-  const lastStr = getArgentinaDateString(lastDate);
-  const nowStr = getArgentinaDateString(nowDate);
-  
-  if (lastStr === nowStr) return false; // Same day
-
-  const lastTime = new Date(lastStr).getTime();
-  const nowTime = new Date(nowStr).getTime();
-  const diffDays = Math.round((nowTime - lastTime) / (1000 * 60 * 60 * 24));
-  
-  return diffDays === 1;
-}
-
 export function calcStreakMultiplier(streak: number): number {
   if (streak >= 7) return 2.0;
-  if (streak >= 3) return 1.5;
+  if (streak >= 4) return 1.5; // Adjusted slightly for weekly merit
   return 1.0;
 }
 
@@ -83,7 +67,7 @@ export async function awardPointsToUser(
 
   if (!user) throw new Error(`User ${userId} not found`);
 
-  // 2. Calculate streak
+  // 2. Calculate streak (WEEKLY LOGIC)
   const isStreakEligible = STREAK_ELIGIBLE_SOURCES.includes(source);
   const now = new Date();
   let newStreak = user.streak ?? 0;
@@ -93,17 +77,17 @@ export async function awardPointsToUser(
     if (!lastDate) {
       newStreak = 1;
     } else {
-      const lastDayStr = getArgentinaDateString(lastDate);
-      const todayStr = getArgentinaDateString(now);
+      const diffTime = now.getTime() - lastDate.getTime();
+      const diffDays = diffTime / (1000 * 60 * 60 * 24);
 
-      if (lastDayStr === todayStr) {
-        // Already counted today, keep current streak
+      if (diffDays < 4) {
+        // Same week/weekend visit, maintain current streak but don't increment
         newStreak = user.streak || 1;
-      } else if (isConsecutiveDay(lastDate, now)) {
-        // Consecutive day!
+      } else if (diffDays <= 14) {
+        // Came back the following week! Increment streak.
         newStreak = (user.streak || 0) + 1;
       } else {
-        // Gap too large or not consecutive
+        // Took too long to return (more than 2 weeks), reset to 1
         newStreak = 1;
       }
     }

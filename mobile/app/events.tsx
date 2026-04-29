@@ -172,7 +172,7 @@ const F1Countdown = ({ event }: { event: EventData }) => {
       <View style={{ backgroundColor: '#111', borderRadius: 24, padding: 24, borderWidth: 2, borderColor: '#FF3B30', shadowColor: '#FF3B30', shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.3, shadowRadius: 15 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
           <View style={{ height: 1, flex: 1, backgroundColor: 'rgba(255,59,48,0.2)' }} />
-          <Text style={{ color: '#FF3B30', fontSize: 10, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 3, marginHorizontal: 12 }}>Próxima Carrera</Text>
+          <Text style={{ color: '#FF3B30', fontSize: 10, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 3, marginHorizontal: 12 }}>Próximo Evento</Text>
           <View style={{ height: 1, flex: 1, backgroundColor: 'rgba(255,59,48,0.2)' }} />
         </View>
         

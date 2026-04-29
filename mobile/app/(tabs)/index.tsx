@@ -465,117 +465,107 @@ export default function DashboardScreen() {
           </FadeInView>
         )}
 
-        {/* Floating Tier Card - New Skeuomorphic Style */}
+          {/* Floating Tier Card - NEON HEAT DESIGN */}
           <FadeInView delay={500} className="px-6 mt-4 z-50">
              <TouchableOpacity 
                activeOpacity={0.9}
                onPress={() => { setShowBenefits(true); fetchVipBenefits(); }}
                style={{
                  shadowColor: '#ff0000',
-                 shadowOffset: { width: 0, height: 10 },
-                 shadowOpacity: 0.2,
-                 shadowRadius: 20,
+                 shadowOffset: { width: 0, height: 0 },
+                 shadowOpacity: 0.5,
+                 shadowRadius: 15,
                  elevation: 10
                }}
-               className="bg-[#0a0a0a] rounded-[2.5rem] p-6 border border-white/5"
+               className="relative overflow-hidden rounded-[2.5rem] bg-[#0a0a0a] border-2 border-boston-red/30"
              >
-                {/* Header Section */}
-                <View className="flex-row justify-between items-start mb-6">
-                   <View className="flex-row items-center">
-                      {/* Round Logo Placeholder */}
-                      <View className="w-14 h-14 rounded-full bg-black border-2 border-white/10 items-center justify-center mr-4">
-                         <View className="items-center justify-center">
-                            <Text className="text-white text-[8px] font-black italic tracking-tighter leading-none">BOSTON</Text>
-                            <View className="h-[1px] w-8 bg-boston-red my-0.5" />
-                            <Crown size={12} color="#D4AF37" />
-                         </View>
-                      </View>
-                      
-                      <View>
-                          <View className="flex-row items-center">
-                            <Text className="text-white/40 font-black text-[10px] uppercase tracking-widest mb-1 italic">NIVEL</Text>
-                          </View>
-                          <Text className="text-white text-3xl font-black uppercase italic tracking-tighter leading-none">
-                             {user.membershipLevel.toUpperCase()}
-                          </Text>
-                          <TouchableOpacity onPress={() => router.push('/club-info')} activeOpacity={0.7}>
-                            <StreakBadge streak={user.streak || 0} />
-                          </TouchableOpacity>
-                         <View className="flex-row items-center mt-2">
-                            <View className="h-[1px] flex-1 bg-boston-red/30" />
-                            <Star size={8} color="white" fill="white" className="mx-2" />
-                            <View className="h-[1px] flex-1 bg-boston-red/30" />
-                         </View>
-                      </View>
-                   </View>
-
-                   {/* Points Pill */}
-                   <View className="bg-black border border-boston-red/30 rounded-2xl p-2 flex-row items-center px-4 shadow-lg shadow-boston-red/20">
-                      <View className="w-8 h-8 bg-boston-red rounded-full items-center justify-center mr-3">
-                         <Star size={14} color="white" fill="white" />
+                {/* Internal Glow Corner */}
+                <View className="absolute -top-12 -left-12 w-32 h-32 bg-boston-red/20 rounded-full blur-[40px]" />
+                
+                <View className="p-7">
+                  {/* Top Row: Brand & Points */}
+                  <View className="flex-row justify-between items-center mb-6">
+                    <View className="flex-row items-center">
+                      <View className="w-10 h-10 rounded-xl bg-boston-red/10 items-center justify-center border border-boston-red/20 mr-3">
+                        <Crown size={20} color="#D4AF37" />
                       </View>
                       <View>
-                         <Text className="text-white font-black text-xl italic tracking-tighter leading-none">{user.points}</Text>
-                         <Text className="text-boston-red font-black text-[8px] uppercase tracking-widest mt-0.5">PUNTOS</Text>
+                        <Text className="text-white/40 font-black text-[8px] uppercase tracking-[0.2em]">Socio Boston</Text>
+                        <Text className="text-white font-black text-xs italic uppercase tracking-widest">Premium Club</Text>
                       </View>
-                      <ArrowRight size={12} color="white" className="ml-3 opacity-30" />
-                   </View>
-                </View>
+                    </View>
+                    
+                    <View className="bg-boston-red/10 rounded-2xl px-4 py-2 border border-boston-red/20 flex-row items-center">
+                       <Text className="text-white font-black text-lg mr-2">{user.points}</Text>
+                       <Text className="text-boston-gold font-bold text-[8px] uppercase tracking-widest">pts</Text>
+                    </View>
+                  </View>
 
-                {/* New 3D Progress Bar */}
-                <View className="relative mb-6">
-                   <View className="h-4 bg-black rounded-full w-full border border-white/5 overflow-hidden">
-                      {/* Track Background Texture */}
-                      <View className="absolute inset-0 opacity-20 flex-row">
-                         {[...Array(20)].map((_, i) => (
-                           <View key={i} className="w-1 h-full bg-white/20 mr-4 -rotate-45" />
-                         ))}
+                  {/* Level Display */}
+                  <View className="mb-6">
+                    <Text className="text-boston-red font-black text-[9px] uppercase tracking-[0.3em] mb-1 italic">Nivel Actual</Text>
+                    <View className="flex-row items-end">
+                      <Text className="text-white text-4xl font-black uppercase italic tracking-tighter leading-none mr-2">
+                        {user.membershipLevel.toUpperCase()}
+                      </Text>
+                      <View className="bg-boston-gold/20 p-1 rounded-md mb-1">
+                        <Star size={14} color="#D4AF37" fill="#D4AF37" />
                       </View>
-                      
-                      {/* Progress Fill with Gloss */}
+                    </View>
+                    
+                    <TouchableOpacity onPress={() => router.push('/club-info')} activeOpacity={0.7}>
+                      <StreakBadge streak={user.streak || 0} />
+                    </TouchableOpacity>
+                  </View>
+
+                  {/* Sleek Progress Section */}
+                  <View>
+                    <View className="flex-row justify-between items-end mb-2.5">
+                      <Text className="text-white/50 font-bold text-[9px] uppercase tracking-widest">
+                        Progreso a {calculateNextTier()?.name || 'MÁXIMO'}
+                      </Text>
+                      {calculateNextTier() && (
+                        <Text className="text-boston-red font-black text-[9px] uppercase tracking-widest">
+                          Faltan {(calculateNextTier()?.pointsNeeded || 0) - user.points} pts
+                        </Text>
+                      )}
+                    </View>
+
+                    {/* Pro Progress Bar */}
+                    <View className="h-2.5 bg-black rounded-full w-full overflow-hidden border border-white/5">
                       <View 
-                        style={{ width: `${calculateNextTier()?.currentProgress || 100}%` }} 
+                        style={{ width: `${calculateNextTier()?.currentProgress ?? 0}%` }} 
                         className="absolute top-0 left-0 h-full"
                       >
                          <LinearGradient
-                           colors={['#ff4d4d', '#cc0000', '#990000']}
+                           colors={['#ff0000', '#990000']}
                            start={{ x: 0, y: 0 }}
-                           end={{ x: 0, y: 1 }}
-                           style={{ flex: 1, borderRadius: 10 }}
+                           end={{ x: 1, y: 0 }}
+                           style={{ flex: 1 }}
                          />
-                         {/* Gloss Overlay */}
-                         <View className="absolute top-0 left-0 right-0 h-[40%] bg-white/20 rounded-full mx-1 mt-0.5" />
+                         {/* Shine Overlay */}
+                         <View className="absolute top-0 left-0 right-0 h-[40%] bg-white/10 rounded-full mx-1 mt-0.5" />
                       </View>
-                   </View>
-                   
-                   {/* Progress Thumb - Burger Icon Style */}
-                   <View 
-                     style={{ left: `${(calculateNextTier()?.currentProgress || 100) - 2}%` }}
-                     className="absolute top-[-4px] w-6 h-6 rounded-full bg-boston-red border-2 border-[#1a1a1a] items-center justify-center shadow-xl shadow-boston-red/50"
-                   >
-                      <View className="w-2.5 h-0.5 bg-white rounded-full mb-0.5" />
-                      <View className="w-3.5 h-1 bg-boston-gold rounded-sm mb-0.5" />
-                      <View className="w-3 h-0.5 bg-white rounded-full" />
-                   </View>
-                </View>
-                
-                {/* Milestones */}
-                <View className="flex-row justify-between px-2">
-                   <View className="items-center">
-                      <Star size={10} color={user.points >= (settings?.goldThreshold || 500) ? '#D4AF37' : '#333'} fill={user.points >= (settings?.goldThreshold || 500) ? '#D4AF37' : 'transparent'} className="mb-2" />
-                      <Text className={`text-[10px] font-black uppercase italic ${user.points >= (settings?.goldThreshold || 500) ? 'text-white' : 'text-white/20'}`}>ORO</Text>
-                   </View>
-                   <View className="items-center">
-                      <Star size={10} color={user.points >= (settings?.platinumThreshold || 1500) ? '#D4AF37' : '#333'} fill={user.points >= (settings?.platinumThreshold || 1500) ? '#D4AF37' : 'transparent'} className="mb-2" />
-                      <Text className={`text-[10px] font-black uppercase italic ${user.points >= (settings?.platinumThreshold || 1500) ? 'text-white' : 'text-white/20'}`}>PLATINO</Text>
-                   </View>
-                   <View className="items-center">
-                      <Star size={10} color={user.points >= (settings?.diamondThreshold || 5000) ? '#D4AF37' : '#333'} fill={user.points >= (settings?.diamondThreshold || 5000) ? '#D4AF37' : 'transparent'} className="mb-2" />
-                      <Text className={`text-[10px] font-black uppercase italic ${user.points >= (settings?.diamondThreshold || 5000) ? 'text-white' : 'text-white/20'}`}>DIAMANTE</Text>
-                   </View>
+                    </View>
+                  </View>
+                  
+                  {/* Milestones Icons */}
+                  <View className="flex-row justify-between mt-6 px-1">
+                    {['ORO', 'PLATINO', 'DIAMANTE'].map((tier, idx) => {
+                      const thresholds = [settings?.goldThreshold || 500, settings?.platinumThreshold || 1500, settings?.diamondThreshold || 5000];
+                      const isReached = user.points >= thresholds[idx];
+                      return (
+                        <View key={tier} className="items-center">
+                          <View className={`w-2 h-2 rounded-full mb-2 ${isReached ? 'bg-boston-red shadow-lg shadow-boston-red' : 'bg-white/5'}`} />
+                          <Text className={`text-[8px] font-black tracking-widest ${isReached ? 'text-white' : 'text-white/10'}`}>{tier}</Text>
+                        </View>
+                      );
+                    })}
+                  </View>
                 </View>
              </TouchableOpacity>
           </FadeInView>
+
            {/* Premium Guide Banner */}
            <FadeInView delay={600} className="px-6 mt-8">
               <TouchableOpacity 
