@@ -46,6 +46,39 @@ export const getAdminStats = async (req: Request, res: Response): Promise<void> 
     });
     const totalPointsBalance = pointsAggregation._sum.points || 0;
 
+    // 5. Chart Data (Last 7 Days: Points Given vs Redeemed)
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
+    sevenDaysAgo.setHours(0, 0, 0, 0);
+
+    const historySevenDays = await prisma.pointHistory.findMany({
+      where: { createdAt: { gte: sevenDaysAgo } },
+      select: { pointsGained: true, createdAt: true }
+    });
+
+    const chartMap = new Map();
+    // Initialize map with last 7 days
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const key = d.toLocaleDateString('es-AR', { weekday: 'short', day: '2-digit' });
+      chartMap.set(key, { name: key, entregados: 0, canjeados: 0 });
+    }
+
+    historySevenDays.forEach(h => {
+      const key = h.createdAt.toLocaleDateString('es-AR', { weekday: 'short', day: '2-digit' });
+      if (chartMap.has(key)) {
+        const item = chartMap.get(key);
+        if (h.pointsGained > 0) {
+          item.entregados += h.pointsGained;
+        } else {
+          item.canjeados += Math.abs(h.pointsGained);
+        }
+      }
+    });
+
+    const chartData = Array.from(chartMap.values());
+
     res.json({
       totalUsers,
       totalPointsUsed,
@@ -56,7 +89,8 @@ export const getAdminStats = async (req: Request, res: Response): Promise<void> 
         userName: `${h.user.firstName} ${h.user.lastName}`,
         points: h.pointsGained,
         createdAt: h.createdAt
-      }))
+      })),
+      chartData
     });
   } catch (error) {
     console.error("Stats error:", error);

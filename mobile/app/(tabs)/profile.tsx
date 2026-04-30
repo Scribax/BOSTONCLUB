@@ -300,7 +300,25 @@ export default function ProfileScreen() {
                   </Text>
               </View>
             </View>
-          </View>
+          {/* Actividad / Historial */}
+          <TouchableOpacity 
+            activeOpacity={0.9}
+            onPress={() => router.push('/history')}
+            className="bg-white/[0.02] border border-white/5 rounded-[2.5rem] p-6 flex-row items-center justify-between mb-8"
+          >
+             <View className="flex-row items-center">
+               <View className="w-12 h-12 bg-boston-gold/10 rounded-2xl items-center justify-center mr-4">
+                  <History size={20} color="#D4AF37" />
+               </View>
+               <View>
+                 <Text className="text-white text-lg font-black italic uppercase">Historial VIP</Text>
+                 <Text className="text-white/40 text-[9px] font-black uppercase tracking-widest mt-1">Ver todos tus movimientos</Text>
+               </View>
+             </View>
+             <View className="w-10 h-10 bg-white/5 rounded-full items-center justify-center">
+               <ChevronRight size={16} color="rgba(255,255,255,0.4)" />
+             </View>
+          </TouchableOpacity>
 
           {/* Settings Groups */}
           <Text className="text-white/30 text-[9px] font-black uppercase tracking-[0.4em] mb-4 ml-4">Información Personal</Text>

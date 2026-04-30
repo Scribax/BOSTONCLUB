@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Users, Star, ArrowUpRight, ShieldCheck, Ticket, Wallet, ArrowRight } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 import Link from "next/link";
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 type Redemption = {
   id: string;
@@ -19,6 +20,7 @@ type Stats = {
   totalPointsUsed: number;
   totalPointsBalance: number;
   latestActivity: Redemption[];
+  chartData: any[];
 };
 
 export default function AdminDashboard() {
@@ -118,6 +120,57 @@ export default function AdminDashboard() {
             <div className="absolute bottom-[-20%] right-[-10%] w-32 h-32 bg-green-500 rounded-full mix-blend-screen filter blur-[50px] opacity-10" />
           </motion.div>
         </Link>
+      </div>
+
+      {/* Chart Section */}
+      <div className="mt-8 glass-panel p-8 rounded-[2.5rem] border border-white/5">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h3 className="text-white font-black tracking-widest uppercase italic text-lg">Flujo de Puntos</h3>
+            <p className="text-white/40 text-xs mt-1">Puntos Entregados vs Canjeados (Últimos 7 días)</p>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-boston-gold" />
+              <span className="text-[10px] uppercase font-black tracking-widest text-white/50">Entregados</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-boston-red-glow" />
+              <span className="text-[10px] uppercase font-black tracking-widest text-white/50">Canjeados</span>
+            </div>
+          </div>
+        </div>
+        
+        <div className="h-[300px] w-full">
+          {loading ? (
+            <div className="w-full h-full animate-pulse bg-white/5 rounded-2xl" />
+          ) : (
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={stats?.chartData || []} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="colorEntregados" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#D4AF37" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#D4AF37" stopOpacity={0}/>
+                  </linearGradient>
+                  <linearGradient id="colorCanjeados" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#FF2D2D" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#FF2D2D" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                <XAxis dataKey="name" stroke="rgba(255,255,255,0.2)" fontSize={10} tickLine={false} axisLine={false} />
+                <YAxis stroke="rgba(255,255,255,0.2)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(val) => val >= 1000 ? (val/1000)+'k' : val} />
+                <Tooltip 
+                  contentStyle={{ backgroundColor: '#0a0a0a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px' }}
+                  itemStyle={{ fontSize: 12, fontWeight: 'bold' }}
+                  labelStyle={{ color: 'rgba(255,255,255,0.5)', fontSize: 10, marginBottom: 4, textTransform: 'uppercase' }}
+                />
+                <Area type="monotone" dataKey="entregados" stroke="#D4AF37" strokeWidth={3} fillOpacity={1} fill="url(#colorEntregados)" />
+                <Area type="monotone" dataKey="canjeados" stroke="#FF2D2D" strokeWidth={3} fillOpacity={1} fill="url(#colorCanjeados)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          )}
+        </div>
       </div>
 
       <div className="mt-8 glass-panel p-10 rounded-[2.5rem] border border-white/5 min-h-[350px]">

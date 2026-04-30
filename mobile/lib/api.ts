@@ -41,6 +41,30 @@ const api = axios.create({
   },
 });
 
+// Cache en memoria para GET requests (Stale-While-Revalidate)
+const getCache = new Map<string, { data: any, timestamp: number }>();
+const CACHE_TTL = 60000; // 1 minuto de cache instantáneo
+
+const originalGet = api.get;
+api.get = async (url: string, config?: any) => {
+  const key = url + JSON.stringify(config?.params || {});
+  const cached = getCache.get(key);
+  
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+    // Background fetch silencioso
+    originalGet(url, config).then(res => {
+      getCache.set(key, { data: res.data, timestamp: Date.now() });
+    }).catch(() => {});
+    
+    // Retorna inmediato de memoria
+    return { data: cached.data } as any;
+  }
+
+  const res = await originalGet(url, config);
+  getCache.set(key, { data: res.data, timestamp: Date.now() });
+  return res;
+};
+
 // Interceptor para añadir el Token
 api.interceptors.request.use(async (config) => {
   const token = await getAuthToken();
@@ -51,8 +75,6 @@ api.interceptors.request.use(async (config) => {
 });
 
 // Interceptor para manejar errores (401, etc)
-// NO hacemos logout automático aquí - cada pantalla decide qué hacer con el error
-// Esto evita bucles de redirección cuando hay pantallas de auth que necesitan el token
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
