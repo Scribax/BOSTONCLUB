@@ -181,44 +181,6 @@ export default function ProfileScreen() {
 
   const level = getLevelInfo();
 
-  const calculateNextTier = () => {
-    if (!user || !settings) return null;
-    
-    const pts = user.points;
-    let nextTierName = "";
-    let nextTierPts = 0;
-    let currentTierPts = 0;
-
-    if (pts < settings.goldThreshold) {
-      nextTierName = "ORO";
-      nextTierPts = settings.goldThreshold;
-      currentTierPts = 0;
-    } else if (pts < settings.platinumThreshold) {
-      nextTierName = "PLATINO";
-      nextTierPts = settings.platinumThreshold;
-      currentTierPts = settings.goldThreshold;
-    } else if (pts < settings.diamondThreshold) {
-      nextTierName = "DIAMANTE";
-      nextTierPts = settings.diamondThreshold;
-      currentTierPts = settings.platinumThreshold;
-    } else if (pts < settings.superVipThreshold) {
-      nextTierName = "SÚPER VIP";
-      nextTierPts = settings.superVipThreshold;
-      currentTierPts = settings.diamondThreshold;
-    } else {
-      return null; // Ya es Súper VIP
-    }
-
-    const range = nextTierPts - currentTierPts;
-    const currentProgress = pts - currentTierPts;
-    const progressPercent = Math.min(100, Math.max(0, (currentProgress / range) * 100));
-    const pointsLeft = nextTierPts - pts;
-
-    return { nextTierName, progressPercent, pointsLeft, nextTierPts };
-  };
-
-  const nextTierInfo = calculateNextTier();
-
   if (loading || !user) {
     return (
       <View className="flex-1 bg-[#050505] items-center justify-center">
@@ -291,25 +253,6 @@ export default function ProfileScreen() {
               </View>
             </View>
 
-            {/* Progress to Next Tier */}
-            {nextTierInfo && (
-              <View className="w-[90%] mt-8 mb-4">
-                <View className="flex-row justify-between mb-2 w-full">
-                  <Text className="text-white/50 text-[10px] font-black uppercase tracking-widest">
-                    Progreso a <Text className="text-boston-gold">{nextTierInfo.nextTierName}</Text>
-                  </Text>
-                  <Text className="text-boston-gold text-[10px] font-black tracking-widest uppercase">
-                    {nextTierInfo.pointsLeft.toLocaleString('es-AR')} pts restantes
-                  </Text>
-                </View>
-                <View className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
-                  <View 
-                    className="h-full bg-boston-gold rounded-full" 
-                    style={{ width: `${nextTierInfo.progressPercent}%` }} 
-                  />
-                </View>
-              </View>
-            )}
           </View>
         </View>
 
