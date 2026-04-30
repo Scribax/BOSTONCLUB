@@ -300,6 +300,7 @@ export default function ProfileScreen() {
                   </Text>
               </View>
             </View>
+          </View>
           {/* Actividad / Historial */}
           <TouchableOpacity 
             activeOpacity={0.9}
