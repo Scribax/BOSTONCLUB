@@ -99,8 +99,7 @@ export default function ClubInfoScreen() {
          {accent && (
             <LinearGradient
                colors={['transparent', 'rgba(232, 198, 112, 0.15)', 'transparent']}
-               className="absolute -inset-4 rotate-12"
-               style={{ width: '200%' }}
+               style={{ position: 'absolute', top: -16, left: -16, right: -16, bottom: -16, transform: [{ rotate: '12deg' }], width: '200%' }}
             />
          )}
 
@@ -191,7 +190,7 @@ export default function ClubInfoScreen() {
                         colors={[GOLD, '#FF3B30']}
                         start={{ x: 0, y: 0.5 }}
                         end={{ x: 1, y: 0.5 }}
-                        style={{ width: progressWidth as any, height: '100%', borderRadius: 10 }}
+                        style={{ width: progressWidth, height: 8, borderRadius: 10 }}
                      />
                   </View>
 
@@ -282,7 +281,7 @@ export default function ClubInfoScreen() {
                      colors={[GOLD, DEEP_GOLD]}
                      start={{ x: 0, y: 0 }}
                      end={{ x: 1, y: 1 }}
-                     className="flex-1 items-center justify-center"
+                     style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}
                   >
                      <Text className="text-black text-xl font-black uppercase italic tracking-widest">Entendido, soy VIP</Text>
                   </LinearGradient>

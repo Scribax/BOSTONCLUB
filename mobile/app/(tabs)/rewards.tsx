@@ -1,12 +1,10 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert, Modal, Image, Dimensions, Pressable } from 'react-native';
-import { Gift, Star, Ticket, ArrowLeft, Loader2, Info, ChevronRight, X, Flame, Coffee, Pizza, Sparkles } from 'lucide-react-native';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert, Modal, Image, Dimensions } from 'react-native';
+import { Gift, Star, Ticket, X, Coffee, Pizza, Sparkles } from 'lucide-react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import api from '../../lib/api';
 import { StatusBar } from 'expo-status-bar';
 import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
-import Animated, { FadeIn, FadeInDown, Layout } from 'react-native-reanimated';
 
 type Reward = {
   id: string;
@@ -201,8 +199,7 @@ export default function RewardsScreen() {
                const progress = Math.min(1, pts / reward.pointsRequired);
                
                return (
-                  <Animated.View 
-                    entering={FadeInDown.delay(index * 100)}
+                  <View 
                     key={reward.id}
                     style={{ width: '100%', marginBottom: 16 }}
                   >
@@ -273,7 +270,7 @@ export default function RewardsScreen() {
                            </View>
                         </View>
                      </TouchableOpacity>
-                  </Animated.View>
+                  </View>
                );
             })}
          </View>
@@ -290,7 +287,7 @@ export default function RewardsScreen() {
       <Modal visible={confirmModal.visible} transparent animationType="fade" onRequestClose={() => setConfirmModal({ visible: false, reward: null })}>
          <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.9)', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
             {confirmModal.reward && (
-               <Animated.View entering={FadeInDown} style={{ width: '100%', backgroundColor: '#0c0c0c', borderRadius: 40, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', overflow: 'hidden' }}>
+               <View style={{ width: '100%', backgroundColor: '#0c0c0c', borderRadius: 40, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', overflow: 'hidden' }}>
                   <View style={{ width: '100%', height: 200 }}>
                      <Image source={{ uri: resolveImageUrl(confirmModal.reward.imageUrl) || '' }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
                      <LinearGradient colors={['transparent', 'rgba(12,12,12,0.6)', '#0c0c0c']} style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '80%' }} />
@@ -324,8 +321,8 @@ export default function RewardsScreen() {
                         <Text style={{ color: 'rgba(255,255,255,0.3)', fontWeight: '900', fontSize: 10, textTransform: 'uppercase', letterSpacing: 1 }}>Volver atrás</Text>
                      </TouchableOpacity>
                   </View>
-               </Animated.View>
-            )}
+                </View>
+             )}
          </View>
       </Modal>
     </View>
