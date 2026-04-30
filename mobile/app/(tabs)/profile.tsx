@@ -233,7 +233,7 @@ export default function ProfileScreen() {
       
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         {/* Header Section */}
-        <View className="relative h-[420px] items-center justify-center pt-12">
+        <View className="relative min-h-[420px] pb-12 items-center justify-center pt-12">
           {/* Animated Background Aura */}
           <View className={`absolute top-0 right-0 w-96 h-96 rounded-full opacity-20 blur-[120px] ${level.aura}`} />
           <View className="absolute top-20 left-10 w-40 h-40 bg-boston-red rounded-full opacity-10 blur-[80px]" />
@@ -293,12 +293,14 @@ export default function ProfileScreen() {
 
             {/* Progress to Next Tier */}
             {nextTierInfo && (
-              <View className="w-[90%] mt-6">
-                <View className="flex-row justify-between mb-2 items-end">
+              <View className="w-[90%] mt-8 mb-4">
+                <View className="flex-row justify-between mb-2 w-full">
                   <Text className="text-white/50 text-[10px] font-black uppercase tracking-widest">
                     Progreso a <Text className="text-boston-gold">{nextTierInfo.nextTierName}</Text>
                   </Text>
-                  <Text className="text-boston-gold text-xs font-black">{nextTierInfo.pointsLeft} pts restantes</Text>
+                  <Text className="text-boston-gold text-[10px] font-black tracking-widest uppercase">
+                    {nextTierInfo.pointsLeft.toLocaleString('es-AR')} pts restantes
+                  </Text>
                 </View>
                 <View className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
                   <View 
