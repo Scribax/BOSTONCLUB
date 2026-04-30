@@ -59,51 +59,59 @@ export const getAllUsers = async (req: Request, res: Response): Promise<void> =>
 
 export const adjustPoints = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { id } = req.params;
-    const { points, reason, mode } = req.body;
+    const { id: userId } = req.params;
+    const { points: delta, reason, mode } = req.body;
 
-    // Fetch current points to compute a meaningful history delta in "set" mode
-    const currentUser = await prisma.user.findUnique({
-      where: { id: id as string },
-      select: { points: true }
-    });
+    const result = await prisma.$transaction(async (tx) => {
+      const currentUser = await tx.user.findUnique({
+        where: { id: userId as string },
+        select: { points: true, membershipLevel: true }
+      });
 
-    const newPointsValue = mode === "set" ? points : (currentUser?.points ?? 0) + points;
-    const finalPointsValue = Math.max(0, newPointsValue); // Prevent negative points
+      if (!currentUser) throw new Error("User not found");
 
-    let user = await prisma.user.update({
-      where: { id: id as string },
-      data: { points: finalPointsValue },
-    });
+      let finalPointsValue: number;
+      if (mode === "set") {
+        finalPointsValue = Math.max(0, delta);
+      } else {
+        finalPointsValue = Math.max(0, currentUser.points + delta);
+      }
 
-    // Check for level upgrade
-    const settings = await prisma.clubSettings.findUnique({ where: { id: "singleton" } });
-    if (settings) {
-      const newLevel = calculateMembershipLevel(user.points, settings);
-      if (user.membershipLevel !== newLevel) {
-        user = await prisma.user.update({
-          where: { id: id as string },
-          data: { membershipLevel: newLevel }
+      const actualDelta = finalPointsValue - currentUser.points;
+
+      let user = await tx.user.update({
+        where: { id: userId as string },
+        data: { points: finalPointsValue },
+      });
+
+      const settings = await tx.clubSettings.findUnique({ where: { id: "singleton" } });
+      if (settings) {
+        const newLevel = calculateMembershipLevel(user.points, settings);
+        if (user.membershipLevel !== newLevel) {
+          user = await tx.user.update({
+            where: { id: userId as string },
+            data: { membershipLevel: newLevel }
+          });
+        }
+      }
+
+      if (actualDelta !== 0) {
+        await tx.pointHistory.create({
+          data: {
+            userId: userId as string,
+            pointsGained: actualDelta,
+            source: "ADMIN",
+            description: reason || (actualDelta > 0 ? "Puntos agregados por Admin" : "Puntos deducidos por Admin"),
+          },
         });
       }
-    }
 
-    // Log in history — record the real change
-    const actualDelta = user.points - (currentUser?.points ?? 0);
+      return user;
+    });
 
-    if (actualDelta !== 0) {
-      await prisma.pointHistory.create({
-        data: {
-          userId: id as string,
-          pointsGained: actualDelta,
-          source: "ADMIN",
-          description: reason || (actualDelta > 0 ? "Puntos agregados por Admin" : "Puntos deducidos por Admin"),
-        },
-      });
-    }
-
-    res.json({ message: "Points updated", points: user.points, level: user.membershipLevel });
-  } catch (error) {
+    res.json({ message: "Points updated", points: result.points, level: result.membershipLevel });
+  } catch (error: any) {
+    console.error(error);
     res.status(500).json({ message: "Server Error" });
   }
 };

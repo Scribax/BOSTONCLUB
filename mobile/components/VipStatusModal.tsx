@@ -158,7 +158,7 @@ export const VipStatusModal = ({ isVisible, onClose, user, settings, onRedeemSuc
               {loading && benefits.length === 0 ? (
                 <ActivityIndicator color="#D4AF37" style={{ marginTop: 20 }} />
               ) : benefits.filter(b => !b.isLocked).length === 0 ? (
-                <View style={{ padding: 40, backgroundColor: 'rgba(255,255,255,0.02)', borderRadius: 32, alignItems: 'center', borderWeight: 1, borderColor: 'rgba(255,255,255,0.05)' }}>
+                <View style={{ padding: 40, backgroundColor: 'rgba(255,255,255,0.02)', borderRadius: 32, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' }}>
                   <Lock size={24} color="rgba(255,255,255,0.1)" />
                   <Text style={{ color: 'rgba(255,255,255,0.2)', fontSize: 11, fontWeight: '700', textTransform: 'uppercase', textAlign: 'center', marginTop: 12 }}>Aún no tienes beneficios en este nivel</Text>
                 </View>
@@ -191,7 +191,7 @@ export const VipStatusModal = ({ isVisible, onClose, user, settings, onRedeemSuc
                             activeOpacity={0.7}
                             onPress={() => handleRedeem(benefit)}
                             disabled={redeemingId === benefit.id}
-                            style={{ backgroundColor: '#D4AF37', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 10, flexDirection: 'row', alignItems: 'center shadow-lg shadow-boston-gold/20' }}
+                            style={{ backgroundColor: '#D4AF37', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 10, flexDirection: 'row', alignItems: 'center' }}
                           >
                             {redeemingId === benefit.id ? (
                               <ActivityIndicator size="small" color="black" />

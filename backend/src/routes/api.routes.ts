@@ -35,7 +35,7 @@ router.post("/redemptions/generate", authenticate, generateRedemptionQR);
 router.post("/redemptions/confirm", authenticate, requireAdmin, confirmRedemption);
 router.post("/redemptions/cancel", authenticate, cancelRedemption);
 router.get("/redemptions/active", authenticate, getActiveRedemption);
-router.get("/redemptions/status/:qrToken", getRedemptionStatus);
+router.get("/redemptions/status/:qrToken", authenticate, getRedemptionStatus);
 router.get("/redemptions/history", authenticate, requireAdmin, getScannerHistory);
 
 // Events

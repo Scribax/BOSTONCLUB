@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, ActivityIndicator,
-  Image, RefreshControl, Dimensions, Modal
+  Image, RefreshControl, Dimensions, Modal, Alert
 } from 'react-native';
 import { useRouter, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { ArrowLeft, Calendar, MapPin, Clock, Star, ExternalLink, QrCode } from 'lucide-react-native';
