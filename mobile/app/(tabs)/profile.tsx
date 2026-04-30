@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, Alert, ActivityIndicator, TextInput, Modal, Share, ScrollView } from 'react-native';
 import { router } from 'expo-router';
-import { LogOut, User, ShieldCheck, Mail, Edit2, X, Phone, Check, Users, Share2, Flame, Fingerprint, Shield, Crown, Lock, ChevronRight, RefreshCcw, Zap } from 'lucide-react-native';
+import { LogOut, User, ShieldCheck, Mail, Edit2, X, Phone, Check, Users, Share2, Flame, Fingerprint, Shield, Crown, Lock, ChevronRight, RefreshCcw, Zap, History } from 'lucide-react-native';
 import api, { logout } from '../../lib/api';
 import { StatusBar } from 'expo-status-bar';
 import { LinearGradient } from 'expo-linear-gradient';
