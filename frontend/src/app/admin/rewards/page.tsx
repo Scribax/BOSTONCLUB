@@ -32,10 +32,12 @@ export default function AdminRewardsPage() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isAdultOnly, setIsAdultOnly] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setSelectedFile(file);
       const reader = new FileReader();
       reader.onloadend = () => setImagePreview(reader.result as string);
       reader.readAsDataURL(file);
@@ -91,12 +93,29 @@ export default function AdminRewardsPage() {
     e.preventDefault();
     setSaving(true);
     try {
+      let finalImageUrl = imagePreview;
+
+      // If we have a new file, upload it to Cloudflare R2 first
+      if (selectedFile) {
+        const formData = new FormData();
+        formData.append("file", selectedFile);
+        
+        const uploadRes = await apiFetch("/media/upload", {
+          method: "POST",
+          body: formData
+        });
+        
+        if (uploadRes.url) {
+          finalImageUrl = uploadRes.url;
+        }
+      }
+
       const body = {
          name: newName,
          description: newDesc,
          pointsRequired: parseInt(newPoints),
          type: newType,
-         imageUrl: imagePreview || null,
+         imageUrl: finalImageUrl || null,
          isAdultOnly: isAdultOnly
       };
       
@@ -117,6 +136,7 @@ export default function AdminRewardsPage() {
       }
       closeModal();
     } catch (err) {
+      console.error("Error saving reward", err);
       alert("Error al guardar premio");
     } finally {
       setSaving(false);
@@ -159,6 +179,7 @@ export default function AdminRewardsPage() {
     setNewPoints("");
     setNewType("BEBIDA");
     setImagePreview(null);
+    setSelectedFile(null);
     setIsAdultOnly(false);
   };
 
