@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Users, Star, ArrowUpRight, ShieldCheck, Ticket, Wallet, ArrowRight } from "lucide-react";
+import { Users, Star, ArrowUpRight, ShieldCheck, Ticket, Wallet, ArrowRight, Send, BellRing } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 import Link from "next/link";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
@@ -26,6 +26,32 @@ type Stats = {
 export default function AdminDashboard() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Push Campaign State
+  const [pushTitle, setPushTitle] = useState("");
+  const [pushBody, setPushBody] = useState("");
+  const [pushAudience, setPushAudience] = useState("ALL");
+  const [pushLoading, setPushLoading] = useState(false);
+
+  const handleSendPush = async () => {
+    if (!pushTitle || !pushBody) return alert("Completa título y mensaje");
+    if (!confirm("¿Estás seguro de enviar esta campaña a los dispositivos?")) return;
+    
+    setPushLoading(true);
+    try {
+      const res = await apiFetch("/admin/push", {
+        method: "POST",
+        body: JSON.stringify({ title: pushTitle, body: pushBody, audience: pushAudience })
+      });
+      alert(res.message || "Campaña enviada con éxito");
+      setPushTitle("");
+      setPushBody("");
+    } catch (err: any) {
+      alert("Error al enviar: " + (err.message || "Error desconocido"));
+    } finally {
+      setPushLoading(false);
+    }
+  };
 
   useEffect(() => {
     const loadStats = async () => {
@@ -282,6 +308,83 @@ export default function AdminDashboard() {
               className="w-full sm:w-auto bg-boston-gold text-black px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest hover:brightness-110 transition-all flex justify-center items-center gap-2"
             >
               <Ticket className="w-4 h-4" /> Exportar CSV
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Push Campaigns Section */}
+      <div className="mt-8 glass-panel p-8 rounded-[2.5rem] border border-white/5 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-boston-gold rounded-full opacity-5 blur-[100px]" />
+        
+        <div className="flex items-center gap-3 mb-8">
+          <BellRing className="text-boston-gold w-6 h-6"/>
+          <div>
+            <h3 className="text-white font-black tracking-widest uppercase text-lg">Campañas Push</h3>
+            <p className="text-white/40 text-xs">Envía notificaciones personalizadas a los socios</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
+          <div className="space-y-4">
+            <div>
+               <label className="text-[10px] uppercase font-black text-white/30 tracking-widest block mb-2">Título de la Notificación</label>
+               <input 
+                 type="text" 
+                 value={pushTitle}
+                 onChange={e => setPushTitle(e.target.value)}
+                 placeholder="Ej: 🔥 ¡Happy Hour Sorpresa!"
+                 className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-boston-gold transition-colors"
+                 maxLength={50}
+               />
+            </div>
+            <div>
+               <label className="text-[10px] uppercase font-black text-white/30 tracking-widest block mb-2">Mensaje</label>
+               <textarea 
+                 value={pushBody}
+                 onChange={e => setPushBody(e.target.value)}
+                 placeholder="Escribe el mensaje corto aquí..."
+                 className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-boston-gold transition-colors h-24 resize-none"
+                 maxLength={150}
+               />
+               <p className="text-right text-[9px] text-white/20 mt-1">{pushBody.length}/150</p>
+            </div>
+          </div>
+          
+          <div className="space-y-6">
+            <div>
+              <label className="text-[10px] uppercase font-black text-white/30 tracking-widest block mb-2">Público Objetivo</label>
+              <div className="flex gap-4">
+                <button 
+                  onClick={() => setPushAudience("ALL")}
+                  className={`flex-1 py-3 rounded-xl border font-black text-xs uppercase tracking-widest transition-all ${pushAudience === "ALL" ? 'bg-boston-gold/10 border-boston-gold text-boston-gold' : 'bg-black/50 border-white/10 text-white/40 hover:border-white/30'}`}
+                >
+                  Todos
+                </button>
+                <button 
+                  onClick={() => setPushAudience("VIP")}
+                  className={`flex-1 py-3 rounded-xl border font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${pushAudience === "VIP" ? 'bg-white/10 border-white text-white' : 'bg-black/50 border-white/10 text-white/40 hover:border-white/30'}`}
+                >
+                  <Star className="w-3 h-3" /> Solo VIPs
+                </button>
+              </div>
+              <p className="text-[9px] text-white/30 mt-3 italic">
+                {pushAudience === "ALL" ? "Se enviará a todos los socios con la app instalada." : "Se enviará solo a niveles Oro, Platino, Diamante y Súper VIP."}
+              </p>
+            </div>
+
+            <button 
+              onClick={handleSendPush}
+              disabled={pushLoading || !pushTitle || !pushBody}
+              className="w-full bg-boston-gold text-black px-6 py-4 rounded-xl font-black text-sm uppercase tracking-widest hover:brightness-110 transition-all flex justify-center items-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {pushLoading ? (
+                "Enviando..."
+              ) : (
+                <>
+                  <Send className="w-5 h-5" /> Lanzar Campaña
+                </>
+              )}
             </button>
           </div>
         </div>

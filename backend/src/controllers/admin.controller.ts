@@ -1,5 +1,7 @@
 import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
+import { Expo, ExpoPushMessage } from 'expo-server-sdk';
+import { sendPushNotifications } from '../services/push.service';
 
 const prisma = new PrismaClient();
 
@@ -148,5 +150,61 @@ export const exportAudits = async (req: Request, res: Response): Promise<void> =
   } catch (error) {
     console.error("Export error:", error);
     res.status(500).json({ message: "Error generating export" });
+  }
+};
+
+export const sendCustomPush = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { title, body, audience } = req.body;
+    
+    if (!title || !body) {
+      res.status(400).json({ message: "Title and body are required" });
+      return;
+    }
+
+    let users;
+    if (audience === "VIP") {
+      users = await prisma.user.findMany({
+        where: { 
+          expoPushToken: { not: null },
+          membershipLevel: { in: ["ORO", "PLATINO", "DIAMANTE", "SÚPER VIP"] }
+        },
+        select: { expoPushToken: true }
+      });
+    } else {
+      users = await prisma.user.findMany({
+        where: { expoPushToken: { not: null } },
+        select: { expoPushToken: true }
+      });
+    }
+
+    const messages: ExpoPushMessage[] = [];
+    const uniqueTokens = new Set<string>();
+    
+    for (const user of users) {
+      if (user.expoPushToken && Expo.isExpoPushToken(user.expoPushToken)) {
+        uniqueTokens.add(user.expoPushToken);
+      }
+    }
+
+    for (const token of uniqueTokens) {
+      messages.push({
+        to: token,
+        sound: 'default',
+        priority: 'high',
+        title: title,
+        body: body,
+        data: { type: 'CUSTOM_CAMPAIGN' },
+      });
+    }
+
+    if (messages.length > 0) {
+      await sendPushNotifications(messages);
+    }
+
+    res.json({ message: `Campaña enviada a ${uniqueTokens.size} dispositivos.` });
+  } catch (error) {
+    console.error("Push campaign error:", error);
+    res.status(500).json({ message: "Server Error" });
   }
 };

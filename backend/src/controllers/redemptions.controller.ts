@@ -196,8 +196,21 @@ export const generateRedemptionQR = async (req: any, res: Response): Promise<voi
 // Admin scans and confirms the redemption
 export const confirmRedemption = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { qrToken } = req.body;
+    const { qrToken: rawToken } = req.body;
     const staffId = (req as any).user?.userId || (req as any).user?.id;
+
+    // TOTP Dynamic QR Check (Format: token|timestamp)
+    let qrToken = rawToken;
+    if (rawToken && rawToken.includes('|')) {
+      const parts = rawToken.split('|');
+      qrToken = parts[0];
+      const timestamp = parseInt(parts[1], 10);
+      
+      if (isNaN(timestamp) || Date.now() - timestamp > 60000) { // 60 seconds leeway for network latency
+        res.status(400).json({ message: "El código QR ha expirado (Anti-Fraude). Por favor pídale al cliente que le muestre el QR actual de su pantalla." });
+        return;
+      }
+    }
 
     const redemption = await prisma.redemption.findUnique({
       where: { qrToken },

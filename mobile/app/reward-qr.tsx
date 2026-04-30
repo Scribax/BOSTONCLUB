@@ -42,6 +42,23 @@ export default function RewardQRScreen() {
   };
 
   const [isCompleted, setIsCompleted] = useState(false);
+  const [totpTimestamp, setTotpTimestamp] = useState(Date.now());
+  const [timeLeft, setTimeLeft] = useState(30);
+
+  useEffect(() => {
+    if (!isCompleted) {
+      const timer = setInterval(() => {
+        setTimeLeft(prev => {
+          if (prev <= 1) {
+            setTotpTimestamp(Date.now());
+            return 30;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      return () => clearInterval(timer);
+    }
+  }, [isCompleted]);
 
   useEffect(() => {
     // Handle Android back button
@@ -151,20 +168,33 @@ export default function RewardQRScreen() {
                    </View>
                  ) : (
                    <>
-                     <View className="bg-white p-6 rounded-3xl shadow-xl mb-8">
+                     <View className="bg-white p-6 rounded-3xl shadow-xl mb-4 relative overflow-hidden border-4 border-boston-gold/20">
                         <QRCode
-                          value={token}
+                          value={`${token}|${totpTimestamp}`}
                           size={200}
                           color="#000"
                           backgroundColor="#fff"
                         />
                      </View>
 
+                     {/* TOTP Progress Bar */}
+                     <View className="w-full mb-6 items-center">
+                        <Text className="text-white/40 text-[9px] font-black uppercase tracking-widest mb-2">
+                           Actualizando en <Text className="text-boston-gold">{timeLeft}s</Text>
+                        </Text>
+                        <View className="w-3/4 h-1 bg-white/10 rounded-full overflow-hidden">
+                           <View 
+                             className="h-full bg-boston-gold rounded-full" 
+                             style={{ width: `${(timeLeft / 30) * 100}%` }} 
+                           />
+                        </View>
+                     </View>
+
                      <Text className="text-boston-gold text-[10px] font-black uppercase tracking-[0.4em] mb-2 text-center">
-                       Instrucciones
+                       Seguridad Anti-Fraude
                      </Text>
                      <Text className="text-white/50 text-xs font-medium text-center uppercase tracking-tight leading-relaxed">
-                       Presenta este código QR en la barra de Boston Club para recibir tu premio.
+                       Este código es dinámico y expira cada 30 seg. No son válidas las capturas de pantalla.
                      </Text>
                    </>
                  )}
