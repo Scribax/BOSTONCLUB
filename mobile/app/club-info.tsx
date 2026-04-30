@@ -180,7 +180,7 @@ export default function ClubInfoScreen() {
 
                      <View className="items-end">
                         <View className="bg-[#FF3B30]/10 px-4 py-3 rounded-2xl border border-[#FF3B30]/20">
-                           <Text className="text-[#FF3B30] text-xs font-black uppercase italic">{streak} {streak === 1 ? 'DÍA CONSECUTIVO' : 'DÍAS CONSECUTIVOS'} 🔥</Text>
+                           <Text className="text-[#FF3B30] text-xs font-black uppercase italic">{streak} {streak === 1 ? 'VISITA' : 'VISITAS'} EN RACHA 🔥</Text>
                         </View>
                      </View>
                   </View>
@@ -254,12 +254,12 @@ export default function ClubInfoScreen() {
                   onPress={() => router.push('/(tabs)/profile')}
                />
                <MissionCard
-                  icon={Sparkles}
-                  color="#10B981"
-                  title="Daily check-in"
-                  description="Suma por solo abrir la App"
-                  onPress={() => router.push('/(tabs)/scanner')}
-               />
+                   icon={Sparkles}
+                   color="#10B981"
+                   title="Check-in en la puerta"
+                   description="Escanea el QR de entrada al llegar"
+                   onPress={() => router.push('/(tabs)/scanner')}
+                />
                <MissionCard
                   icon={Coins}
                   color={GOLD}
