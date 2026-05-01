@@ -442,7 +442,7 @@ export const getScannerHistory = async (req: Request, res: Response): Promise<vo
         updatedAt: { gte: twentyFourHoursAgo }
       },
       include: {
-        user: { select: { firstName: true, lastName: true, email: true } },
+        user: { select: { firstName: true, lastName: true, email: true, dni: true } },
         scannedBy: { select: { firstName: true, lastName: true } },
         reward: true,
         event: true,
@@ -456,6 +456,7 @@ export const getScannerHistory = async (req: Request, res: Response): Promise<vo
       time: h.updatedAt,
       scannedByName: h.scannedBy ? `${h.scannedBy.firstName} ${h.scannedBy.lastName}` : 'Sistema',
       userName: `${h.user.firstName} ${h.user.lastName}`,
+      userDni: h.user.dni || 'No registrado',
       type: h.rewardId ? 'REWARD' : (h.vipBenefitId ? 'VIP_BENEFIT' : 'PROMO'),
       details: h.reward?.name || h.vipBenefit?.title || h.event?.title || 'Premio desconocido'
     }));

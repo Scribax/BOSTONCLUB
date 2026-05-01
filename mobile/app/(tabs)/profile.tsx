@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, TouchableOpacity, Alert, ActivityIndicator, TextInput, Modal, Share, ScrollView } from 'react-native';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { LogOut, User, ShieldCheck, Mail, Edit2, X, Phone, Check, Users, Share2, Flame, Fingerprint, Shield, Crown, Lock, ChevronRight, RefreshCcw, Zap, History } from 'lucide-react-native';
 import api, { logout } from '../../lib/api';
 import { StatusBar } from 'expo-status-bar';
@@ -24,11 +24,14 @@ export default function ProfileScreen() {
   const [benefitsLoading, setBenefitsLoading] = useState(false);
   const [redeemingId, setRedeemingId] = useState<string | null>(null);
 
-  // Usamos useEffect para cargar datos al montar el componente
-  useEffect(() => {
-    fetchUser();
-    checkBiometrics();
-  }, []);
+  // useFocusEffect re-corre cada vez que el perfil recibe foco,
+  // garantizando datos frescos aunque el componente ya estuviera en memoria.
+  useFocusEffect(
+    useCallback(() => {
+      fetchUser();
+      checkBiometrics();
+    }, [])
+  );
 
   const handleOpenBenefits = () => {
     setShowBenefitsModal(true);

@@ -23,6 +23,12 @@ if (Platform.OS !== 'web') {
   initNotifications();
 }
 
+// FIX PERF #3: Leer Dimensions una sola vez a nivel módulo en lugar de en cada render
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+
+// FIX PERF #4: Array estático fuera del componente → no se recrea en cada render
+const PROGRESS_TEXTURE_BARS = [...Array(20)].map((_, i) => i);
+
 type UserData = {
   id: string;
   firstName: string;
@@ -200,26 +206,33 @@ export default function DashboardScreen() {
     }
   };
 
+  // FIX PERF #1: Cooldown de 30s para evitar re-fetches en cada foco de pantalla
+  const lastFetchRef = useRef<number>(0);
+  const REFETCH_COOLDOWN = 30_000;
+
   useFocusEffect(
     useCallback(() => {
       setIsScreenFocused(true);
-      
-      const initDashboard = async () => {
-        try {
-          // Primero cargamos perfil. Si falla con 401, se maneja dentro de loadProfile (logout).
-          const success = await loadProfile();
-          if (success) {
-            // Solo si cargó el perfil intentamos las demás peticiones
-            registerForPushNotificationsAsync();
-            fetchActiveRedemption();
-            fetchVipBenefits();
-          }
-        } catch (e) {
-          console.error("Dashboard Init Error:", e);
-        }
-      };
 
-      initDashboard();
+      const now = Date.now();
+      const shouldRefetch = now - lastFetchRef.current > REFETCH_COOLDOWN;
+
+      if (shouldRefetch) {
+        lastFetchRef.current = now;
+        const initDashboard = async () => {
+          try {
+            const success = await loadProfile();
+            if (success) {
+              registerForPushNotificationsAsync();
+              fetchActiveRedemption();
+              fetchVipBenefits();
+            }
+          } catch (e) {
+            console.error("Dashboard Init Error:", e);
+          }
+        };
+        initDashboard();
+      }
 
       return () => {
         setIsScreenFocused(false);
@@ -234,42 +247,29 @@ export default function DashboardScreen() {
     loadProfile();
   };
 
-  const calculateNextTier = () => {
+  // FIX PERF #2: Memoizar el cálculo del siguiente tier → solo recalcula si cambian puntos o settings
+  const nextTier = useMemo(() => {
     if (!user || !settings) return undefined;
-    
     const pts = user.points;
-    let nextTierName = "";
+    let nextTierName = '';
     let nextTierPts = 0;
     let currentTierPts = 0;
 
     if (pts < settings.goldThreshold) {
-      nextTierName = "ORO";
-      nextTierPts = settings.goldThreshold;
-      currentTierPts = 0;
+      nextTierName = 'ORO'; nextTierPts = settings.goldThreshold; currentTierPts = 0;
     } else if (pts < settings.platinumThreshold) {
-      nextTierName = "PLATINO";
-      nextTierPts = settings.platinumThreshold;
-      currentTierPts = settings.goldThreshold;
+      nextTierName = 'PLATINO'; nextTierPts = settings.platinumThreshold; currentTierPts = settings.goldThreshold;
     } else if (pts < settings.diamondThreshold) {
-      nextTierName = "DIAMANTE";
-      nextTierPts = settings.diamondThreshold;
-      currentTierPts = settings.platinumThreshold;
+      nextTierName = 'DIAMANTE'; nextTierPts = settings.diamondThreshold; currentTierPts = settings.platinumThreshold;
     } else if (pts < settings.superVipThreshold) {
-      nextTierName = "SÚPER VIP";
-      nextTierPts = settings.superVipThreshold;
-      currentTierPts = settings.diamondThreshold;
+      nextTierName = 'SÚPER VIP'; nextTierPts = settings.superVipThreshold; currentTierPts = settings.diamondThreshold;
     } else {
       return undefined;
     }
 
     const progress = Math.min(100, Math.max(0, ((pts - currentTierPts) / (nextTierPts - currentTierPts)) * 100));
-    
-    return {
-      name: nextTierName,
-      pointsNeeded: nextTierPts,
-      currentProgress: progress
-    };
-  };
+    return { name: nextTierName, pointsNeeded: nextTierPts, currentProgress: progress };
+  }, [user?.points, settings?.goldThreshold, settings?.platinumThreshold, settings?.diamondThreshold, settings?.superVipThreshold]);
 
   if (loading || (!user && !errorStatus)) {
     return (
@@ -359,7 +359,7 @@ export default function DashboardScreen() {
           </View>
 
           {/* Hero Carousel */}
-          <View style={{ height: Dimensions.get('window').height * 0.75 }}>
+          <View style={{ height: SCREEN_HEIGHT * 0.75 }}>
              <FlatList
                 ref={bannerListRef}
                 data={banners.length > 0 ? banners : [{ id: 'empty', title: 'Bienvenido', description: 'Cargando novedades...', mediaType: 'IMAGE' } as any]}
@@ -369,15 +369,15 @@ export default function DashboardScreen() {
                 onViewableItemsChanged={onViewableItemsChangedRef.current}
                 viewabilityConfig={viewabilityConfigRef.current}
                 getItemLayout={(data, index) => ({
-                   length: Dimensions.get('window').width,
-                   offset: Dimensions.get('window').width * index,
+                   length: SCREEN_WIDTH,
+                   offset: SCREEN_WIDTH * index,
                    index,
                 })}
                 renderItem={({ item }: { item: any }) => (
                   <TouchableOpacity 
                     activeOpacity={0.9} 
                     onPress={() => item.id !== 'empty' && router.push(`/banner/${item.id}`)}
-                    style={{ width: Dimensions.get('window').width, height: '100%' }} 
+                    style={{ width: SCREEN_WIDTH, height: '100%' }} 
                     className="relative bg-[#0c0c0c]"
                   >
                     {item.mediaType === 'VIDEO' && item.videoUrl ? (
@@ -528,14 +528,14 @@ export default function DashboardScreen() {
                     <View className="h-4 bg-black rounded-full w-full border border-white/5 overflow-hidden">
                        {/* Track Background Texture */}
                        <View className="absolute inset-0 opacity-20 flex-row">
-                          {[...Array(20)].map((_, i) => (
+                          {PROGRESS_TEXTURE_BARS.map((i) => (
                             <View key={i} className="w-1 h-full bg-white/20 mr-4 -rotate-45" />
                           ))}
                        </View>
                        
                        {/* Progress Fill with Gloss */}
                        <View 
-                         style={{ width: `${calculateNextTier()?.currentProgress || 100}%` }} 
+                         style={{ width: `${nextTier?.currentProgress || 100}%` }} 
                          className="absolute top-0 left-0 h-full"
                        >
                           <LinearGradient
@@ -551,7 +551,7 @@ export default function DashboardScreen() {
                     
                     {/* Progress Thumb - Burger Icon Style */}
                     <View 
-                      style={{ left: `${(calculateNextTier()?.currentProgress || 100) - 2}%` }}
+                      style={{ left: `${(nextTier?.currentProgress || 100) - 2}%` }}
                       className="absolute top-[-4px] w-6 h-6 rounded-full bg-boston-red border-2 border-[#1a1a1a] items-center justify-center shadow-xl shadow-boston-red/50"
                     >
                        <View className="w-2.5 h-0.5 bg-white rounded-full mb-0.5" />

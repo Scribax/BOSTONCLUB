@@ -29,8 +29,16 @@ export const setAuthToken = async (token: string) => {
   notifyListeners(true);
 };
 
+// Cache en memoria para GET requests (Stale-While-Revalidate)
+// DECLARADO ANTES de logout() para que clearCache() sea accesible
+const getCache = new Map<string, { data: any, timestamp: number }>();
+const CACHE_TTL = 60000; // 1 minuto de cache instantáneo
+
+export const clearCache = () => getCache.clear();
+
 export const logout = async () => {
   await SecureStore.deleteItemAsync('boston_club_token');
+  clearCache(); // ¡Crucial! Evita que el próximo login use datos del usuario anterior
   notifyListeners(false);
 };
 
@@ -40,10 +48,6 @@ const api = axios.create({
     'Content-Type': 'application/json',
   },
 });
-
-// Cache en memoria para GET requests (Stale-While-Revalidate)
-const getCache = new Map<string, { data: any, timestamp: number }>();
-const CACHE_TTL = 60000; // 1 minuto de cache instantáneo
 
 const originalGet = api.get;
 api.get = async (url: string, config?: any) => {
