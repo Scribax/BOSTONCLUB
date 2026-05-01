@@ -224,7 +224,6 @@ export default function DashboardScreen() {
             const success = await loadProfile();
             if (success) {
               registerForPushNotificationsAsync();
-              fetchActiveRedemption();
               fetchVipBenefits();
             }
           } catch (e) {
@@ -233,6 +232,10 @@ export default function DashboardScreen() {
         };
         initDashboard();
       }
+
+      // Siempre buscamos si hay un canje activo, sin importar el cooldown,
+      // porque el usuario puede haber creado uno en otra pestaña recién.
+      fetchActiveRedemption();
 
       return () => {
         setIsScreenFocused(false);
@@ -535,7 +538,7 @@ export default function DashboardScreen() {
                        
                        {/* Progress Fill with Gloss */}
                        <View 
-                         style={{ width: `${nextTier?.currentProgress || 100}%` }} 
+                         style={{ width: `${nextTier?.currentProgress ?? 100}%` }} 
                          className="absolute top-0 left-0 h-full"
                        >
                           <LinearGradient
@@ -551,7 +554,7 @@ export default function DashboardScreen() {
                     
                     {/* Progress Thumb - Burger Icon Style */}
                     <View 
-                      style={{ left: `${(nextTier?.currentProgress || 100) - 2}%` }}
+                      style={{ left: `${(nextTier?.currentProgress ?? 100) - 2}%` }}
                       className="absolute top-[-4px] w-6 h-6 rounded-full bg-boston-red border-2 border-[#1a1a1a] items-center justify-center shadow-xl shadow-boston-red/50"
                     >
                        <View className="w-2.5 h-0.5 bg-white rounded-full mb-0.5" />
