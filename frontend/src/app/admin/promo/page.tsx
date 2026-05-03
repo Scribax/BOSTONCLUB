@@ -23,6 +23,7 @@ export default function AdminPromoPage() {
   
   // Scanner states
   const [scannedToken, setScannedToken] = useState("");
+  const [scannerPoints, setScannerPoints] = useState(100);
   const [scannerStatus, setScannerStatus] = useState<{ type: 'idle' | 'success' | 'error', message?: string }>({ type: 'idle' });
 
   useEffect(() => {
@@ -97,8 +98,8 @@ export default function AdminPromoPage() {
 
   const handlePhysicalScan = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!scannedToken || !calculatedPoints) {
-      if (!calculatedPoints) alert("Primero ingresa el monto en la calculadora");
+    if (!scannedToken || !scannerPoints) {
+      if (!scannerPoints) alert("Ingresa los puntos primero");
       setScannedToken("");
       return;
     }
@@ -110,16 +111,15 @@ export default function AdminPromoPage() {
         method: "POST",
         body: JSON.stringify({
           token: scannedToken,
-          points: calculatedPoints
+          points: scannerPoints
         })
       });
       
       setScannerStatus({ 
         type: 'success', 
-        message: `¡Acreditados ${calculatedPoints} pts a ${res.userName}!` 
+        message: `¡Acreditados ${scannerPoints} pts a ${res.userName}!` 
       });
       setScannedToken("");
-      // Reset calculator after success? Maybe not, depends on flow.
       setTimeout(() => setScannerStatus({ type: 'idle' }), 5000);
     } catch (err: any) {
       setScannerStatus({ 
@@ -340,7 +340,20 @@ export default function AdminPromoPage() {
             </div>
             <p className="text-[10px] text-white/50 mb-6 uppercase tracking-widest font-bold italic">Usá el escáner físico para sumar puntos</p>
             
-            <form onSubmit={handlePhysicalScan} className="space-y-4 mb-8">
+            <form onSubmit={handlePhysicalScan} className="space-y-6 mb-4">
+              <div className="space-y-2">
+                 <label className="text-[9px] font-black text-white/30 uppercase tracking-[0.2em] ml-1">Puntos a Sumar</label>
+                 <div className="relative">
+                    <Coins className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-boston-gold/50" />
+                    <input 
+                      type="text" 
+                      value={formatWithDots(scannerPoints)}
+                      onChange={(e) => setScannerPoints(parseSmartNumber(e.target.value))}
+                      className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-xl font-black text-boston-gold focus:border-boston-gold/50 outline-none transition-colors"
+                    />
+                 </div>
+              </div>
+
               <div className="space-y-2">
                  <label className="text-[9px] font-black text-boston-gold uppercase tracking-[0.2em] ml-1">Esperando lectura del escáner...</label>
                  <div className={`relative transition-all duration-300 ${scannerStatus.type === 'success' ? 'scale-105' : ''}`}>
@@ -349,16 +362,16 @@ export default function AdminPromoPage() {
                       autoFocus
                       value={scannedToken}
                       onChange={(e) => setScannedToken(e.target.value)}
-                      placeholder="ESCANEÁ EL QR DEL CELULAR..."
-                      className={`w-full bg-black/50 border-2 rounded-2xl py-6 px-6 text-center text-xl font-black tracking-[0.3em] outline-none transition-all ${
+                      placeholder="ESCANEÁ EL QR..."
+                      className={`w-full bg-black/50 border-2 rounded-2xl py-10 px-6 text-center text-2xl font-black tracking-[0.3em] outline-none transition-all ${
                         scannerStatus.type === 'success' ? 'border-green-500 text-green-500 shadow-[0_0_20px_rgba(34,197,94,0.3)]' : 
                         scannerStatus.type === 'error' ? 'border-red-500 text-red-500 shadow-[0_0_20px_rgba(239,68,68,0.3)]' : 
                         'border-boston-gold/30 focus:border-boston-gold text-white'
                       }`}
                     />
                     {loading && (
-                      <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                        <RotateCcw className="w-5 h-5 animate-spin text-boston-gold" />
+                      <div className="absolute right-6 top-1/2 -translate-y-1/2">
+                        <RotateCcw className="w-6 h-6 animate-spin text-boston-gold" />
                       </div>
                     )}
                  </div>
@@ -371,7 +384,7 @@ export default function AdminPromoPage() {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
-                        className={`text-[10px] font-black uppercase tracking-widest text-center px-4 py-2 rounded-full ${scannerStatus.type === 'success' ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}`}
+                        className={`text-[10px] font-black uppercase tracking-widest text-center px-6 py-3 rounded-xl border ${scannerStatus.type === 'success' ? 'bg-green-500/10 text-green-500 border-green-500/20' : 'bg-red-500/10 text-red-500 border-red-500/20'}`}
                       >
                         {scannerStatus.message}
                       </motion.div>
@@ -381,10 +394,10 @@ export default function AdminPromoPage() {
             </form>
           </div>
 
-          <div className="p-4 rounded-xl bg-white/5 border border-white/5">
+          <div className="p-4 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center gap-3">
+             <Info className="w-4 h-4 text-white/20" />
              <p className="text-[9px] text-white/30 font-bold uppercase text-center leading-relaxed">
-               Puntos a acreditar: <span className="text-boston-gold">{calculatedPoints} PTS</span>{"\n"}
-               (Configurado en Calculadora Express)
+               El carnet del socio debe estar abierto en su perfil
              </p>
           </div>
         </motion.div>
