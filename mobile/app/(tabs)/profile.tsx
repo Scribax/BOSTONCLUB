@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, TouchableOpacity, Alert, ActivityIndicator, TextInput, Modal, Share, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, Alert, ActivityIndicator, TextInput, Modal, Share, ScrollView, Image } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { LogOut, User, ShieldCheck, Mail, Edit2, X, Phone, Check, Users, Share2, Flame, Fingerprint, Shield, Crown, Lock, ChevronRight, RefreshCcw, Zap, History } from 'lucide-react-native';
 import api, { logout } from '../../lib/api';
@@ -23,6 +23,19 @@ export default function ProfileScreen() {
   const [settings, setSettings] = useState<any>(null);
   const [benefitsLoading, setBenefitsLoading] = useState(false);
   const [redeemingId, setRedeemingId] = useState<string | null>(null);
+  const [avatarModalVisible, setAvatarModalVisible] = useState(false);
+  const [updatingAvatar, setUpdatingAvatar] = useState(false);
+
+  const AVATARS = [
+    { id: 'default', name: 'Original', icon: null },
+    { id: 'avatar_crown', name: 'Corona Real' },
+    { id: 'avatar_wolf', name: 'Lobo Alpha' },
+    { id: 'avatar_diamond', name: 'Diamante' },
+    { id: 'avatar_lion', name: 'León' },
+    { id: 'avatar_phoenix', name: 'Fénix' },
+    { id: 'avatar_skull', name: 'Calavera' },
+    { id: 'avatar_circuit', name: 'Circuito' },
+  ];
 
   // useFocusEffect re-corre cada vez que el perfil recibe foco,
   // garantizando datos frescos aunque el componente ya estuviera en memoria.
@@ -152,6 +165,32 @@ export default function ProfileScreen() {
     }
   };
 
+  const handleSelectAvatar = async (avatarId: string) => {
+    setUpdatingAvatar(true);
+    try {
+      await api.patch('/auth/avatar', { avatarId });
+      setUser({ ...user, avatarId });
+      setAvatarModalVisible(false);
+    } catch (err: any) {
+      Alert.alert('Error', 'No se pudo actualizar el avatar');
+    } finally {
+      setUpdatingAvatar(false);
+    }
+  };
+
+  const getAvatarSource = (id: string) => {
+    switch(id) {
+      case 'avatar_crown': return require('../../assets/images/avatars/avatar_crown.png');
+      case 'avatar_wolf': return require('../../assets/images/avatars/avatar_wolf.png');
+      case 'avatar_diamond': return require('../../assets/images/avatars/avatar_diamond.png');
+      case 'avatar_lion': return require('../../assets/images/avatars/avatar_lion.png');
+      case 'avatar_phoenix': return require('../../assets/images/avatars/avatar_phoenix.png');
+      case 'avatar_skull': return require('../../assets/images/avatars/avatar_skull.png');
+      case 'avatar_circuit': return require('../../assets/images/avatars/avatar_circuit.png');
+      default: return null;
+    }
+  };
+
 
   if (loading && !user) {
     return (
@@ -210,16 +249,31 @@ export default function ProfileScreen() {
 
           <View className="z-10 items-center">
             {/* Avatar with Ring */}
-            <View className="relative">
+            <TouchableOpacity 
+              activeOpacity={0.9} 
+              onPress={() => setAvatarModalVisible(true)}
+              className="relative"
+            >
                <View className="w-32 h-32 rounded-full items-center justify-center border-2 border-white/10 p-1.5 shadow-2xl">
                  <View className={`w-full h-full rounded-full items-center justify-center bg-[#111] border border-white/5 overflow-hidden`}>
-                   <User size={60} color={level.color} />
+                   {user.avatarId && user.avatarId !== 'default' ? (
+                     <Image 
+                       source={getAvatarSource(user.avatarId)} 
+                       className="w-full h-full"
+                       resizeMode="cover"
+                     />
+                   ) : (
+                     <User size={60} color={level.color} />
+                   )}
+                 </View>
+                 <View className="absolute top-0 right-0 bg-boston-gold w-8 h-8 rounded-full items-center justify-center border-2 border-black">
+                   <Edit2 size={14} color="black" />
                  </View>
                </View>
                <View className={`absolute -bottom-2 -right-2 w-10 h-10 rounded-2xl items-center justify-center border border-white/10 shadow-lg ${level.aura}`}>
                   <ShieldCheck size={20} color={user.membershipLevel === 'PLATINO' || user.membershipLevel === 'DIAMANTE' ? 'black' : 'white'} />
                </View>
-            </View>
+            </TouchableOpacity>
 
             <View className="mt-6 items-center">
               <Text className="text-white text-3xl font-black italic uppercase tracking-tighter shadow-lg">
@@ -433,6 +487,56 @@ export default function ProfileScreen() {
                </View>
             </View>
          </View>
+      </Modal>
+
+      {/* Avatar Selection Modal */}
+      <Modal visible={avatarModalVisible} transparent animationType="slide">
+        <View className="flex-1 bg-black/95 justify-end">
+          <View className="bg-[#0a0a0a] border-t border-white/10 rounded-t-[3rem] p-8 min-h-[60%]">
+            <View className="flex-row justify-between items-center mb-8">
+              <View>
+                <Text className="text-2xl font-black text-white italic uppercase tracking-tighter">Elige tu Avatar</Text>
+                <Text className="text-[10px] text-white/40 font-black uppercase tracking-[0.2em] mt-1">Personaliza tu identidad Boston</Text>
+              </View>
+              <TouchableOpacity onPress={() => setAvatarModalVisible(false)} className="p-3 bg-white/5 rounded-full border border-white/10">
+                <X size={20} color="white" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView contentContainerStyle={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
+              {AVATARS.map((avatar) => (
+                <TouchableOpacity
+                  key={avatar.id}
+                  onPress={() => handleSelectAvatar(avatar.id)}
+                  disabled={updatingAvatar}
+                  className={`w-[47%] mb-6 rounded-3xl overflow-hidden border-2 ${user.avatarId === avatar.id ? 'border-boston-gold' : 'border-white/5'} bg-[#111] p-2`}
+                >
+                  <View className="aspect-square w-full rounded-2xl bg-black/40 items-center justify-center overflow-hidden mb-2">
+                    {avatar.id === 'default' ? (
+                      <User size={40} color={level.color} />
+                    ) : (
+                      <Image source={getAvatarSource(avatar.id)} className="w-full h-full" resizeMode="cover" />
+                    )}
+                  </View>
+                  <Text className={`text-center font-bold text-[10px] uppercase tracking-widest ${user.avatarId === avatar.id ? 'text-boston-gold' : 'text-white/40'}`}>
+                    {avatar.name}
+                  </Text>
+                  {user.avatarId === avatar.id && (
+                    <View className="absolute top-2 right-2 bg-boston-gold rounded-full p-1">
+                      <Check size={10} color="black" />
+                    </View>
+                  )}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+
+            {updatingAvatar && (
+              <View className="absolute inset-0 bg-black/50 items-center justify-center rounded-t-[3rem]">
+                <ActivityIndicator color="#D4AF37" size="large" />
+              </View>
+            )}
+          </View>
+        </View>
       </Modal>
 
       {/* VIP Status & Benefits Unified Modal */}

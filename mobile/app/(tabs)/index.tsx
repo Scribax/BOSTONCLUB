@@ -475,13 +475,13 @@ export default function DashboardScreen() {
                 onPress={() => { setShowBenefits(true); fetchVipBenefits(); }}
                 style={{
                   shadowColor: '#ff0000',
-                  shadowOffset: { width: 0, height: 10 },
-                  shadowOpacity: 0.2,
-                  shadowRadius: 20,
-                  elevation: 10,
+                  shadowOffset: { width: 0, height: 0 },
+                  shadowOpacity: 0.8,
+                  shadowRadius: 25,
+                  elevation: 20,
                   zIndex: 50
                 }}
-                className="bg-[#0a0a0a] rounded-[2.5rem] p-6 border border-white/5"
+                className="bg-[#0a0a0a] rounded-[2.5rem] p-6 border border-[#ff0000]/40"
               >
                  {/* Header Section */}
                  <View className="flex-row justify-between items-start mb-6">

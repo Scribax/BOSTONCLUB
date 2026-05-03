@@ -51,6 +51,12 @@ const api = axios.create({
 
 const originalGet = api.get;
 api.get = async (url: string, config?: any) => {
+  // Rutas dinámicas que NO deben cachearse nunca
+  const dynamicRoutes = ['/auth/me', '/redemptions/active', '/redemptions/history', '/vip-benefits/me'];
+  if (dynamicRoutes.some(route => url.includes(route))) {
+    return originalGet(url, config);
+  }
+
   const key = url + JSON.stringify(config?.params || {});
   const cached = getCache.get(key);
   

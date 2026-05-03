@@ -416,7 +416,7 @@ export const getMe = async (req: AuthRequest, res: Response): Promise<void> => {
       select: { 
         id: true, dni: true, firstName: true, lastName: true, 
         email: true, whatsapp: true, points: true, membershipLevel: true, 
-        role: true, isEmailVerified: true,
+        role: true, isEmailVerified: true, avatarId: true,
         streak: true, lastStreakDate: true,
         referralCode: true, referredById: true
       }
@@ -452,7 +452,7 @@ export const getMe = async (req: AuthRequest, res: Response): Promise<void> => {
           select: { 
             id: true, dni: true, firstName: true, lastName: true, 
             email: true, whatsapp: true, points: true, membershipLevel: true, 
-            role: true, isEmailVerified: true,
+            role: true, isEmailVerified: true, avatarId: true,
             streak: true, lastStreakDate: true,
             referralCode: true, referredById: true
           }
@@ -471,7 +471,7 @@ export const getMe = async (req: AuthRequest, res: Response): Promise<void> => {
           select: { 
             id: true, dni: true, firstName: true, lastName: true, 
             email: true, whatsapp: true, points: true, membershipLevel: true, 
-            role: true, isEmailVerified: true,
+            role: true, isEmailVerified: true, avatarId: true,
             streak: true, lastStreakDate: true,
             referralCode: true, referredById: true
           }
@@ -554,7 +554,7 @@ export const updateMe = async (req: AuthRequest, res: Response): Promise<void> =
     const user = await prisma.user.update({
       where: { id: req.user.id },
       data: updateData,
-      select: { id: true, firstName: true, lastName: true, whatsapp: true, email: true, isEmailVerified: true }
+      select: { id: true, firstName: true, lastName: true, whatsapp: true, email: true, isEmailVerified: true, avatarId: true }
     });
 
     const settings = await prisma.clubSettings.findUnique({ where: { id: "singleton" } });
@@ -567,6 +567,32 @@ export const updateMe = async (req: AuthRequest, res: Response): Promise<void> =
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Error al actualizar perfil" });
+  }
+};
+
+export const updateAvatar = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ message: "No autorizado" });
+      return;
+    }
+    const { avatarId } = req.body;
+    
+    if (!avatarId) {
+      res.status(400).json({ message: "ID de avatar requerido" });
+      return;
+    }
+
+    const user = await prisma.user.update({
+      where: { id: req.user.id },
+      data: { avatarId },
+      select: { id: true, avatarId: true }
+    });
+
+    res.json(user);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error al actualizar avatar" });
   }
 };
 
