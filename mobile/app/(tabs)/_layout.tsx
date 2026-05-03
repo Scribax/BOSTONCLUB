@@ -142,6 +142,18 @@ const ScanButton = ({ onPress }: any) => {
         >
           <LucideIcons.Scan size={28} color="#000" strokeWidth={3} />
         </LinearGradient>
+        <Text
+          style={{
+            color: 'rgba(255,255,255,0.4)',
+            fontSize: 8,
+            fontWeight: '900',
+            marginTop: 8,
+            letterSpacing: 1,
+            textTransform: 'uppercase',
+          }}
+        >
+          SCAN
+        </Text>
       </Animated.View>
     </Pressable>
   );
