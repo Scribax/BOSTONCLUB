@@ -470,8 +470,8 @@ export default function AdminPromoPage() {
 
               <div className="flex flex-col items-center text-center">
                 <div className="w-24 h-24 bg-boston-gold/10 rounded-full border-2 border-boston-gold/30 flex items-center justify-center mb-6 shadow-[0_0_40px_rgba(212,175,55,0.1)] overflow-hidden">
-                   {scannedUser.avatar?.url ? (
-                     <img src={scannedUser.avatar.url.startsWith('http') ? scannedUser.avatar.url : `https://mybostonclub.com${scannedUser.avatar.url}`} alt="Avatar" className="w-full h-full object-cover" />
+                   {scannedUser.avatarId && scannedUser.avatarId !== 'default' && (scannedUser.avatarId.startsWith('http') || scannedUser.avatarId.startsWith('/')) ? (
+                     <img src={scannedUser.avatarId.startsWith('http') ? scannedUser.avatarId : `https://mybostonclub.com${scannedUser.avatarId}`} alt="Avatar" className="w-full h-full object-cover" />
                    ) : (
                      <User className="w-12 h-12 text-boston-gold" />
                    )}

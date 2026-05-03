@@ -47,7 +47,7 @@ export const verifyMemberToken = async (req: Request, res: Response) => {
         lastName: true,
         membershipLevel: true,
         points: true,
-        avatar: { select: { url: true } }
+        avatarId: true
       }
     });
 
