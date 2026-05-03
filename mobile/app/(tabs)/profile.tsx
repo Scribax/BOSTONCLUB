@@ -185,11 +185,21 @@ export default function ProfileScreen() {
     }
   };
 
+  const progressAnim = useRef(new Animated.Value(1)).current;
+
   const fetchMemberToken = async () => {
     try {
       const res = await api.get('/member-qr/token');
       setMemberToken(res.data.token);
       setTokenExpiry(res.data.expiresAt);
+      
+      // Reiniciar animación de la barra
+      progressAnim.setValue(1);
+      Animated.timing(progressAnim, {
+        toValue: 0,
+        duration: 5000,
+        useNativeDriver: false,
+      }).start();
     } catch (err) {
       console.error("Error fetching member token", err);
     }
@@ -199,9 +209,12 @@ export default function ProfileScreen() {
     let interval: any;
     if (showMemberQr) {
       fetchMemberToken();
-      interval = setInterval(fetchMemberToken, 45000); // Refrescar cada 45s
+      interval = setInterval(fetchMemberToken, 5000); // Refrescar cada 5s
     }
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      progressAnim.setValue(1);
+    };
   }, [showMemberQr]);
 
   const getAvatarSource = (id: string) => {
@@ -609,14 +622,29 @@ export default function ProfileScreen() {
                <Text className="text-[10px] text-boston-gold font-black uppercase tracking-[0.2em] mt-2">Socio {user.membershipLevel}</Text>
             </View>
 
-            <View className="bg-white p-6 rounded-[2.5rem] shadow-2xl shadow-white/10">
+            <View className="bg-white p-6 rounded-[2.5rem] shadow-2xl shadow-white/10 relative overflow-hidden">
               {memberToken ? (
-                <QRCode
-                  value={memberToken}
-                  size={200}
-                  color="black"
-                  backgroundColor="white"
-                />
+                <>
+                  <QRCode
+                    value={memberToken}
+                    size={200}
+                    color="black"
+                    backgroundColor="white"
+                  />
+                  {/* Barra de progreso animada */}
+                  <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 6, backgroundColor: '#f0f0f0' }}>
+                    <Animated.View 
+                      style={{ 
+                        height: '100%', 
+                        backgroundColor: '#D4AF37',
+                        width: progressAnim.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: ['0%', '100%']
+                        })
+                      }} 
+                    />
+                  </View>
+                </>
               ) : (
                 <View style={{ width: 200, height: 200 }} className="items-center justify-center">
                   <ActivityIndicator color="#000" />
@@ -630,7 +658,7 @@ export default function ProfileScreen() {
                </Text>
                <View className="mt-8 flex-row items-center bg-white/5 px-5 py-3 rounded-2xl border border-white/10">
                  <RefreshCcw size={14} color="#D4AF37" className="mr-3" />
-                 <Text className="text-white/60 text-[9px] font-bold uppercase tracking-[0.2em]">Se actualiza cada 45s</Text>
+                 <Text className="text-white/60 text-[9px] font-bold uppercase tracking-[0.2em]">Se actualiza cada 5s</Text>
                </View>
             </View>
           </View>
