@@ -33,6 +33,7 @@ export default function ProfileScreen() {
     { id: 'A3', name: 'Avatar 3' },
     { id: 'A4', name: 'Avatar 4' },
     { id: 'A5', name: 'Avatar 5' },
+    { id: 'A6', name: 'Avatar 6' },
   ];
 
   // useFocusEffect re-corre cada vez que el perfil recibe foco,
@@ -59,9 +60,9 @@ export default function ProfileScreen() {
     const compatible = await LocalAuthentication.hasHardwareAsync();
     const types = await LocalAuthentication.supportedAuthenticationTypesAsync();
     const isEnrolled = await LocalAuthentication.isEnrolledAsync();
-    
+
     setIsBiometricSupported(compatible && isEnrolled);
-    
+
     const storedPref = await SecureStore.getItemAsync('biometrics_enabled');
     setBiometricsEnabled(storedPref === 'true');
   };
@@ -103,14 +104,14 @@ export default function ProfileScreen() {
 
   const handleToggleBiometrics = async () => {
     const newVal = !biometricsEnabled;
-    
+
     if (newVal) {
       // Pedir verificación biométrica antes de ACTIVAR
       const result = await LocalAuthentication.authenticateAsync({
         promptMessage: 'Confirma tu identidad para activar el acceso biométrico',
         fallbackLabel: 'Usar contraseña'
       });
-      
+
       if (!result.success) return;
 
       setBiometricsEnabled(true);
@@ -141,8 +142,8 @@ export default function ProfileScreen() {
       '¿Estás seguro que deseas salir del club?',
       [
         { text: 'Cancelar', style: 'cancel' },
-        { 
-          text: 'Sí, Salir', 
+        {
+          text: 'Sí, Salir',
           style: 'destructive',
           onPress: async () => {
             await logout();
@@ -177,12 +178,13 @@ export default function ProfileScreen() {
   };
 
   const getAvatarSource = (id: string) => {
-    switch(id) {
+    switch (id) {
       case 'A1': return require('../../assets/images/avatars/A1.png');
       case 'A2': return require('../../assets/images/avatars/A2.png');
       case 'A3': return require('../../assets/images/avatars/A3.png');
       case 'A4': return require('../../assets/images/avatars/A4.png');
       case 'A5': return require('../../assets/images/avatars/A5.png');
+      case 'A6': return require('../../assets/images/avatars/A6.png');
       default: return null;
     }
   };
@@ -230,14 +232,14 @@ export default function ProfileScreen() {
   return (
     <View className="flex-1 bg-[#050505]">
       <StatusBar style="light" />
-      
+
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         {/* Header Section */}
         <View className="relative min-h-[420px] pb-12 items-center justify-center pt-12">
           {/* Animated Background Aura */}
           <View className={`absolute top-0 right-0 w-96 h-96 rounded-full opacity-20 blur-[120px] ${level.aura}`} />
           <View className="absolute top-20 left-10 w-40 h-40 bg-boston-red rounded-full opacity-10 blur-[80px]" />
-          
+
           <LinearGradient
             colors={['transparent', '#050505']}
             className="absolute inset-0 z-0"
@@ -245,30 +247,30 @@ export default function ProfileScreen() {
 
           <View className="z-10 items-center">
             {/* Avatar with Ring */}
-            <TouchableOpacity 
-              activeOpacity={0.9} 
+            <TouchableOpacity
+              activeOpacity={0.9}
               onPress={() => setAvatarModalVisible(true)}
               className="relative"
             >
-               <View className="w-32 h-32 rounded-full items-center justify-center border-2 border-white/10 p-1.5 shadow-2xl">
-                 <View className={`w-full h-full rounded-full items-center justify-center bg-[#111] border border-white/5 overflow-hidden`}>
-                   {user.avatarId && user.avatarId !== 'default' ? (
-                     <Image 
-                       source={getAvatarSource(user.avatarId)} 
-                       className="w-full h-full"
-                       resizeMode="cover"
-                     />
-                   ) : (
-                     <User size={60} color={level.color} />
-                   )}
-                 </View>
-                 <View className="absolute top-0 right-0 bg-boston-gold w-8 h-8 rounded-full items-center justify-center border-2 border-black">
-                   <Edit2 size={14} color="black" />
-                 </View>
-               </View>
-               <View className={`absolute -bottom-2 -right-2 w-10 h-10 rounded-2xl items-center justify-center border border-white/10 shadow-lg ${level.aura}`}>
-                  <ShieldCheck size={20} color={user.membershipLevel === 'PLATINO' || user.membershipLevel === 'DIAMANTE' ? 'black' : 'white'} />
-               </View>
+              <View className="w-32 h-32 rounded-full items-center justify-center border-2 border-white/10 p-1.5 shadow-2xl">
+                <View className={`w-full h-full rounded-full items-center justify-center bg-[#111] border border-white/5 overflow-hidden`}>
+                  {user.avatarId && user.avatarId !== 'default' ? (
+                    <Image
+                      source={getAvatarSource(user.avatarId)}
+                      className="w-full h-full"
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <User size={60} color={level.color} />
+                  )}
+                </View>
+                <View className="absolute top-0 right-0 bg-boston-gold w-8 h-8 rounded-full items-center justify-center border-2 border-black">
+                  <Edit2 size={14} color="black" />
+                </View>
+              </View>
+              <View className={`absolute -bottom-2 -right-2 w-10 h-10 rounded-2xl items-center justify-center border border-white/10 shadow-lg ${level.aura}`}>
+                <ShieldCheck size={20} color={user.membershipLevel === 'PLATINO' || user.membershipLevel === 'DIAMANTE' ? 'black' : 'white'} />
+              </View>
             </TouchableOpacity>
 
             <View className="mt-6 items-center">
@@ -311,7 +313,7 @@ export default function ProfileScreen() {
 
         {/* Content Section */}
         <View className="px-6 -mt-6 pb-24">
-          
+
           {/* Referral Premium Card */}
           <View className="relative mb-8 overflow-hidden rounded-[2.5rem] border border-boston-gold/30 shadow-2xl shadow-boston-gold/10">
             <LinearGradient
@@ -338,7 +340,7 @@ export default function ProfileScreen() {
                   <Text className="text-white/30 text-[8px] font-black uppercase tracking-widest mb-1">Tu Código Único</Text>
                   <Text className="text-white text-2xl font-black tracking-[0.3em]">{user.referralCode}</Text>
                 </View>
-                <TouchableOpacity 
+                <TouchableOpacity
                   activeOpacity={0.7}
                   onPress={handleShareReferral}
                   className="bg-boston-gold h-12 w-12 rounded-2xl items-center justify-center shadow-lg shadow-boston-gold/20"
@@ -346,96 +348,96 @@ export default function ProfileScreen() {
                   <Share2 size={20} color="black" />
                 </TouchableOpacity>
               </View>
-              
+
               <View className="mt-5 flex-row items-center">
-                 <View className="h-[4px] w-[4px] rounded-full bg-boston-gold mr-3" />
-                  <Text className="text-white/60 text-[9px] font-bold uppercase leading-4 flex-1">
-                    Tú recibís <Text className="text-boston-gold">{user.referralRewardReferrer || 500} pts</Text> y tu amigo <Text className="text-boston-gold">{user.referralRewardReferee || 200} pts</Text>
-                  </Text>
+                <View className="h-[4px] w-[4px] rounded-full bg-boston-gold mr-3" />
+                <Text className="text-white/60 text-[9px] font-bold uppercase leading-4 flex-1">
+                  Tú recibís <Text className="text-boston-gold">{user.referralRewardReferrer || 500} pts</Text> y tu amigo <Text className="text-boston-gold">{user.referralRewardReferee || 200} pts</Text>
+                </Text>
               </View>
             </View>
           </View>
           {/* Settings Groups */}
           <Text className="text-white/30 text-[9px] font-black uppercase tracking-[0.4em] mb-4 ml-4">Información Personal</Text>
-          
+
           <View className="bg-white/[0.02] border border-white/5 rounded-[2.5rem] overflow-hidden mb-8">
-             <View className="p-6 flex-row items-center border-b border-white/5 opacity-50">
-                <View className="w-10 h-10 bg-white/5 rounded-2xl items-center justify-center mr-4">
-                   <User size={18} color="rgba(255,255,255,0.6)" />
-                </View>
-                <View className="flex-1">
-                   <Text className="text-white/30 text-[8px] font-black uppercase tracking-widest mb-1">Nombre y Apellido (Protegido)</Text>
-                   <Text className="text-white text-sm font-medium">{user.firstName} {user.lastName}</Text>
-                </View>
-             </View>
+            <View className="p-6 flex-row items-center border-b border-white/5 opacity-50">
+              <View className="w-10 h-10 bg-white/5 rounded-2xl items-center justify-center mr-4">
+                <User size={18} color="rgba(255,255,255,0.6)" />
+              </View>
+              <View className="flex-1">
+                <Text className="text-white/30 text-[8px] font-black uppercase tracking-widest mb-1">Nombre y Apellido (Protegido)</Text>
+                <Text className="text-white text-sm font-medium">{user.firstName} {user.lastName}</Text>
+              </View>
+            </View>
 
-             <View className="p-6 flex-row items-center border-b border-white/5">
-                <View className="w-10 h-10 bg-white/5 rounded-2xl items-center justify-center mr-4">
-                   <Mail size={18} color="rgba(255,255,255,0.6)" />
-                </View>
-                <View className="flex-1">
-                   <Text className="text-white/30 text-[8px] font-black uppercase tracking-widest mb-1">Email</Text>
-                   <Text className="text-white text-sm font-medium" numberOfLines={1}>{user.email}</Text>
-                </View>
-             </View>
+            <View className="p-6 flex-row items-center border-b border-white/5">
+              <View className="w-10 h-10 bg-white/5 rounded-2xl items-center justify-center mr-4">
+                <Mail size={18} color="rgba(255,255,255,0.6)" />
+              </View>
+              <View className="flex-1">
+                <Text className="text-white/30 text-[8px] font-black uppercase tracking-widest mb-1">Email</Text>
+                <Text className="text-white text-sm font-medium" numberOfLines={1}>{user.email}</Text>
+              </View>
+            </View>
 
-             <View className="p-6 flex-row items-center border-b border-white/5">
-                <View className="w-10 h-10 bg-white/5 rounded-2xl items-center justify-center mr-4">
-                   <ShieldCheck size={18} color="rgba(255,255,255,0.6)" />
-                </View>
-                <View className="flex-1">
-                   <Text className="text-white/30 text-[8px] font-black uppercase tracking-widest mb-1">DNI / Identidad</Text>
-                   <Text className="text-white text-sm font-medium">{user.dni || 'No registrado'}</Text>
-                </View>
-             </View>
+            <View className="p-6 flex-row items-center border-b border-white/5">
+              <View className="w-10 h-10 bg-white/5 rounded-2xl items-center justify-center mr-4">
+                <ShieldCheck size={18} color="rgba(255,255,255,0.6)" />
+              </View>
+              <View className="flex-1">
+                <Text className="text-white/30 text-[8px] font-black uppercase tracking-widest mb-1">DNI / Identidad</Text>
+                <Text className="text-white text-sm font-medium">{user.dni || 'No registrado'}</Text>
+              </View>
+            </View>
 
-             <View className="p-6 flex-row items-center">
-                <View className="w-10 h-10 bg-white/5 rounded-2xl items-center justify-center mr-4">
-                   <Phone size={18} color="rgba(255,255,255,0.6)" />
-                </View>
-                <View className="flex-1">
-                   <Text className="text-white/30 text-[8px] font-black uppercase tracking-widest mb-1">WhatsApp</Text>
-                   <Text className="text-white text-sm font-medium">{user.whatsapp || 'No registrado'}</Text>
-                </View>
-                <TouchableOpacity 
-                  onPress={() => setEditModalVisible(true)}
-                  className="bg-white/5 p-3 rounded-xl border border-white/10"
-                >
-                  <Edit2 size={14} color="white" />
-                </TouchableOpacity>
-             </View>
+            <View className="p-6 flex-row items-center">
+              <View className="w-10 h-10 bg-white/5 rounded-2xl items-center justify-center mr-4">
+                <Phone size={18} color="rgba(255,255,255,0.6)" />
+              </View>
+              <View className="flex-1">
+                <Text className="text-white/30 text-[8px] font-black uppercase tracking-widest mb-1">WhatsApp</Text>
+                <Text className="text-white text-sm font-medium">{user.whatsapp || 'No registrado'}</Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => setEditModalVisible(true)}
+                className="bg-white/5 p-3 rounded-xl border border-white/10"
+              >
+                <Edit2 size={14} color="white" />
+              </TouchableOpacity>
+            </View>
           </View>
 
           {/* Security Group */}
           <Text className="text-white/30 text-[9px] font-black uppercase tracking-[0.4em] mb-4 ml-4">Seguridad</Text>
           <View className="bg-white/[0.02] border border-white/5 rounded-[2.5rem] overflow-hidden">
-             {isBiometricSupported && (
-               <View className="p-6 flex-row items-center">
-                  <View className="w-10 h-10 bg-white/5 rounded-2xl items-center justify-center mr-4">
-                     <Fingerprint size={18} color={biometricsEnabled ? "#D4AF37" : "rgba(255,255,255,0.6)"} />
-                  </View>
-                  <View className="flex-1">
-                     <Text className="text-white/30 text-[8px] font-black uppercase tracking-widest mb-1">Acceso VIP Extra</Text>
-                     <Text className="text-white text-sm font-medium">Bloqueo Biométrico</Text>
-                  </View>
-                  <TouchableOpacity 
-                    onPress={handleToggleBiometrics}
-                    className={`w-12 h-6 rounded-full items-center flex-row px-1 ${biometricsEnabled ? 'bg-boston-gold' : 'bg-white/10'}`}
-                  >
-                    <View className={`w-4 h-4 rounded-full ${biometricsEnabled ? 'bg-black ml-auto' : 'bg-white/40'}`} />
-                  </TouchableOpacity>
-               </View>
-             )}
+            {isBiometricSupported && (
+              <View className="p-6 flex-row items-center">
+                <View className="w-10 h-10 bg-white/5 rounded-2xl items-center justify-center mr-4">
+                  <Fingerprint size={18} color={biometricsEnabled ? "#D4AF37" : "rgba(255,255,255,0.6)"} />
+                </View>
+                <View className="flex-1">
+                  <Text className="text-white/30 text-[8px] font-black uppercase tracking-widest mb-1">Acceso VIP Extra</Text>
+                  <Text className="text-white text-sm font-medium">Bloqueo Biométrico</Text>
+                </View>
+                <TouchableOpacity
+                  onPress={handleToggleBiometrics}
+                  className={`w-12 h-6 rounded-full items-center flex-row px-1 ${biometricsEnabled ? 'bg-boston-gold' : 'bg-white/10'}`}
+                >
+                  <View className={`w-4 h-4 rounded-full ${biometricsEnabled ? 'bg-black ml-auto' : 'bg-white/40'}`} />
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
 
           {/* Logout */}
-          <TouchableOpacity 
+          <TouchableOpacity
             activeOpacity={0.8}
             onPress={handleLogout}
             className="mt-12 bg-[#ff4d4d]/10 border border-[#ff4d4d]/20 rounded-[2rem] py-6 items-center flex-row justify-center shadow-xl shadow-red-950/20"
           >
-             <LogOut size={18} color="#ff4d4d" className="mr-4" />
-             <Text className="text-[#ff4d4d] font-black text-[10px] uppercase tracking-[0.3em]">Finalizar Sesión</Text>
+            <LogOut size={18} color="#ff4d4d" className="mr-4" />
+            <Text className="text-[#ff4d4d] font-black text-[10px] uppercase tracking-[0.3em]">Finalizar Sesión</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -443,63 +445,76 @@ export default function ProfileScreen() {
       {/* Edit Modal remains similar but styled */}
       <Modal visible={editModalVisible} transparent animationType="fade">
         <View className="flex-1 bg-black/90 justify-center p-6">
-           <View className="w-full bg-[#0a0a0a] border border-white/10 rounded-[3.5rem] p-8 relative overflow-hidden shadow-2xl">
-              <View className="absolute top-0 right-0 w-48 h-48 bg-boston-gold rounded-full opacity-10 blur-[80px]" />
-              
-              <View className="flex-row justify-between items-start mb-10">
-                 <View>
-                    <Text className="text-2xl font-black text-white italic uppercase tracking-tighter">Editar Perfil</Text>
-                    <Text className="text-[10px] text-white/40 font-black uppercase tracking-[0.2em] mt-1">Tus datos de contacto</Text>
-                 </View>
-                 <TouchableOpacity onPress={() => setEditModalVisible(false)} className="p-3 bg-white/5 rounded-full border border-white/10">
-                    <X size={20} color="white" />
-                 </TouchableOpacity>
-              </View>
+          <View className="w-full bg-[#0a0a0a] border border-white/10 rounded-[3.5rem] p-8 relative overflow-hidden shadow-2xl">
+            <View className="absolute top-0 right-0 w-48 h-48 bg-boston-gold rounded-full opacity-10 blur-[80px]" />
 
-              <View className="flex-col gap-6">
-                 <View>
-                    <Text className="text-[10px] font-bold text-white/30 uppercase mb-3 ml-2 tracking-widest">WhatsApp</Text>
-                    <TextInput 
-                      value={newWhatsapp}
-                      onChangeText={(t) => setNewWhatsapp(t.replace(/\D/g, ''))}
-                      keyboardType="numeric"
-                      placeholder="11 2233 4455"
-                      placeholderTextColor="rgba(255,255,255,0.2)"
-                      className="w-full bg-white/[0.03] text-white border border-white/10 rounded-2xl py-5 px-6 text-lg font-black tracking-[0.1em]"
-                    />
-                 </View>
-
-                 <TouchableOpacity 
-                    onPress={handleSavePhone}
-                    disabled={saving}
-                    className={`w-full bg-boston-gold rounded-2xl py-5 items-center shadow-xl shadow-boston-gold/20 ${saving ? 'opacity-50' : ''}`}
-                  >
-                    {saving ? (
-                      <ActivityIndicator color="black" />
-                    ) : (
-                      <Text className="text-black font-black uppercase text-xs tracking-[0.3em]">Confirmar Cambios</Text>
-                    )}
-                 </TouchableOpacity>
-               </View>
-            </View>
-         </View>
-      </Modal>
-
-      {/* Avatar Selection Modal */}
-      <Modal visible={avatarModalVisible} transparent animationType="slide">
-        <View className="flex-1 bg-black/95 justify-end">
-          <View className="bg-[#0a0a0a] border-t border-white/10 rounded-t-[3rem] p-8 min-h-[60%]">
-            <View className="flex-row justify-between items-center mb-8">
+            <View className="flex-row justify-between items-start mb-10">
               <View>
-                <Text className="text-2xl font-black text-white italic uppercase tracking-tighter">Elige tu Avatar</Text>
-                <Text className="text-[10px] text-white/40 font-black uppercase tracking-[0.2em] mt-1">Personaliza tu identidad Boston</Text>
+                <Text className="text-2xl font-black text-white italic uppercase tracking-tighter">Editar Perfil</Text>
+                <Text className="text-[10px] text-white/40 font-black uppercase tracking-[0.2em] mt-1">Tus datos de contacto</Text>
               </View>
-              <TouchableOpacity onPress={() => setAvatarModalVisible(false)} className="p-3 bg-white/5 rounded-full border border-white/10">
+              <TouchableOpacity onPress={() => setEditModalVisible(false)} className="p-3 bg-white/5 rounded-full border border-white/10">
                 <X size={20} color="white" />
               </TouchableOpacity>
             </View>
 
-            <ScrollView contentContainerStyle={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
+            <View className="flex-col gap-6">
+              <View>
+                <Text className="text-[10px] font-bold text-white/30 uppercase mb-3 ml-2 tracking-widest">WhatsApp</Text>
+                <TextInput
+                  value={newWhatsapp}
+                  onChangeText={(t) => setNewWhatsapp(t.replace(/\D/g, ''))}
+                  keyboardType="numeric"
+                  placeholder="11 2233 4455"
+                  placeholderTextColor="rgba(255,255,255,0.2)"
+                  className="w-full bg-white/[0.03] text-white border border-white/10 rounded-2xl py-5 px-6 text-lg font-black tracking-[0.1em]"
+                />
+              </View>
+
+              <TouchableOpacity
+                onPress={handleSavePhone}
+                disabled={saving}
+                className={`w-full bg-boston-gold rounded-2xl py-5 items-center shadow-xl shadow-boston-gold/20 ${saving ? 'opacity-50' : ''}`}
+              >
+                {saving ? (
+                  <ActivityIndicator color="black" />
+                ) : (
+                  <Text className="text-black font-black uppercase text-xs tracking-[0.3em]">Confirmar Cambios</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal visible={avatarModalVisible} transparent animationType="slide">
+        <View className="flex-1 bg-black/80 justify-end">
+          <View 
+            className="bg-[#0a0a0a] border-t border-white/10 rounded-t-[3rem] p-8"
+            style={{ maxHeight: '85%' }}
+          >
+            <View className="flex-row justify-between items-center mb-6">
+              <View>
+                <Text className="text-2xl font-black text-white italic uppercase tracking-tighter">Elige tu Avatar</Text>
+                <Text className="text-[10px] text-white/40 font-black uppercase tracking-[0.2em] mt-1">Personaliza tu identidad Boston</Text>
+              </View>
+              <TouchableOpacity 
+                onPress={() => setAvatarModalVisible(false)} 
+                className="p-3 bg-white/5 rounded-full border border-white/10"
+              >
+                <X size={20} color="white" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView 
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ 
+                flexDirection: 'row', 
+                flexWrap: 'wrap', 
+                justifyContent: 'space-between',
+                paddingBottom: 40 
+              }}
+            >
               {AVATARS.map((avatar) => (
                 <TouchableOpacity
                   key={avatar.id}
@@ -536,7 +551,7 @@ export default function ProfileScreen() {
       </Modal>
 
       {/* VIP Status & Benefits Unified Modal */}
-      <VipStatusModal 
+      <VipStatusModal
         isVisible={showBenefitsModal}
         onClose={() => setShowBenefitsModal(false)}
         user={user}
