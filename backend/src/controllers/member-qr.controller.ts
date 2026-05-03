@@ -7,6 +7,16 @@ const prisma = new PrismaClient();
 // Almacén temporal de tokens
 const tokenStore = new Map<string, { userId: string, expiresAt: number }>();
 
+// Memory leak prevention: Limpiar tokens expirados cada 5 minutos
+setInterval(() => {
+  const now = Date.now();
+  for (const [token, data] of tokenStore.entries()) {
+    if (data.expiresAt < now) {
+      tokenStore.delete(token);
+    }
+  }
+}, 5 * 60 * 1000);
+
 export const generateMemberToken = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user.id;
