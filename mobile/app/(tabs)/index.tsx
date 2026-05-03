@@ -89,6 +89,10 @@ export default function DashboardScreen() {
   const [vipBenefitsLoading, setVipBenefitsLoading] = useState(false);
   const [redeemingVipId, setRedeemingVipId] = useState<string | null>(null);
 
+  const [currentPopup, setCurrentPopup] = useState<BannerEvent | null>(null);
+  const [showPopupModal, setShowPopupModal] = useState(false);
+  const hasShownPopupRef = useRef(false);
+
   // FIX: New Architecture requiere que estas referencias sean estables (no recreadas en cada render)
   const onViewableItemsChangedRef = useRef(({ viewableItems }: any) => {
     if (viewableItems.length > 0) {
@@ -147,9 +151,17 @@ export default function DashboardScreen() {
       const allEvents = eventsRes.data || [];
       const topBanners = allEvents.filter((e: any) => e.type === "BANNER" && e.isActive !== false);
       const bottomPromos = allEvents.filter((e: any) => e.type === "PROMO" && e.isActive !== false);
+      const splashPopups = allEvents.filter((e: any) => e.type === "POPUP" && e.isActive !== false);
       
       setBanners(topBanners);
       setPromoBanners(bottomPromos);
+      
+      if (splashPopups.length > 0 && !hasShownPopupRef.current) {
+        setCurrentPopup(splashPopups[0]);
+        setShowPopupModal(true);
+        hasShownPopupRef.current = true;
+      }
+      
       return true;
     } catch (err: any) {
       console.error('Load Profile Error:', err);
@@ -831,6 +843,55 @@ export default function DashboardScreen() {
         onRedeemSuccess={handleRedeemVipBenefit}
       />
 
+      {/* Splash Popup Modal */}
+      <Modal visible={showPopupModal} transparent animationType="fade">
+        <View className="flex-1 bg-black/90 justify-center items-center p-6">
+          <View className="w-full max-w-md bg-[#0a0a0a] rounded-[3rem] border-2 border-white/10 overflow-hidden relative shadow-2xl">
+            {/* Close Button */}
+            <TouchableOpacity 
+              onPress={() => setShowPopupModal(false)}
+              className="absolute top-4 right-4 z-50 p-3 bg-black/50 backdrop-blur-md rounded-full border border-white/20"
+            >
+              <X size={24} color="white" />
+            </TouchableOpacity>
+
+            {currentPopup?.mediaType === 'VIDEO' ? (
+               <View className="w-full h-[500px]">
+                 <VideoPlayer url={resolveImageUrl(currentPopup.videoUrl) || ''} isMuted={false} />
+               </View>
+            ) : (
+               <Image 
+                 source={{ uri: resolveImageUrl(currentPopup?.imageUrl) || '' }} 
+                 className="w-full h-[500px]" 
+                 resizeMode="cover"
+               />
+            )}
+            
+            <View className="p-8 items-center bg-gradient-to-t from-black to-transparent absolute bottom-0 w-full">
+              <Text className="text-2xl font-black text-white italic text-center uppercase tracking-tighter mb-2 shadow-black drop-shadow-md">
+                {currentPopup?.title}
+              </Text>
+              <Text className="text-white/80 text-center font-bold text-xs mb-6 px-4">
+                {currentPopup?.description}
+              </Text>
+              
+              <TouchableOpacity 
+                onPress={() => {
+                  setShowPopupModal(false);
+                  if (currentPopup?.id) {
+                    router.push(`/banner/${currentPopup.id}`);
+                  }
+                }}
+                className="w-full bg-boston-gold py-4 rounded-2xl shadow-[0_0_20px_rgba(212,175,55,0.3)]"
+              >
+                <Text className="text-black text-center font-black uppercase tracking-widest text-sm">
+                  {currentPopup?.benefits || 'VER MÁS'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
 
     </View>
   );

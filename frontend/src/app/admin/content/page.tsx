@@ -79,7 +79,7 @@ type ContentItem = {
 };
 
 export default function AppContentManager() {
-  const [activeTab, setActiveTab] = useState<'BANNER' | 'EVENTO' | 'PROMO' | 'GLOBAL'>('BANNER');
+  const [activeTab, setActiveTab] = useState<'BANNER' | 'EVENTO' | 'PROMO' | 'POPUP' | 'GLOBAL'>('BANNER');
   const [items, setItems] = useState<ContentItem[]>([]);
   const [globalSettings, setGlobalSettings] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -414,6 +414,7 @@ export default function AppContentManager() {
              { id: 'BANNER', label: 'Banners Hero', icon: Layout },
              { id: 'EVENTO', label: 'Agenda VIP', icon: Calendar },
              { id: 'PROMO', label: 'Promos Cards', icon: Tag },
+             { id: 'POPUP', label: 'Splash Popups', icon: Sparkles },
              { id: 'GLOBAL', label: 'Fondo Login', icon: LogIn }
            ].map(tab => (
              <button
@@ -485,7 +486,7 @@ export default function AppContentManager() {
              <>
                <div className="flex items-center justify-between mb-8">
                   <h2 className="text-white font-black tracking-widest uppercase text-base italic">
-                    {activeTab === 'BANNER' ? 'Banners Superiores' : (activeTab === 'EVENTO' ? 'Próximos Eventos' : 'Tarjetas de Promoción')}
+                    {activeTab === 'BANNER' ? 'Banners Superiores' : (activeTab === 'EVENTO' ? 'Próximos Eventos' : (activeTab === 'POPUP' ? 'Popups de Inicio' : 'Tarjetas de Promoción'))}
                   </h2>
                   <div className="flex items-center gap-4">
                     <button 
