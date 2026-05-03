@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, TouchableOpacity, Alert, ActivityIndicator, TextInput, Modal, Share, ScrollView, Image } from 'react-native';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { View, Text, TouchableOpacity, Alert, ActivityIndicator, TextInput, Modal, Share, ScrollView, Image, Animated } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { LogOut, User, ShieldCheck, Mail, Edit2, X, Phone, Check, Users, Share2, Flame, Fingerprint, Shield, Crown, Lock, ChevronRight, RefreshCcw, Zap, History } from 'lucide-react-native';
 import api, { logout } from '../../lib/api';
