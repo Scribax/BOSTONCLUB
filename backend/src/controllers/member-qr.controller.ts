@@ -22,10 +22,10 @@ export const generateMemberToken = async (req: Request, res: Response) => {
 export const verifyMemberToken = async (req: Request, res: Response) => {
   try {
     const { token } = req.params;
-    const tokenData = tokenStore.get(token);
+    const tokenData = tokenStore.get(token as string);
 
     if (!tokenData || tokenData.expiresAt < Date.now()) {
-      if (tokenData) tokenStore.delete(token);
+      if (tokenData) tokenStore.delete(token as string);
       return res.status(404).json({ message: "Token inválido o expirado" });
     }
 
