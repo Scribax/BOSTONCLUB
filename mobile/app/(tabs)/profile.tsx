@@ -28,13 +28,16 @@ export default function ProfileScreen() {
 
   const AVATARS = [
     { id: 'default', name: 'Original', icon: null },
-    { id: 'avatar_crown', name: 'Corona Real' },
-    { id: 'avatar_wolf', name: 'Lobo Alpha' },
-    { id: 'avatar_diamond', name: 'Diamante' },
-    { id: 'avatar_lion', name: 'León' },
-    { id: 'avatar_phoenix', name: 'Fénix' },
-    { id: 'avatar_skull', name: 'Calavera' },
-    { id: 'avatar_circuit', name: 'Circuito' },
+    { id: 'A1', name: 'Avatar 1' },
+    { id: 'A2', name: 'Avatar 2' },
+    { id: 'A3', name: 'Avatar 3' },
+    { id: 'A4', name: 'Avatar 4' },
+    { id: 'A5', name: 'Avatar 5' },
+    { id: 'A6', name: 'Avatar 6' },
+    { id: 'A7', name: 'Avatar 7' },
+    { id: 'A8', name: 'Avatar 8' },
+    { id: 'A9', name: 'Avatar 9' },
+    { id: 'A10', name: 'Avatar 10' },
   ];
 
   // useFocusEffect re-corre cada vez que el perfil recibe foco,
@@ -180,13 +183,16 @@ export default function ProfileScreen() {
 
   const getAvatarSource = (id: string) => {
     switch(id) {
-      case 'avatar_crown': return require('../../assets/images/avatars/avatar_crown.png');
-      case 'avatar_wolf': return require('../../assets/images/avatars/avatar_wolf.png');
-      case 'avatar_diamond': return require('../../assets/images/avatars/avatar_diamond.png');
-      case 'avatar_lion': return require('../../assets/images/avatars/avatar_lion.png');
-      case 'avatar_phoenix': return require('../../assets/images/avatars/avatar_phoenix.png');
-      case 'avatar_skull': return require('../../assets/images/avatars/avatar_skull.png');
-      case 'avatar_circuit': return require('../../assets/images/avatars/avatar_circuit.png');
+      case 'A1': return require('../../assets/images/avatars/A1.png');
+      case 'A2': return require('../../assets/images/avatars/A2.png');
+      case 'A3': return require('../../assets/images/avatars/A3.png');
+      case 'A4': return require('../../assets/images/avatars/A4.png');
+      case 'A5': return require('../../assets/images/avatars/A5.png');
+      case 'A6': return require('../../assets/images/avatars/A6.png');
+      case 'A7': return require('../../assets/images/avatars/A7.png');
+      case 'A8': return require('../../assets/images/avatars/A8.png');
+      case 'A9': return require('../../assets/images/avatars/A9.png');
+      case 'A10': return require('../../assets/images/avatars/A10.png');
       default: return null;
     }
   };
