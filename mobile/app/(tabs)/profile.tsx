@@ -25,6 +25,7 @@ export default function ProfileScreen() {
   const [redeemingId, setRedeemingId] = useState<string | null>(null);
   const [avatarModalVisible, setAvatarModalVisible] = useState(false);
   const [updatingAvatar, setUpdatingAvatar] = useState(false);
+  const [customAvatars, setCustomAvatars] = useState<any[]>([]);
 
   const AVATARS = [
     { id: 'default', name: 'Original', icon: null },
@@ -70,12 +71,14 @@ export default function ProfileScreen() {
   const fetchUser = async () => {
     setLoading(true);
     try {
-      const [userRes, settingsRes] = await Promise.all([
+      const [userRes, settingsRes, avatarsRes] = await Promise.all([
         api.get('/auth/me'),
-        api.get('/settings').catch(() => ({ data: null }))
+        api.get('/settings').catch(() => ({ data: null })),
+        api.get('/avatars').catch(() => ({ data: [] }))
       ]);
       setUser(userRes.data);
       setSettings(settingsRes.data);
+      setCustomAvatars(avatarsRes.data || []);
       setNewWhatsapp(userRes.data.whatsapp || '');
     } catch (err) {
       // Session error handled by interceptor
@@ -256,7 +259,7 @@ export default function ProfileScreen() {
                 <View className={`w-full h-full rounded-full items-center justify-center bg-[#111] border border-white/5 overflow-hidden`}>
                   {user.avatarId && user.avatarId !== 'default' ? (
                     <Image
-                      source={getAvatarSource(user.avatarId)}
+                      source={user.avatarId.startsWith('http') ? { uri: user.avatarId } : getAvatarSource(user.avatarId)}
                       className="w-full h-full"
                       resizeMode="cover"
                     />
@@ -515,7 +518,7 @@ export default function ProfileScreen() {
                 paddingBottom: 40 
               }}
             >
-              {AVATARS.map((avatar) => (
+              {[...AVATARS, ...customAvatars.map(a => ({ id: a.url, name: a.name || 'Personalizado', isRemote: true }))].map((avatar) => (
                 <TouchableOpacity
                   key={avatar.id}
                   onPress={() => handleSelectAvatar(avatar.id)}
@@ -526,7 +529,11 @@ export default function ProfileScreen() {
                     {avatar.id === 'default' ? (
                       <User size={40} color={level.color} />
                     ) : (
-                      <Image source={getAvatarSource(avatar.id)} className="w-full h-full" resizeMode="cover" />
+                      <Image 
+                        source={avatar.isRemote ? { uri: avatar.id } : getAvatarSource(avatar.id)} 
+                        className="w-full h-full" 
+                        resizeMode="cover" 
+                      />
                     )}
                   </View>
                   <Text className={`text-center font-bold text-[10px] uppercase tracking-widest ${user.avatarId === avatar.id ? 'text-boston-gold' : 'text-white/40'}`}>

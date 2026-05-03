@@ -10,6 +10,7 @@ import { generatePromoToken, claimPromoToken } from "../controllers/promo.contro
 import { getSettings, updateSettings, uploadVideo, upload } from "../controllers/settings.controller";
 import { handleMediaUpload, uploadMedia } from "../controllers/media.controller";
 import { getAllVipBenefits, getMyVipBenefits, createVipBenefit, updateVipBenefit, deleteVipBenefit } from "../controllers/vip-benefits.controller";
+import { getAllAvatars, createAvatar, deleteAvatar } from "../controllers/avatars.controller";
 
 const router = Router();
 
@@ -76,5 +77,10 @@ router.get("/vip-benefits/me", authenticate, getMyVipBenefits);
 router.post("/vip-benefits", authenticate, requireAdmin, createVipBenefit);
 router.patch("/vip-benefits/:id", authenticate, requireAdmin, updateVipBenefit);
 router.delete("/vip-benefits/:id", authenticate, requireAdmin, deleteVipBenefit);
+
+// Dynamic Avatars
+router.get("/avatars", getAllAvatars);
+router.post("/avatars", authenticate, requireAdmin, createAvatar);
+router.delete("/avatars/:id", authenticate, requireAdmin, deleteAvatar);
 
 export default router;
