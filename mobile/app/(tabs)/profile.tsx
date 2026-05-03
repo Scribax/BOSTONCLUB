@@ -8,6 +8,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import * as LocalAuthentication from 'expo-local-authentication';
 import * as SecureStore from 'expo-secure-store';
 import { VipStatusModal } from '../../components/VipStatusModal';
+import QRCode from 'react-native-qrcode-svg';
+import { QrCode as QrIcon } from 'lucide-react-native';
 
 export default function ProfileScreen() {
   const [user, setUser] = useState<any>(null);
@@ -26,6 +28,9 @@ export default function ProfileScreen() {
   const [avatarModalVisible, setAvatarModalVisible] = useState(false);
   const [updatingAvatar, setUpdatingAvatar] = useState(false);
   const [customAvatars, setCustomAvatars] = useState<any[]>([]);
+  const [showMemberQr, setShowMemberQr] = useState(false);
+  const [memberToken, setMemberToken] = useState<string | null>(null);
+  const [tokenExpiry, setTokenExpiry] = useState<number | null>(null);
 
   const AVATARS = [
     { id: 'default', name: 'Original', icon: null },
@@ -180,6 +185,25 @@ export default function ProfileScreen() {
     }
   };
 
+  const fetchMemberToken = async () => {
+    try {
+      const res = await api.get('/member-qr/token');
+      setMemberToken(res.data.token);
+      setTokenExpiry(res.data.expiresAt);
+    } catch (err) {
+      console.error("Error fetching member token", err);
+    }
+  };
+
+  useEffect(() => {
+    let interval: any;
+    if (showMemberQr) {
+      fetchMemberToken();
+      interval = setInterval(fetchMemberToken, 45000); // Refrescar cada 45s
+    }
+    return () => clearInterval(interval);
+  }, [showMemberQr]);
+
   const getAvatarSource = (id: string) => {
     switch (id) {
       case 'A1': return require('../../assets/images/avatars/A1.png');
@@ -289,6 +313,16 @@ export default function ProfileScreen() {
                   <ChevronRight size={12} color="rgba(255,255,255,0.3)" style={{ marginLeft: 4 }} />
                 </View>
                 <Text style={{ color: 'rgba(255,255,255,0.2)', fontSize: 8, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 2, textAlign: 'center', marginTop: 4 }}>Toca para ver tus beneficios</Text>
+              </TouchableOpacity>
+
+              {/* Digital Membership Card Button */}
+              <TouchableOpacity 
+                onPress={() => setShowMemberQr(true)}
+                activeOpacity={0.8}
+                className="mt-8 bg-boston-gold/10 border border-boston-gold/30 px-10 py-4 rounded-[2rem] flex-row items-center shadow-lg shadow-boston-gold/10"
+              >
+                <QrIcon size={20} color="#D4AF37" className="mr-3" />
+                <Text className="text-boston-gold font-black uppercase text-[10px] tracking-widest">Mi Carnet Digital</Text>
               </TouchableOpacity>
             </View>
 
@@ -553,6 +587,52 @@ export default function ProfileScreen() {
                 <ActivityIndicator color="#D4AF37" size="large" />
               </View>
             )}
+          </View>
+        </View>
+      </Modal>
+
+      {/* Membership QR Modal */}
+      <Modal visible={showMemberQr} transparent animationType="fade">
+        <View className="flex-1 bg-black/95 justify-center items-center p-6">
+          <View className="w-full bg-[#0a0a0a] border border-boston-gold/30 rounded-[3.5rem] p-10 items-center relative overflow-hidden">
+            <View className="absolute -top-24 -right-24 w-64 h-64 bg-boston-gold rounded-full opacity-10 blur-[100px]" />
+            
+            <TouchableOpacity 
+              onPress={() => setShowMemberQr(false)} 
+              className="absolute top-8 right-8 p-3 bg-white/5 rounded-full border border-white/10"
+            >
+              <X size={20} color="white" />
+            </TouchableOpacity>
+
+            <View className="items-center mb-10">
+               <Text className="text-2xl font-black text-white italic uppercase tracking-tighter">Mi Carnet Digital</Text>
+               <Text className="text-[10px] text-boston-gold font-black uppercase tracking-[0.2em] mt-2">Socio {user.membershipLevel}</Text>
+            </View>
+
+            <View className="bg-white p-6 rounded-[2.5rem] shadow-2xl shadow-white/10">
+              {memberToken ? (
+                <QRCode
+                  value={memberToken}
+                  size={200}
+                  color="black"
+                  backgroundColor="white"
+                />
+              ) : (
+                <View style={{ width: 200, height: 200 }} className="items-center justify-center">
+                  <ActivityIndicator color="#000" />
+                </View>
+              )}
+            </View>
+
+            <View className="mt-10 items-center">
+               <Text className="text-white/40 text-[10px] font-black uppercase tracking-widest text-center leading-5">
+                 Enseñá este código en caja para{"\n"}sumar tus puntos al instante
+               </Text>
+               <View className="mt-8 flex-row items-center bg-white/5 px-5 py-3 rounded-2xl border border-white/10">
+                 <RefreshCcw size={14} color="#D4AF37" className="mr-3" />
+                 <Text className="text-white/60 text-[9px] font-bold uppercase tracking-[0.2em]">Se actualiza cada 45s</Text>
+               </View>
+            </View>
           </View>
         </View>
       </Modal>

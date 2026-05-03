@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Zap, MapPin, ArrowLeft, RotateCcw, Copy, Check, Info, Coins, Clock, ArrowRight } from "lucide-react";
+import { Zap, MapPin, ArrowLeft, RotateCcw, Copy, Check, Info, Coins, Clock, ArrowRight, QrCode } from "lucide-react";
 import Link from "next/link";
 import { apiFetch } from "@/lib/api";
 import { formatWithDots, parseSmartNumber } from "@/lib/numberFormatting";
@@ -20,6 +20,10 @@ export default function AdminPromoPage() {
   const [isEventDay, setIsEventDay] = useState(false);
   const [eventPoints, setEventPoints] = useState(1000);
   const [settings, setSettings] = useState<any>(null);
+  
+  // Scanner states
+  const [scannedToken, setScannedToken] = useState("");
+  const [scannerStatus, setScannerStatus] = useState<{ type: 'idle' | 'success' | 'error', message?: string }>({ type: 'idle' });
 
   useEffect(() => {
     fetchSettings();
@@ -89,6 +93,44 @@ export default function AdminPromoPage() {
     navigator.clipboard.writeText(activeToken.token);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handlePhysicalScan = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!scannedToken || !calculatedPoints) {
+      if (!calculatedPoints) alert("Primero ingresa el monto en la calculadora");
+      setScannedToken("");
+      return;
+    }
+
+    setLoading(true);
+    setScannerStatus({ type: 'idle' });
+    try {
+      const res = await apiFetch("/member-qr/credit", {
+        method: "POST",
+        body: JSON.stringify({
+          token: scannedToken,
+          points: calculatedPoints
+        })
+      });
+      
+      setScannerStatus({ 
+        type: 'success', 
+        message: `¡Acreditados ${calculatedPoints} pts a ${res.userName}!` 
+      });
+      setScannedToken("");
+      // Reset calculator after success? Maybe not, depends on flow.
+      setTimeout(() => setScannerStatus({ type: 'idle' }), 5000);
+    } catch (err: any) {
+      setScannerStatus({ 
+        type: 'error', 
+        message: err.message || "Token inválido o expirado" 
+      });
+      setScannedToken("");
+      setTimeout(() => setScannerStatus({ type: 'idle' }), 5000);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const qrUrl = activeToken 
@@ -283,6 +325,68 @@ export default function AdminPromoPage() {
           >
             {isEventDay ? `Generar QR Evento (${formatWithDots(eventPoints)} Pts)` : `Generar QR Normal (${formatWithDots(dailyPoints)} Pts)`}
           </button>
+        </motion.div>
+
+        {/* PHYSICAL SCANNER CARD */}
+        <motion.div 
+          className={`glass-panel p-6 rounded-[2rem] border relative overflow-hidden flex flex-col justify-between border-boston-gold/40 bg-boston-gold/5`}
+        >
+          <div>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-boston-gold/20 rounded-xl flex items-center justify-center border border-boston-gold/30">
+                <QrCode className="w-5 h-5 text-boston-gold" />
+              </div>
+              <h3 className="font-bold uppercase tracking-wider">Escáner de Carnet</h3>
+            </div>
+            <p className="text-[10px] text-white/50 mb-6 uppercase tracking-widest font-bold italic">Usá el escáner físico para sumar puntos</p>
+            
+            <form onSubmit={handlePhysicalScan} className="space-y-4 mb-8">
+              <div className="space-y-2">
+                 <label className="text-[9px] font-black text-boston-gold uppercase tracking-[0.2em] ml-1">Esperando lectura del escáner...</label>
+                 <div className={`relative transition-all duration-300 ${scannerStatus.type === 'success' ? 'scale-105' : ''}`}>
+                    <input 
+                      type="text" 
+                      autoFocus
+                      value={scannedToken}
+                      onChange={(e) => setScannedToken(e.target.value)}
+                      placeholder="ESCANEÁ EL QR DEL CELULAR..."
+                      className={`w-full bg-black/50 border-2 rounded-2xl py-6 px-6 text-center text-xl font-black tracking-[0.3em] outline-none transition-all ${
+                        scannerStatus.type === 'success' ? 'border-green-500 text-green-500 shadow-[0_0_20px_rgba(34,197,94,0.3)]' : 
+                        scannerStatus.type === 'error' ? 'border-red-500 text-red-500 shadow-[0_0_20px_rgba(239,68,68,0.3)]' : 
+                        'border-boston-gold/30 focus:border-boston-gold text-white'
+                      }`}
+                    />
+                    {loading && (
+                      <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                        <RotateCcw className="w-5 h-5 animate-spin text-boston-gold" />
+                      </div>
+                    )}
+                 </div>
+              </div>
+
+              <div className="h-12 flex items-center justify-center">
+                 <AnimatePresence mode="wait">
+                    {scannerStatus.type !== 'idle' && (
+                      <motion.div 
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className={`text-[10px] font-black uppercase tracking-widest text-center px-4 py-2 rounded-full ${scannerStatus.type === 'success' ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}`}
+                      >
+                        {scannerStatus.message}
+                      </motion.div>
+                    )}
+                 </AnimatePresence>
+              </div>
+            </form>
+          </div>
+
+          <div className="p-4 rounded-xl bg-white/5 border border-white/5">
+             <p className="text-[9px] text-white/30 font-bold uppercase text-center leading-relaxed">
+               Puntos a acreditar: <span className="text-boston-gold">{calculatedPoints} PTS</span>{"\n"}
+               (Configurado en Calculadora Express)
+             </p>
+          </div>
         </motion.div>
       </div>
 
