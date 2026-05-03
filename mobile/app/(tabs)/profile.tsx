@@ -33,11 +33,6 @@ export default function ProfileScreen() {
     { id: 'A3', name: 'Avatar 3' },
     { id: 'A4', name: 'Avatar 4' },
     { id: 'A5', name: 'Avatar 5' },
-    { id: 'A6', name: 'Avatar 6' },
-    { id: 'A7', name: 'Avatar 7' },
-    { id: 'A8', name: 'Avatar 8' },
-    { id: 'A9', name: 'Avatar 9' },
-    { id: 'A10', name: 'Avatar 10' },
   ];
 
   // useFocusEffect re-corre cada vez que el perfil recibe foco,
@@ -188,11 +183,6 @@ export default function ProfileScreen() {
       case 'A3': return require('../../assets/images/avatars/A3.png');
       case 'A4': return require('../../assets/images/avatars/A4.png');
       case 'A5': return require('../../assets/images/avatars/A5.png');
-      case 'A6': return require('../../assets/images/avatars/A6.png');
-      case 'A7': return require('../../assets/images/avatars/A7.png');
-      case 'A8': return require('../../assets/images/avatars/A8.png');
-      case 'A9': return require('../../assets/images/avatars/A9.png');
-      case 'A10': return require('../../assets/images/avatars/A10.png');
       default: return null;
     }
   };
