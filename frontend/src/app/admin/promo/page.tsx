@@ -122,6 +122,13 @@ export default function AdminPromoPage() {
     }
   };
 
+  // Auto-submit si el escáner no manda la tecla "Enter" pero lee los 8 caracteres del token
+  useEffect(() => {
+    if (scannedToken.length === 8 && scannerStatus.type === 'idle') {
+      handlePhysicalScan(new Event('submit') as any);
+    }
+  }, [scannedToken]);
+
   const confirmAccreditation = async () => {
     if (!scannedUser || !scannerPoints) return;
     
@@ -394,6 +401,9 @@ export default function AdminPromoPage() {
                     )}
                  </div>
               </div>
+
+              {/* Hidden submit button to capture physical scanner's "Enter" keystroke */}
+              <button type="submit" className="hidden">Escanear</button>
 
               <div className="h-12 flex items-center justify-center">
                  <AnimatePresence mode="wait">
