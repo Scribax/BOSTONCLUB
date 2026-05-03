@@ -35,12 +35,12 @@ export const creditPointsByToken = async (req: Request, res: Response) => {
       data: { points: { increment: Number(points) } }
     });
     // Registrar transacción
-    await prisma.pointTransaction.create({
+    await prisma.pointHistory.create({
       data: {
         userId,
-        amount: Number(points),
-        type: "CREDIT",
-        reason: "Escaneo de Carnet Digital (Caja)"
+        pointsGained: Number(points),
+        source: "CARNET_DIGITAL",
+        description: "Escaneo de Carnet Digital en Caja"
       }
     });
     tokenStore.delete(token);
