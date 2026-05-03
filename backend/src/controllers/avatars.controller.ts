@@ -31,7 +31,7 @@ export const createAvatar = async (req: Request, res: Response) => {
 
 export const deleteAvatar = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const { id } = req.params as { id: string };
     await prisma.customAvatar.delete({
       where: { id }
     });
