@@ -29,6 +29,8 @@ const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 // FIX PERF #4: Array estático fuera del componente → no se recrea en cada render
 const PROGRESS_TEXTURE_BARS = [...Array(20)].map((_, i) => i);
 
+let hasShownGlobalPopup = false;
+
 type UserData = {
   id: string;
   firstName: string;
@@ -91,7 +93,6 @@ export default function DashboardScreen() {
 
   const [currentPopup, setCurrentPopup] = useState<BannerEvent | null>(null);
   const [showPopupModal, setShowPopupModal] = useState(false);
-  const hasShownPopupRef = useRef(false);
 
   // FIX: New Architecture requiere que estas referencias sean estables (no recreadas en cada render)
   const onViewableItemsChangedRef = useRef(({ viewableItems }: any) => {
@@ -156,10 +157,10 @@ export default function DashboardScreen() {
       setBanners(topBanners);
       setPromoBanners(bottomPromos);
       
-      if (splashPopups.length > 0 && !hasShownPopupRef.current) {
+      if (splashPopups.length > 0 && !hasShownGlobalPopup) {
         setCurrentPopup(splashPopups[0]);
         setShowPopupModal(true);
-        hasShownPopupRef.current = true;
+        hasShownGlobalPopup = true;
       }
       
       return true;
