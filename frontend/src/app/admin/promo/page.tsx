@@ -469,8 +469,12 @@ export default function AdminPromoPage() {
               </button>
 
               <div className="flex flex-col items-center text-center">
-                <div className="w-24 h-24 bg-boston-gold/10 rounded-full border-2 border-boston-gold/30 flex items-center justify-center mb-6 shadow-[0_0_40px_rgba(212,175,55,0.1)]">
-                   <User className="w-12 h-12 text-boston-gold" />
+                <div className="w-24 h-24 bg-boston-gold/10 rounded-full border-2 border-boston-gold/30 flex items-center justify-center mb-6 shadow-[0_0_40px_rgba(212,175,55,0.1)] overflow-hidden">
+                   {scannedUser.avatar?.url ? (
+                     <img src={scannedUser.avatar.url.startsWith('http') ? scannedUser.avatar.url : `https://mybostonclub.com${scannedUser.avatar.url}`} alt="Avatar" className="w-full h-full object-cover" />
+                   ) : (
+                     <User className="w-12 h-12 text-boston-gold" />
+                   )}
                 </div>
                 
                 <h3 className="text-2xl font-black text-white italic uppercase tracking-tighter">
