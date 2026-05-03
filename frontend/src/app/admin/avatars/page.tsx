@@ -207,23 +207,6 @@ export default function AdminAvatarsPage() {
         )}
       </div>
       
-      <div className="glass-panel p-8 rounded-[2rem] border border-white/5 mt-12 bg-white/[0.01]">
-         <div className="flex items-center gap-4 mb-4">
-            <Smile className="w-6 h-6 text-boston-gold" />
-            <h3 className="text-white font-black uppercase tracking-widest text-sm">Avatares del Sistema (Locales)</h3>
-         </div>
-         <p className="text-white/40 text-xs leading-relaxed mb-6">
-            Estos avatares están grabados en el código de la aplicación móvil y no se pueden eliminar desde el panel. 
-            El **Avatar 6** está protegido permanentemente como un elemento especial del club.
-         </p>
-         <div className="flex gap-4 opacity-30 grayscale pointer-events-none">
-            {[1,2,3,4,5,6].map(i => (
-                <div key={i} className="w-12 h-12 rounded-full bg-white/10 border border-white/10 flex items-center justify-center">
-                    <span className="text-[10px] font-black">A{i}</span>
-                </div>
-            ))}
-         </div>
-      </div>
     </div>
   );
 }
