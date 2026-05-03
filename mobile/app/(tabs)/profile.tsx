@@ -197,7 +197,7 @@ export default function ProfileScreen() {
       progressAnim.setValue(1);
       Animated.timing(progressAnim, {
         toValue: 0,
-        duration: 5000,
+        duration: 15000,
         useNativeDriver: false,
       }).start();
     } catch (err) {
@@ -209,7 +209,7 @@ export default function ProfileScreen() {
     let interval: any;
     if (showMemberQr) {
       fetchMemberToken();
-      interval = setInterval(fetchMemberToken, 5000); // Refrescar cada 5s
+      interval = setInterval(fetchMemberToken, 15000); // Refrescar cada 15s
     }
     return () => {
       clearInterval(interval);
@@ -658,7 +658,7 @@ export default function ProfileScreen() {
                </Text>
                <View className="mt-8 flex-row items-center bg-white/5 px-5 py-3 rounded-2xl border border-white/10">
                  <RefreshCcw size={14} color="#D4AF37" className="mr-3" />
-                 <Text className="text-white/60 text-[9px] font-bold uppercase tracking-[0.2em]">Se actualiza cada 5s</Text>
+                 <Text className="text-white/60 text-[9px] font-bold uppercase tracking-[0.2em]">Se actualiza cada 15s</Text>
                </View>
             </View>
           </View>
