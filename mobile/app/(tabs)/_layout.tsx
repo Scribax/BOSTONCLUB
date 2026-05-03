@@ -142,18 +142,6 @@ const ScanButton = ({ onPress }: any) => {
         >
           <LucideIcons.Scan size={28} color="#000" strokeWidth={3} />
         </LinearGradient>
-        <Text
-          style={{
-            color: 'rgba(255,255,255,0.4)',
-            fontSize: 8,
-            fontWeight: '900',
-            marginTop: 8,
-            letterSpacing: 1,
-            textTransform: 'uppercase',
-          }}
-        >
-          SCAN
-        </Text>
       </Animated.View>
     </Pressable>
   );
@@ -237,7 +225,21 @@ const CustomTabBar = ({ state, descriptors, navigation, isAdmin }: any) => {
           if (route.name === 'scanner') {
             return (
               <View key={route.key} style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-                <ScanButton onPress={onPress} />
+                <View style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, alignItems: 'center', justifyContent: 'center' }}>
+                  <ScanButton onPress={onPress} />
+                </View>
+                <Text
+                  style={{
+                    color: isFocused ? '#FF2D2D' : 'rgba(255,255,255,0.4)',
+                    fontSize: 8,
+                    fontWeight: '900',
+                    marginTop: 38,
+                    letterSpacing: 1,
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  SCAN
+                </Text>
               </View>
             );
           }
