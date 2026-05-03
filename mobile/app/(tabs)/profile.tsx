@@ -518,7 +518,7 @@ export default function ProfileScreen() {
                 paddingBottom: 40 
               }}
             >
-              {[...AVATARS, ...customAvatars.map(a => ({ id: a.url, name: a.name || 'Personalizado', isRemote: true }))].map((avatar) => (
+              {[...AVATARS, ...customAvatars.map(a => ({ id: a.url, name: a.name || 'Personalizado' }))].map((avatar) => (
                 <TouchableOpacity
                   key={avatar.id}
                   onPress={() => handleSelectAvatar(avatar.id)}
@@ -530,7 +530,7 @@ export default function ProfileScreen() {
                       <User size={40} color={level.color} />
                     ) : (
                       <Image 
-                        source={avatar.isRemote ? { uri: avatar.id } : getAvatarSource(avatar.id)} 
+                        source={avatar.id.startsWith('http') ? { uri: avatar.id } : getAvatarSource(avatar.id)} 
                         className="w-full h-full" 
                         resizeMode="cover" 
                       />
