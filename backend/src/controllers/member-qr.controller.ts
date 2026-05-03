@@ -19,22 +19,53 @@ export const generateMemberToken = async (req: Request, res: Response) => {
   }
 };
 
+export const verifyMemberToken = async (req: Request, res: Response) => {
+  try {
+    const { token } = req.params;
+    const tokenData = tokenStore.get(token);
+
+    if (!tokenData || tokenData.expiresAt < Date.now()) {
+      if (tokenData) tokenStore.delete(token);
+      return res.status(404).json({ message: "Token inválido o expirado" });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: tokenData.userId },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        membershipLevel: true,
+        points: true,
+        avatarId: true
+      }
+    });
+
+    if (!user) return res.status(404).json({ message: "Usuario no encontrado" });
+
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ message: "Error al verificar token" });
+  }
+};
+
 export const creditPointsByToken = async (req: Request, res: Response) => {
   try {
     const { token, points } = req.body;
     if (!token || !points) return res.status(400).json({ message: "Token y puntos requeridos" });
+    
     const tokenData = tokenStore.get(token);
-    if (!tokenData) return res.status(404).json({ message: "Token inválido o expirado" });
-    if (tokenData.expiresAt < Date.now()) {
-      tokenStore.delete(token);
-      return res.status(400).json({ message: "El token ha expirado" });
+    if (!tokenData || tokenData.expiresAt < Date.now()) {
+      if (tokenData) tokenStore.delete(token);
+      return res.status(404).json({ message: "Token inválido o expirado" });
     }
+
     const userId = tokenData.userId;
     const user = await prisma.user.update({
       where: { id: userId },
       data: { points: { increment: Number(points) } }
     });
-    // Registrar transacción
+
     await prisma.pointHistory.create({
       data: {
         userId,
@@ -43,9 +74,10 @@ export const creditPointsByToken = async (req: Request, res: Response) => {
         description: "Escaneo de Carnet Digital en Caja"
       }
     });
+
     tokenStore.delete(token);
     res.json({ 
-      message: `¡Éxito! Se acreditaron ${points} puntos a ${user.firstName}`,
+      message: `¡Éxito! Se acreditaron ${points} puntos`,
       userName: user.firstName,
       newPoints: user.points
     });

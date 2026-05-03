@@ -11,7 +11,7 @@ import { getSettings, updateSettings, uploadVideo, upload } from "../controllers
 import { handleMediaUpload, uploadMedia } from "../controllers/media.controller";
 import { getAllVipBenefits, getMyVipBenefits, createVipBenefit, updateVipBenefit, deleteVipBenefit } from "../controllers/vip-benefits.controller";
 import { getAllAvatars, createAvatar, deleteAvatar } from "../controllers/avatars.controller";
-import { generateMemberToken, creditPointsByToken } from "../controllers/member-qr.controller";
+import { generateMemberToken, creditPointsByToken, verifyMemberToken } from "../controllers/member-qr.controller";
 
 const router = Router();
 
@@ -86,6 +86,7 @@ router.delete("/avatars/:id", authenticate, requireAdmin, deleteAvatar);
 
 // Member QR System
 router.get("/member-qr/token", authenticate, generateMemberToken);
+router.get("/member-qr/verify/:token", authenticate, requireAdmin, verifyMemberToken);
 router.post("/member-qr/credit", authenticate, requireAdmin, creditPointsByToken);
 
 export default router;

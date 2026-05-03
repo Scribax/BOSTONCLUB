@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Zap, MapPin, ArrowLeft, RotateCcw, Copy, Check, Info, Coins, Clock, ArrowRight, QrCode } from "lucide-react";
+import { Zap, MapPin, ArrowLeft, RotateCcw, Copy, Check, Info, Coins, Clock, ArrowRight, QrCode, User, ShieldCheck, X } from "lucide-react";
 import Link from "next/link";
 import { apiFetch } from "@/lib/api";
 import { formatWithDots, parseSmartNumber } from "@/lib/numberFormatting";
@@ -24,6 +24,7 @@ export default function AdminPromoPage() {
   // Scanner states
   const [scannedToken, setScannedToken] = useState("");
   const [scannerPoints, setScannerPoints] = useState(100);
+  const [scannedUser, setScannedUser] = useState<any>(null);
   const [scannerStatus, setScannerStatus] = useState<{ type: 'idle' | 'success' | 'error', message?: string }>({ type: 'idle' });
 
   useEffect(() => {
@@ -98,29 +99,17 @@ export default function AdminPromoPage() {
 
   const handlePhysicalScan = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!scannedToken || !scannerPoints) {
-      if (!scannerPoints) alert("Ingresa los puntos primero");
-      setScannedToken("");
-      return;
-    }
+    if (!scannedToken) return;
 
     setLoading(true);
     setScannerStatus({ type: 'idle' });
+    setScannedUser(null);
+    
     try {
-      const res = await apiFetch("/member-qr/credit", {
-        method: "POST",
-        body: JSON.stringify({
-          token: scannedToken,
-          points: scannerPoints
-        })
-      });
-      
-      setScannerStatus({ 
-        type: 'success', 
-        message: `¡Acreditados ${scannerPoints} pts a ${res.userName}!` 
-      });
-      setScannedToken("");
-      setTimeout(() => setScannerStatus({ type: 'idle' }), 5000);
+      // Step 1: Verify
+      const user = await apiFetch(`/member-qr/verify/${scannedToken}`);
+      setScannedUser({ ...user, token: scannedToken });
+      setScannedToken(""); // Limpiar para el siguiente escaneo (aunque esté bloqueado por el modal de usuario)
     } catch (err: any) {
       setScannerStatus({ 
         type: 'error', 
@@ -128,6 +117,35 @@ export default function AdminPromoPage() {
       });
       setScannedToken("");
       setTimeout(() => setScannerStatus({ type: 'idle' }), 5000);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const confirmAccreditation = async () => {
+    if (!scannedUser || !scannerPoints) return;
+    
+    setLoading(true);
+    try {
+      await apiFetch("/member-qr/credit", {
+        method: "POST",
+        body: JSON.stringify({
+          token: scannedUser.token,
+          points: scannerPoints
+        })
+      });
+      
+      setScannerStatus({ 
+        type: 'success', 
+        message: `¡Puntos acreditados con éxito!` 
+      });
+      setScannedUser(null);
+      setTimeout(() => setScannerStatus({ type: 'idle' }), 5000);
+    } catch (err: any) {
+      setScannerStatus({ 
+        type: 'error', 
+        message: err.message || "Error al acreditar" 
+      });
     } finally {
       setLoading(false);
     }
@@ -413,6 +431,75 @@ export default function AdminPromoPage() {
           >
             <Check className="w-5 h-5" />
             <span className="uppercase text-xs tracking-widest leading-none">Ajustes Sincronizados con Pantalla</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* VERIFICATION OVERLAY / MODAL */}
+      <AnimatePresence>
+        {scannedUser && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[110] bg-black/90 backdrop-blur-xl flex items-center justify-center p-6"
+          >
+            <motion.div 
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              className="w-full max-w-md bg-[#0a0a0a] border border-boston-gold/30 rounded-[3rem] p-8 relative overflow-hidden"
+            >
+              <div className="absolute -top-24 -right-24 w-64 h-64 bg-boston-gold rounded-full opacity-5 blur-[100px]" />
+              
+              <button 
+                onClick={() => setScannedUser(null)}
+                className="absolute top-6 right-6 p-2 bg-white/5 rounded-full hover:bg-white/10"
+              >
+                <X className="w-5 h-5 text-white/40" />
+              </button>
+
+              <div className="flex flex-col items-center text-center">
+                <div className="w-24 h-24 bg-boston-gold/10 rounded-full border-2 border-boston-gold/30 flex items-center justify-center mb-6 shadow-[0_0_40px_rgba(212,175,55,0.1)]">
+                   <User className="w-12 h-12 text-boston-gold" />
+                </div>
+                
+                <h3 className="text-2xl font-black text-white italic uppercase tracking-tighter">
+                  {scannedUser.firstName} {scannedUser.lastName}
+                </h3>
+                
+                <div className="mt-2 flex items-center gap-2 bg-white/5 px-4 py-1.5 rounded-full border border-white/10">
+                   <ShieldCheck className="w-3 h-3 text-boston-gold" />
+                   <span className="text-[10px] font-black text-white/60 uppercase tracking-widest">Socio {scannedUser.membershipLevel}</span>
+                </div>
+
+                <div className="w-full grid grid-cols-2 gap-4 mt-10">
+                   <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-4">
+                      <p className="text-[8px] font-black text-white/20 uppercase tracking-widest mb-1">Puntos Actuales</p>
+                      <p className="text-xl font-black text-white">{formatWithDots(scannedUser.points)}</p>
+                   </div>
+                   <div className="bg-boston-gold/5 border border-boston-gold/20 rounded-2xl p-4">
+                      <p className="text-[8px] font-black text-boston-gold/40 uppercase tracking-widest mb-1">A sumar hoy</p>
+                      <p className="text-xl font-black text-boston-gold">+{formatWithDots(scannerPoints)}</p>
+                   </div>
+                </div>
+
+                <div className="w-full mt-10 space-y-3">
+                   <button 
+                    disabled={loading}
+                    onClick={confirmAccreditation}
+                    className="w-full py-5 bg-boston-gold text-black font-black uppercase text-xs tracking-widest rounded-2xl hover:brightness-110 active:scale-95 transition-all shadow-[0_10px_30px_rgba(212,175,55,0.2)]"
+                   >
+                     {loading ? "Procesando..." : "Confirmar Acreditación"}
+                   </button>
+                   <button 
+                    onClick={() => setScannedUser(null)}
+                    className="w-full py-4 text-white/30 font-black uppercase text-[10px] tracking-widest hover:text-white"
+                   >
+                     Cancelar
+                   </button>
+                </div>
+              </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
