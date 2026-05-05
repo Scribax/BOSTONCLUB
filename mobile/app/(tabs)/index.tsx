@@ -858,7 +858,7 @@ export default function DashboardScreen() {
 
             {currentPopup?.mediaType === 'VIDEO' ? (
                <View className="w-full h-[500px]">
-                 <VideoPlayer url={resolveImageUrl(currentPopup.videoUrl) || ''} isMuted={false} />
+                 <VideoPlayer uri={resolveImageUrl(currentPopup.videoUrl) || ''} />
                </View>
             ) : (
                <Image 
