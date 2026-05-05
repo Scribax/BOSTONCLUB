@@ -193,13 +193,6 @@ export default function ProfileDefault({
           <View className={`absolute top-0 right-0 w-96 h-96 rounded-full opacity-20 blur-[120px] ${level.aura}`} />
           <View className="absolute top-20 left-10 w-40 h-40 bg-boston-red rounded-full opacity-10 blur-[80px]" />
 
-          {/* String Lights Overlay */}
-          <Image 
-            source={require('../../assets/images/lights_overlay.png')} 
-            style={{ position: 'absolute', top: -30, left: 0, width: '100%', height: 240, opacity: 0.8 }} 
-            resizeMode="cover" 
-          />
-
           <LinearGradient
             colors={['transparent', '#050505']}
             className="absolute inset-0 z-0"
