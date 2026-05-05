@@ -7,6 +7,7 @@ import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import { configureReanimatedLogger, ReanimatedLogLevel } from 'react-native-reanimated';
 import api, { logout } from '../../lib/api';
+import { useTheme } from '../../contexts/ThemeContext';
 
 // Silenciamos los warnings molestos de Reanimated durante el renderizado
 configureReanimatedLogger({
@@ -24,7 +25,7 @@ const IconRenderer = ({ name, size, color, strokeWidth }: any) => {
 };
 
 // Icono animado optimizado
-const AnimatedTabIcon = ({ focused, color, iconName, label, totalTabs = 4 }: any) => {
+const AnimatedTabIcon = ({ focused, color, iconName, label, totalTabs = 4, themePrimary }: any) => {
   const scaleAnim = useRef(new Animated.Value(focused ? 1.05 : 1)).current;
   const translateYAnim = useRef(new Animated.Value(focused ? -4 : 0)).current;
   const barWidth = useRef(new Animated.Value(focused ? 32 : 0)).current;
@@ -72,10 +73,10 @@ const AnimatedTabIcon = ({ focused, color, iconName, label, totalTabs = 4 }: any
           position: 'absolute',
           bottom: 4,
           height: 3,
-          backgroundColor: '#FF2D2D',
+          backgroundColor: themePrimary,
           borderRadius: 2,
           width: barWidth,
-          shadowColor: '#FF2D2D',
+          shadowColor: themePrimary,
           shadowOffset: { width: 0, height: 0 },
           shadowOpacity: 0.9,
           shadowRadius: 6,
@@ -87,7 +88,7 @@ const AnimatedTabIcon = ({ focused, color, iconName, label, totalTabs = 4 }: any
 };
 
 // Botón SCAN flotante
-const ScanButton = ({ onPress }: any) => {
+const ScanButton = ({ onPress, theme }: any) => {
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const glowAnim = useRef(new Animated.Value(1)).current;
 
@@ -122,14 +123,14 @@ const ScanButton = ({ onPress }: any) => {
           width: 70,
           height: 70,
           borderRadius: 35,
-          backgroundColor: '#FF2D2D',
+          backgroundColor: theme.primary,
           opacity: 0.15,
           transform: [{ scale: glowAnim }],
         }}
       />
       <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
         <LinearGradient
-          colors={['#FF3B30', '#FF2D2D', '#910000']}
+          colors={[theme.primaryGlow, theme.primary, theme.primaryDark]}
           style={{
             width: 68,
             height: 68,
@@ -148,7 +149,7 @@ const ScanButton = ({ onPress }: any) => {
 };
 
 // Custom Tab Bar para tener control 100% absoluto sobre lo que se dibuja
-const CustomTabBar = ({ state, descriptors, navigation, isAdmin }: any) => {
+const CustomTabBar = ({ state, descriptors, navigation, isAdmin, theme }: any) => {
   // Filtramos estrictamente las rutas que queremos mostrar según el rol
   const visibleRoutes = state.routes.filter((route: any) => {
     if (isAdmin) {
@@ -226,11 +227,11 @@ const CustomTabBar = ({ state, descriptors, navigation, isAdmin }: any) => {
             return (
               <View key={route.key} style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
                 <View style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, alignItems: 'center', justifyContent: 'center' }}>
-                  <ScanButton onPress={onPress} />
+                  <ScanButton onPress={onPress} theme={theme} />
                 </View>
                 <Text
                   style={{
-                    color: isFocused ? '#FF2D2D' : 'rgba(255,255,255,0.4)',
+                    color: isFocused ? theme.primary : 'rgba(255,255,255,0.4)',
                     fontSize: 8,
                     fontWeight: '900',
                     marginTop: 38,
@@ -248,10 +249,11 @@ const CustomTabBar = ({ state, descriptors, navigation, isAdmin }: any) => {
             <Pressable key={route.key} onPress={onPress} style={{ flex: 1 }}>
               <AnimatedTabIcon
                 focused={isFocused}
-                color={isFocused ? '#FF2D2D' : 'rgba(255,255,255,0.4)'}
+                color={isFocused ? theme.primary : 'rgba(255,255,255,0.4)'}
                 iconName={iconName}
                 label={label}
                 totalTabs={totalTabs}
+                themePrimary={theme.primary}
               />
             </Pressable>
           );
@@ -263,6 +265,7 @@ const CustomTabBar = ({ state, descriptors, navigation, isAdmin }: any) => {
 
 export default function TabLayout() {
   const router = useRouter();
+  const { theme } = useTheme();
   const [role, setRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -316,7 +319,7 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{ headerShown: false, sceneStyle: { backgroundColor: '#050505' } }}
-      tabBar={(props) => <CustomTabBar {...props} isAdmin={isAdmin} />}
+      tabBar={(props) => <CustomTabBar {...props} isAdmin={isAdmin} theme={theme} />}
     >
       <Tabs.Screen name="index" options={{ href: null }} />
       <Tabs.Screen name="rewards" options={{ href: null }} />

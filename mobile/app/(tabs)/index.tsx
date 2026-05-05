@@ -353,7 +353,7 @@ export default function DashboardScreen() {
       <StatusBar style="light" />
       
       {/* Background Aura */}
-      <View style={{ backgroundColor: theme.primary }} className={`absolute top-0 right-0 w-80 h-80 rounded-full opacity-10 blur-[100px]`} />
+      <View style={{ backgroundColor: theme.name === 'argentina' ? '#F6B40E' : theme.primary }} className={`absolute top-0 right-0 w-80 h-80 rounded-full opacity-10 blur-[100px]`} />
 
       <ScrollView 
         className="flex-1 bg-[#050505]"
@@ -429,17 +429,22 @@ export default function DashboardScreen() {
                        <FadeInView delay={300}>
                           <View className="bg-white px-4 py-2 rounded-sm self-start mb-4 shadow-2xl">
                              <Text className="text-black font-black text-xs uppercase italic tracking-tighter">
-                               ¡HOLA, {user.firstName.toUpperCase()}!
+                               ¡HOLA, {user.firstName.toUpperCase()}!{theme.name === 'argentina' ? ' 🇦🇷' : ''}
                              </Text>
                           </View>
+                          {theme.name === 'argentina' && (
+                             <Text className="text-white/80 font-black uppercase text-[10px] tracking-widest mb-1">
+                               🏆 MODO SELECCIÓN ACTIVADO
+                             </Text>
+                          )}
                           <Text className="text-white text-5xl font-black uppercase italic tracking-tighter leading-[42px] mb-2 drop-shadow-2xl">
                              {item.title}
                           </Text>
                           <Text className="text-white/70 text-sm font-bold uppercase tracking-widest">
                              {item.description}
                           </Text>
-                          <View className="bg-boston-gold/20 self-start px-3 py-1.5 rounded-full mt-4 border border-boston-gold/30">
-                             <Text className="text-boston-gold font-black text-[8px] tracking-widest uppercase">Toca para ver más</Text>
+                          <View style={{ backgroundColor: `${theme.secondary}33`, borderColor: `${theme.secondary}4D` }} className="self-start px-3 py-1.5 rounded-full mt-4 border">
+                             <Text style={{ color: theme.secondary }} className="font-black text-[8px] tracking-widest uppercase">Toca para ver más</Text>
                           </View>
                        </FadeInView>
                     </View>
@@ -465,10 +470,11 @@ export default function DashboardScreen() {
                 pathname: '/reward-qr',
                 params: { token: activeRedemption.qrToken, reward: activeRedemption.title }
               })}
-              className="bg-boston-gold rounded-[2rem] p-5 flex-row items-center shadow-2xl shadow-boston-gold/20"
+              style={{ backgroundColor: theme.secondary }}
+              className="rounded-[2rem] p-5 flex-row items-center shadow-2xl"
             >
               <View className="w-12 h-12 rounded-2xl bg-black items-center justify-center mr-4">
-                <QrCode size={24} color="#D4AF37" />
+                <QrCode size={24} color={theme.secondary} />
               </View>
               <View className="flex-1">
                 <Text className="text-black font-black text-[9px] uppercase tracking-[0.2em] mb-1">Tienes un canje listo</Text>
@@ -509,8 +515,8 @@ export default function DashboardScreen() {
                        <View className="w-14 h-14 rounded-full bg-black border-2 border-white/10 items-center justify-center mr-4">
                           <View className="items-center justify-center">
                              <Text className="text-white text-[8px] font-black italic tracking-tighter leading-none">BOSTON</Text>
-                             <View className="h-[1px] w-8 bg-boston-red my-0.5" />
-                             <Crown size={12} color="#D4AF37" />
+                             <View style={{ backgroundColor: theme.primary }} className="h-[1px] w-8 my-0.5" />
+                             <Crown size={12} color={theme.secondary} />
                           </View>
                        </View>
                        
@@ -525,9 +531,9 @@ export default function DashboardScreen() {
                              <StreakBadge streak={user.streak || 0} />
                            </TouchableOpacity>
                           <View className="flex-row items-center mt-2">
-                             <View className="h-[1px] flex-1 bg-boston-red/30" />
+                             <View style={{ backgroundColor: `${theme.primary}4D` }} className="h-[1px] flex-1" />
                              <Star size={8} color="white" fill="white" className="mx-2" />
-                             <View className="h-[1px] flex-1 bg-boston-red/30" />
+                             <View style={{ backgroundColor: `${theme.primary}4D` }} className="h-[1px] flex-1" />
                           </View>
                        </View>
                     </View>
@@ -577,7 +583,7 @@ export default function DashboardScreen() {
                       className="absolute top-[-4px] w-6 h-6 rounded-full border-2 border-[#1a1a1a] items-center justify-center shadow-xl"
                     >
                        <View className="w-2.5 h-0.5 bg-white rounded-full mb-0.5" />
-                       <View className="w-3.5 h-1 bg-boston-gold rounded-sm mb-0.5" />
+                       <View style={{ backgroundColor: theme.secondary }} className="w-3.5 h-1 rounded-sm mb-0.5" />
                        <View className="w-3 h-0.5 bg-white rounded-full" />
                     </View>
                  </View>
@@ -585,15 +591,15 @@ export default function DashboardScreen() {
                  {/* Milestones */}
                  <View className="flex-row justify-between px-2">
                     <View className="items-center">
-                       <Star size={10} color={user.points >= (settings?.goldThreshold || 500) ? '#D4AF37' : '#333'} fill={user.points >= (settings?.goldThreshold || 500) ? '#D4AF37' : 'transparent'} className="mb-2" />
+                       <Star size={10} color={user.points >= (settings?.goldThreshold || 500) ? theme.secondary : '#333'} fill={user.points >= (settings?.goldThreshold || 500) ? theme.secondary : 'transparent'} className="mb-2" />
                        <Text className={`text-[10px] font-black uppercase italic ${user.points >= (settings?.goldThreshold || 500) ? 'text-white' : 'text-white/20'}`}>ORO</Text>
                     </View>
                     <View className="items-center">
-                       <Star size={10} color={user.points >= (settings?.platinumThreshold || 1500) ? '#D4AF37' : '#333'} fill={user.points >= (settings?.platinumThreshold || 1500) ? '#D4AF37' : 'transparent'} className="mb-2" />
+                       <Star size={10} color={user.points >= (settings?.platinumThreshold || 1500) ? theme.secondary : '#333'} fill={user.points >= (settings?.platinumThreshold || 1500) ? theme.secondary : 'transparent'} className="mb-2" />
                        <Text className={`text-[10px] font-black uppercase italic ${user.points >= (settings?.platinumThreshold || 1500) ? 'text-white' : 'text-white/20'}`}>PLATINO</Text>
                     </View>
                     <View className="items-center">
-                       <Star size={10} color={user.points >= (settings?.diamondThreshold || 5000) ? '#D4AF37' : '#333'} fill={user.points >= (settings?.diamondThreshold || 5000) ? '#D4AF37' : 'transparent'} className="mb-2" />
+                       <Star size={10} color={user.points >= (settings?.diamondThreshold || 5000) ? theme.secondary : '#333'} fill={user.points >= (settings?.diamondThreshold || 5000) ? theme.secondary : 'transparent'} className="mb-2" />
                        <Text className={`text-[10px] font-black uppercase italic ${user.points >= (settings?.diamondThreshold || 5000) ? 'text-white' : 'text-white/20'}`}>DIAMANTE</Text>
                     </View>
                  </View>
@@ -609,22 +615,22 @@ export default function DashboardScreen() {
                  className="relative"
                >
                   <LinearGradient
-                    colors={['#D4AF37', '#8A6D3B']}
+                    colors={[theme.secondary, theme.secondaryDark]}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 0 }}
                     style={{ flex: 1 }}
                   >
                      <View className="bg-black/90 rounded-[23px] m-[1px] p-5 flex-row items-center justify-between">
                         <View className="flex-row items-center flex-1">
-                           <View className="w-12 h-12 rounded-2xl bg-boston-gold/10 items-center justify-center border border-boston-gold/20 mr-4">
-                              <Zap size={24} color="#D4AF37" />
+                           <View style={{ backgroundColor: `${theme.secondary}1A`, borderColor: `${theme.secondary}33` }} className="w-12 h-12 rounded-2xl items-center justify-center border mr-4">
+                              <Zap size={24} color={theme.secondary} />
                            </View>
                            <View className="flex-1">
                               <Text className="text-white font-black uppercase text-[11px] tracking-widest italic">¿Cómo sumar más puntos?</Text>
-                              <Text className="text-boston-gold font-bold text-[8px] uppercase tracking-tighter mt-0.5">Domina el Club Boston y gana premios</Text>
+                              <Text style={{ color: theme.secondary }} className="font-bold text-[8px] uppercase tracking-tighter mt-0.5">Domina el Club Boston y gana premios</Text>
                            </View>
                         </View>
-                        <View className="bg-boston-gold px-4 py-2 rounded-xl">
+                        <View style={{ backgroundColor: theme.secondary }} className="px-4 py-2 rounded-xl">
                            <ArrowRight size={14} color="black" />
                         </View>
                      </View>
@@ -636,9 +642,9 @@ export default function DashboardScreen() {
          <View className="px-6 mt-12">
             <View className="flex-row items-center justify-center mb-8">
                <View className="h-[1px] w-8 bg-white/10" />
-               <Star size={8} color="#FF3B30" fill="#FF3B30" className="mx-3" />
+               <Star size={8} color={theme.primary} fill={theme.primary} className="mx-3" />
                <Text className="text-white font-black uppercase tracking-[0.3em] text-[10px]">Menú Boston VIP</Text>
-               <Star size={8} color="#FF3B30" fill="#FF3B30" className="mx-3" />
+               <Star size={8} color={theme.primary} fill={theme.primary} className="mx-3" />
                <View className="h-[1px] w-8 bg-white/10" />
             </View>
            
@@ -657,7 +663,7 @@ export default function DashboardScreen() {
                     <Text className="text-white font-black uppercase text-[10px] tracking-wider mb-1">Premios</Text>
                     <Text className="text-white/30 font-bold uppercase text-[7px] text-center">Canjea tus puntos</Text>
                  </View>
-                 <View className="w-8 h-8 rounded-full bg-boston-red items-center justify-center">
+                 <View style={{ backgroundColor: theme.primary }} className="w-8 h-8 rounded-full items-center justify-center">
                     <ArrowRight size={14} color="white" />
                  </View>
               </TouchableOpacity>
@@ -668,17 +674,17 @@ export default function DashboardScreen() {
                 activeOpacity={0.8}
                 className="w-[31%] aspect-[0.7] bg-[#0c0c0c] border border-white/5 rounded-[2.5rem] p-4 items-center justify-between shadow-2xl shadow-black"
               >
-                 <View className="w-12 h-12 rounded-2xl border border-[#FF3B30]/30 items-center justify-center bg-white/5 relative">
-                    <Calendar size={24} color="#FF3B30" />
+                 <View style={{ borderColor: `${theme.primary}4D` }} className="w-12 h-12 rounded-2xl border items-center justify-center bg-white/5 relative">
+                    <Calendar size={24} color={theme.primary} />
                     <View className="absolute top-1 right-1">
-                       <Star size={8} color="#FF3B30" fill="#FF3B30" />
+                       <Star size={8} color={theme.primary} fill={theme.primary} />
                     </View>
                  </View>
                  <View className="items-center">
                     <Text className="text-white font-black uppercase text-[10px] tracking-wider mb-1">Agenda</Text>
                     <Text className="text-white/30 font-bold uppercase text-[7px] text-center">Eventos y promos</Text>
                  </View>
-                 <View className="w-8 h-8 rounded-full bg-boston-red items-center justify-center">
+                 <View style={{ backgroundColor: theme.primary }} className="w-8 h-8 rounded-full items-center justify-center">
                     <ArrowRight size={14} color="white" />
                  </View>
               </TouchableOpacity>
@@ -689,14 +695,14 @@ export default function DashboardScreen() {
                 activeOpacity={0.8}
                 className="w-[31%] aspect-[0.7] bg-[#0c0c0c] border border-white/5 rounded-[2.5rem] p-4 items-center justify-between shadow-2xl shadow-black"
               >
-                 <View className="w-12 h-12 rounded-2xl border border-[#FF3B30]/30 items-center justify-center bg-white/5">
-                    <TrendingUp size={24} color="#FF3B30" />
+                 <View style={{ borderColor: `${theme.primary}4D` }} className="w-12 h-12 rounded-2xl border items-center justify-center bg-white/5">
+                    <TrendingUp size={24} color={theme.primary} />
                  </View>
                  <View className="items-center">
                     <Text className="text-white font-black uppercase text-[10px] tracking-wider mb-1">Actividad</Text>
                     <Text className="text-white/30 font-bold uppercase text-[7px] text-center">Tus movimientos</Text>
                  </View>
-                 <View className="w-8 h-8 rounded-full bg-boston-red items-center justify-center">
+                 <View style={{ backgroundColor: theme.primary }} className="w-8 h-8 rounded-full items-center justify-center">
                     <ArrowRight size={14} color="white" />
                  </View>
               </TouchableOpacity>
@@ -712,8 +718,8 @@ export default function DashboardScreen() {
                     <Text className="text-white text-2xl font-black uppercase italic tracking-tighter">Promos Destacadas</Text>
                  </View>
                  <TouchableOpacity className="flex-row items-center bg-white/5 px-4 py-2 rounded-full border border-white/10">
-                    <Text className="text-boston-red font-black text-[9px] uppercase tracking-widest mr-2">Ver Todas</Text>
-                    <ArrowRight size={10} color="#FF3B30" />
+                    <Text style={{ color: theme.primary }} className="font-black text-[9px] uppercase tracking-widest mr-2">Ver Todas</Text>
+                    <ArrowRight size={10} color={theme.primary} />
                  </TouchableOpacity>
               </View>
 
@@ -785,7 +791,8 @@ export default function DashboardScreen() {
                  {promoBanners.map((_, idx) => (
                    <View 
                      key={idx} 
-                     className={`h-1.5 rounded-full transition-all ${idx === currentPromoIdx ? 'w-8 bg-boston-red' : 'w-2 bg-white/10'}`} 
+                     style={{ backgroundColor: idx === currentPromoIdx ? theme.primary : 'rgba(255,255,255,0.1)' }}
+                     className={`h-1.5 rounded-full transition-all ${idx === currentPromoIdx ? 'w-8' : 'w-2'}`} 
                    />
                  ))}
               </View>
@@ -797,7 +804,7 @@ export default function DashboardScreen() {
       <Modal visible={showGuide} transparent animationType="slide">
         <View className="flex-1 bg-black/80 justify-center p-6">
            <View className="w-full bg-[#0d0d0d] border border-white/10 rounded-[40px] p-8 overflow-hidden">
-              <View className="absolute top-0 right-0 w-32 h-32 bg-boston-red rounded-full opacity-10 blur-[60px]" />
+              <View style={{ backgroundColor: theme.primary }} className="absolute top-0 right-0 w-32 h-32 rounded-full opacity-10 blur-[60px]" />
               <View className="flex-row justify-between items-start mb-8 z-10">
                  <View className="flex-1 pr-4">
                     <Text className="text-2xl font-black text-white italic uppercase tracking-tighter" numberOfLines={1}>Guía Boston</Text>
