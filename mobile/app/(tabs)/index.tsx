@@ -15,6 +15,7 @@ import { VipStatusModal } from '../../components/VipStatusModal';
 import { useTheme } from '../../contexts/ThemeContext';
 import DashboardDefault from '../../components/dashboards/DashboardDefault';
 import DashboardHalloween from '../../components/dashboards/DashboardHalloween';
+import DashboardArgentina from '../../components/dashboards/DashboardArgentina';
 
 LogBox.ignoreLogs([
   '[Reanimated] Reading from `value` during component render',
@@ -301,6 +302,10 @@ export default function DashboardScreen() {
 
   if (theme.name === 'halloween') {
     return <DashboardHalloween {...dashboardProps} />;
+  }
+
+  if (theme.name === 'argentina') {
+    return <DashboardArgentina {...dashboardProps} />;
   }
 
   return <DashboardDefault {...dashboardProps} />;

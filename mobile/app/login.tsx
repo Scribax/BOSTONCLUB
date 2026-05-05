@@ -5,6 +5,7 @@ import api, { setAuthToken } from '../lib/api';
 import { useTheme } from '../contexts/ThemeContext';
 import LoginDefault from '../components/auth/LoginDefault';
 import LoginHalloween from '../components/auth/LoginHalloween';
+import LoginArgentina from '../components/auth/LoginArgentina';
 
 LogBox.ignoreLogs([
   '[Reanimated] Reading from `value` during component render',
@@ -127,6 +128,10 @@ export default function LoginScreen() {
 
   if (theme.name === 'halloween') {
     return <LoginHalloween {...props} />;
+  }
+  
+  if (theme.name === 'argentina') {
+    return <LoginArgentina {...props} />;
   }
 
   return <LoginDefault {...props} />;

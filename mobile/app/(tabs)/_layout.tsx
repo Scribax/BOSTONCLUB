@@ -147,6 +147,8 @@ const ScanButton = ({ onPress }: any) => {
         >
           {theme.name === 'halloween' ? (
              <LucideIcons.Zap size={28} color="#000" strokeWidth={3} />
+          ) : theme.name === 'argentina' ? (
+             <LucideIcons.Star size={28} color="#000" strokeWidth={3} fill="#000" />
           ) : (
              <LucideIcons.Scan size={28} color="#000" strokeWidth={3} />
           )}
@@ -226,18 +228,19 @@ const CustomTabBar = ({ state, descriptors, navigation, isAdmin }: any) => {
           let iconName = '';
           let label = '';
           const isHalloween = theme.name === 'halloween';
+          const isArgentina = theme.name === 'argentina';
 
           if (route.name === 'index') { 
-            iconName = isHalloween ? 'Ghost' : 'Home'; 
-            label = isHalloween ? 'PORTAL' : 'INICIO'; 
+            iconName = isHalloween ? 'Ghost' : (isArgentina ? 'MapPin' : 'Home'); 
+            label = isHalloween ? 'PORTAL' : (isArgentina ? 'ESTADIO' : 'INICIO'); 
           }
           if (route.name === 'rewards') { 
-            iconName = isHalloween ? 'Flame' : 'Gift'; 
-            label = isHalloween ? 'POCIONES' : 'PREMIOS'; 
+            iconName = isHalloween ? 'Flame' : (isArgentina ? 'Trophy' : 'Gift'); 
+            label = isHalloween ? 'POCIONES' : (isArgentina ? 'TROFEOS' : 'PREMIOS'); 
           }
           if (route.name === 'profile') { 
-            iconName = isHalloween ? 'Skull' : 'UserCircle'; 
-            label = isHalloween ? 'PANTEÓN' : 'PERFIL'; 
+            iconName = isHalloween ? 'Skull' : (isArgentina ? 'Shirt' : 'UserCircle'); 
+            label = isHalloween ? 'PANTEÓN' : (isArgentina ? 'CAPITÁN' : 'PERFIL'); 
           }
           if (route.name === 'staff-scanner') { iconName = 'Scan'; label = 'SCAN'; }
           if (route.name === 'staff-history') { iconName = 'History'; label = 'HISTORIAL'; }
@@ -261,7 +264,7 @@ const CustomTabBar = ({ state, descriptors, navigation, isAdmin }: any) => {
                     textTransform: 'uppercase',
                   }}
                 >
-                  {isHalloween ? 'CONJURO' : 'SCAN'}
+                  {isHalloween ? 'CONJURO' : (isArgentina ? 'ENTRAR' : 'SCAN')}
                 </Text>
               </View>
             );
