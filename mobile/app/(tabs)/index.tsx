@@ -427,11 +427,32 @@ export default function DashboardScreen() {
                     {/* Banner Content Overlay */}
                     <View className="absolute bottom-24 left-0 right-0 px-8">
                        <FadeInView delay={300}>
-                          <View className="bg-white px-4 py-2 rounded-sm self-start mb-4 shadow-2xl">
-                             <Text className="text-black font-black text-xs uppercase italic tracking-tighter">
-                               ¡HOLA, {user.firstName.toUpperCase()}!{theme.name === 'argentina' ? ' 🇦🇷' : ''}
-                             </Text>
-                          </View>
+                          {theme.name === 'argentina' ? (
+                            <View className="items-start mb-4">
+                              <View className="flex-row items-center bg-black/30 backdrop-blur-md rounded-full p-1 pr-4 border border-white/10 shadow-2xl">
+                                <View className="w-8 h-8 rounded-full overflow-hidden border border-white/20 mr-2">
+                                  <Image 
+                                    source={{ uri: 'https://flagcdn.com/w80/ar.png' }} 
+                                    className="w-full h-full" 
+                                    resizeMode="cover" 
+                                  />
+                                </View>
+                                <View>
+                                  <Text className="text-white/60 font-black text-[7px] uppercase tracking-[0.2em] mb-0.5">Selección</Text>
+                                  <Text className="text-white font-black text-[10px] uppercase italic tracking-widest">
+                                    {user.firstName.toUpperCase()}
+                                  </Text>
+                                </View>
+                              </View>
+                            </View>
+                          ) : (
+                            <View className="bg-white px-4 py-2 rounded-sm self-start mb-4 shadow-2xl">
+                               <Text className="text-black font-black text-xs uppercase italic tracking-tighter">
+                                 ¡HOLA, {user.firstName.toUpperCase()}!
+                               </Text>
+                            </View>
+                          )}
+                          
                           {theme.name === 'argentina' && (
                              <Text className="text-white/80 font-black uppercase text-[10px] tracking-widest mb-1">
                                🏆 MODO SELECCIÓN ACTIVADO
