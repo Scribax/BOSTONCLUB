@@ -13,6 +13,8 @@ import { FadeInView } from '../../components/FadeInView';
 import { LinearGradient } from 'expo-linear-gradient';
 import { VipStatusModal } from '../../components/VipStatusModal';
 import { useTheme } from '../../contexts/ThemeContext';
+import DashboardDefault from '../../components/dashboards/DashboardDefault';
+import DashboardHalloween from '../../components/dashboards/DashboardHalloween';
 
 LogBox.ignoreLogs([
   '[Reanimated] Reading from `value` during component render',
@@ -57,11 +59,11 @@ type BannerEvent = {
 
 const StreakBadge = ({ streak }: { streak: number }) => {
   if (streak <= 0) return null;
-  
+
   const multiplier = streak >= 7 ? 'x2.0' : (streak >= 3 ? 'x1.5' : '');
 
   return (
-    <FadeInView 
+    <FadeInView
       className="flex-row items-center bg-[#FF3B30]/10 border border-[#FF3B30]/30 rounded-full px-3 py-1 self-start mt-2"
     >
       <Flame size={12} color="#FF3B30" fill="#FF3B30" />
@@ -147,24 +149,24 @@ export default function DashboardScreen() {
         api.get('/events').catch(() => ({ data: [] })),
         api.get('/settings').catch(() => ({ data: null }))
       ]);
-      
+
       setUser(userDataRes.data);
       setSettings(settingsRes.data);
-      
+
       const allEvents = eventsRes.data || [];
       const topBanners = allEvents.filter((e: any) => e.type === "BANNER" && e.isActive !== false);
       const bottomPromos = allEvents.filter((e: any) => e.type === "PROMO" && e.isActive !== false);
       const splashPopups = allEvents.filter((e: any) => e.type === "POPUP" && e.isActive !== false);
-      
+
       setBanners(topBanners);
       setPromoBanners(bottomPromos);
-      
+
       if (splashPopups.length > 0 && !hasShownGlobalPopup) {
         setCurrentPopup(splashPopups[0]);
         setShowPopupModal(true);
         hasShownGlobalPopup = true;
       }
-      
+
       return true;
     } catch (err: any) {
       console.error('Load Profile Error:', err);
@@ -203,7 +205,7 @@ export default function DashboardScreen() {
   const resolveImageUrl = (url: string | undefined | null) => {
     if (!url) return null;
     if (url.startsWith('http') || url.startsWith('data:')) return url;
-    
+
     const baseUrl = api.defaults.baseURL || 'https://mybostonclub.com/api';
     const rootUrl = baseUrl.replace(/\/api$/, '');
     const cleanUrl = url.startsWith('/') ? url : `/${url}`;
@@ -289,646 +291,17 @@ export default function DashboardScreen() {
     return { name: nextTierName, pointsNeeded: nextTierPts, currentProgress: progress };
   }, [user?.points, settings?.goldThreshold, settings?.platinumThreshold, settings?.diamondThreshold, settings?.superVipThreshold]);
 
-  if (loading || (!user && !errorStatus)) {
-    return (
-      <View className="flex-1 bg-[#050505] items-center justify-center">
-        <ActivityIndicator size="large" color="#D4AF37" />
-        <Text className="text-white/50 uppercase font-black tracking-widest text-[10px] mt-4">Boston Club</Text>
-      </View>
-    );
-  }
-
-  if (errorStatus === 'connection') {
-    return (
-      <View className="flex-1 bg-[#050505] items-center justify-center px-10">
-        <View className="w-20 h-20 bg-white/5 rounded-3xl items-center justify-center border border-white/10 mb-6">
-          <Text className="text-4xl">📡</Text>
-        </View>
-        <Text className="text-white text-xl font-black italic uppercase tracking-tighter text-center mb-2">Error de conexión</Text>
-        <Text className="text-white/40 text-[10px] font-bold text-center mb-10 leading-4 uppercase tracking-widest">
-          No pudimos conectar con los servidores de Boston. Revisa tus datos móviles o WiFi.
-        </Text>
-        
-        <TouchableOpacity 
-          onPress={() => {
-            setLoading(true);
-            loadProfile();
-          }}
-          className="bg-boston-gold py-4 px-10 rounded-2xl shadow-lg shadow-boston-gold/20"
-        >
-          <Text className="text-black font-black uppercase text-xs tracking-widest">Reintentar Conexión</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity 
-          onPress={async () => {
-            await api.post('/auth/logout').catch(() => {}); // Intentar avisar al server
-            await logout();
-          }}
-          className="mt-6"
-        >
-          <Text className="text-white/20 font-bold uppercase text-[9px] tracking-widest underline">Cambiar de cuenta</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
-
-  if (!user) return null; // Safety check
-
-  const pts = user.points;
-
-  const getAuraColor = () => {
-    switch (user.membershipLevel) {
-      case 'ORO': return 'bg-[#D4AF37]';
-      case 'PLATINO': return 'bg-white';
-      case 'DIAMANTE': return 'bg-cyan-400';
-      case 'SÚPER VIP': return 'bg-[#FF3B30]';
-      default: return 'bg-[#CC6633]';
-    }
+  const dashboardProps = {
+    user, banners, promoBanners, activeRedemption, settings, nextTier,
+    loading, setLoading, errorStatus, refreshing, onRefresh, loadProfile,
+    theme, router, isScreenFocused, currentPopup, showPopupModal, setShowPopupModal,
+    resolveImageUrl, showGuide, setShowGuide, showBenefits, setShowBenefits,
+    fetchVipBenefits, vipBenefits, vipBenefitsLoading, redeemingVipId, handleRedeemVipBenefit
   };
 
-  const banner = banners[currentBannerIdx];
+  if (theme.name === 'halloween') {
+    return <DashboardHalloween {...dashboardProps} />;
+  }
 
-  return (
-    <View className="flex-1 bg-[#050505] relative">
-      <StatusBar style="light" />
-      
-      {/* Background Aura */}
-      <View style={{ backgroundColor: theme.name === 'argentina' ? '#F6B40E' : theme.primary }} className={`absolute top-0 right-0 w-80 h-80 rounded-full opacity-10 blur-[100px]`} />
-
-      <ScrollView 
-        className="flex-1 bg-[#050505]"
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 100 }}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#D4AF37" />}
-      >
-        {/* Header & Hero Carousel Section */}
-        <View className="relative">
-          {/* Top Bar Overlay */}
-          <View className="absolute top-0 w-full z-50 flex-row justify-between items-center px-6 pt-16">
-            <View className="bg-black/30 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10">
-               <Text className="text-white font-black text-[10px] tracking-widest uppercase italic">Boston Club</Text>
-            </View>
-            <TouchableOpacity 
-              onPress={() => router.push('/profile')}
-              className="w-11 h-11 rounded-full bg-black/40 border border-white/10 items-center justify-center shadow-2xl backdrop-blur-md"
-            >
-              <UserIcon size={18} color="white" />
-            </TouchableOpacity>
-          </View>
-
-          {/* Hero Carousel */}
-          <View style={{ height: SCREEN_HEIGHT * 0.75 }}>
-             <FlatList
-                ref={bannerListRef}
-                data={banners.length > 0 ? banners : [{ id: 'empty', title: 'Bienvenido', description: 'Cargando novedades...', mediaType: 'IMAGE' } as any]}
-                horizontal
-                pagingEnabled
-                showsHorizontalScrollIndicator={false}
-                onViewableItemsChanged={onViewableItemsChangedRef.current}
-                viewabilityConfig={viewabilityConfigRef.current}
-                getItemLayout={(data, index) => ({
-                   length: SCREEN_WIDTH,
-                   offset: SCREEN_WIDTH * index,
-                   index,
-                })}
-                renderItem={({ item }: { item: any }) => (
-                  <TouchableOpacity 
-                    activeOpacity={0.9} 
-                    onPress={() => item.id !== 'empty' && router.push(`/banner/${item.id}`)}
-                    style={{ width: SCREEN_WIDTH, height: '100%' }} 
-                    className="relative bg-[#0c0c0c]"
-                  >
-                    {item.mediaType === 'VIDEO' && item.videoUrl ? (
-                      // Unmount completely when tab loses focus so the native video
-                      // surface doesn't bleed through the camera scanner
-                      isScreenFocused ? (
-                        <VideoPlayer
-                          uri={resolveImageUrl(item.videoUrl) || ''}
-                          style={{ width: '100%', height: '100%' }}
-                        />
-                      ) : (
-                        <Image
-                          source={{ uri: resolveImageUrl(item.imageUrl) || 'https://images.unsplash.com/photo-1514525253361-bee8718a300a?q=80&w=1000' }}
-                          style={{ width: '100%', height: '100%', opacity: 0.7 }}
-                          resizeMode="cover"
-                        />
-                      )
-                    ) : (
-                      <Image 
-                        source={{ uri: resolveImageUrl(item.imageUrl) || 'https://images.unsplash.com/photo-1514525253361-bee8718a300a?q=80&w=1000' }} 
-                        className="w-full h-full opacity-70"
-                        resizeMode="cover"
-                      />
-                    )}
-                    
-                    {/* Gradient Overlay */}
-                    <View className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-black/30" />
-
-                    {/* Banner Content Overlay */}
-                    <View className="absolute bottom-24 left-0 right-0 px-8">
-                       <FadeInView delay={300}>
-                          {theme.name === 'argentina' ? (
-                            <View className="items-start mb-4">
-                              <View className="flex-row items-center bg-black/30 backdrop-blur-md rounded-full p-1 pr-4 border border-white/10 shadow-2xl">
-                                <View className="w-8 h-8 rounded-full overflow-hidden border border-white/20 mr-2">
-                                  <Image 
-                                    source={{ uri: 'https://flagcdn.com/w80/ar.png' }} 
-                                    className="w-full h-full" 
-                                    resizeMode="cover" 
-                                  />
-                                </View>
-                                <View>
-                                  <Text className="text-white/60 font-black text-[7px] uppercase tracking-[0.2em] mb-0.5">Selección</Text>
-                                  <Text className="text-white font-black text-[10px] uppercase italic tracking-widest">
-                                    {user.firstName.toUpperCase()}
-                                  </Text>
-                                </View>
-                              </View>
-                            </View>
-                          ) : (
-                            <View className="bg-white px-4 py-2 rounded-sm self-start mb-4 shadow-2xl">
-                               <Text className="text-black font-black text-xs uppercase italic tracking-tighter">
-                                 ¡HOLA, {user.firstName.toUpperCase()}!
-                               </Text>
-                            </View>
-                          )}
-                          
-                          {theme.name === 'argentina' && (
-                             <Text className="text-white/80 font-black uppercase text-[10px] tracking-widest mb-1">
-                               🏆 MODO SELECCIÓN ACTIVADO
-                             </Text>
-                          )}
-                          <Text className="text-white text-5xl font-black uppercase italic tracking-tighter leading-[42px] mb-2 drop-shadow-2xl">
-                             {item.title}
-                          </Text>
-                          <Text className="text-white/70 text-sm font-bold uppercase tracking-widest">
-                             {item.description}
-                          </Text>
-                          <View style={{ backgroundColor: `${theme.secondary}33`, borderColor: `${theme.secondary}4D` }} className="self-start px-3 py-1.5 rounded-full mt-4 border">
-                             <Text style={{ color: theme.secondary }} className="font-black text-[8px] tracking-widest uppercase">Toca para ver más</Text>
-                          </View>
-                       </FadeInView>
-                    </View>
-                  </TouchableOpacity>
-                )}
-             />
-             
-             {/* Pagination Dots */}
-             <View className="absolute bottom-16 w-full flex-row justify-center gap-2">
-                {banners.map((_, idx) => (
-                  <View key={idx} className={`h-1 rounded-full transition-all ${idx === currentBannerIdx ? 'w-8 bg-white' : 'w-2 bg-white/20'}`} />
-                ))}
-             </View>
-          </View>
-        </View>
-
-        {/* Active Ticket Banner - New Dynamic Component */}
-        {activeRedemption && (
-          <FadeInView className="px-6 mt-4 mb-2 z-[60]">
-            <TouchableOpacity 
-              activeOpacity={0.9}
-              onPress={() => router.push({
-                pathname: '/reward-qr',
-                params: { token: activeRedemption.qrToken, reward: activeRedemption.title }
-              })}
-              style={{ backgroundColor: theme.secondary }}
-              className="rounded-[2rem] p-5 flex-row items-center shadow-2xl"
-            >
-              <View className="w-12 h-12 rounded-2xl bg-black items-center justify-center mr-4">
-                <QrCode size={24} color={theme.secondary} />
-              </View>
-              <View className="flex-1">
-                <Text className="text-black font-black text-[9px] uppercase tracking-[0.2em] mb-1">Tienes un canje listo</Text>
-                <Text className="text-black font-black text-xl italic uppercase tracking-tighter" numberOfLines={1}>
-                  {activeRedemption.title}
-                </Text>
-              </View>
-              <View className="w-10 h-10 rounded-full bg-black/10 items-center justify-center">
-                <ArrowRight size={20} color="black" />
-              </View>
-            </TouchableOpacity>
-          </FadeInView>
-        )}
-
-           {/* Floating Tier Card - New Skeuomorphic Style */}
-           <FadeInView delay={500} className="px-6 mt-4">
-              <TouchableOpacity 
-                activeOpacity={0.9}
-                onPress={() => { setShowBenefits(true); fetchVipBenefits(); }}
-                style={{
-                  shadowColor: theme.primary,
-                  shadowOffset: { width: 0, height: 0 },
-                  shadowOpacity: 0.8,
-                  shadowRadius: 25,
-                  elevation: 20,
-                  zIndex: 50,
-                  borderWidth: 1, 
-                  borderColor: `${theme.primary}66`, 
-                  backgroundColor: theme.surface, 
-                  borderRadius: 40, 
-                  padding: 24
-                }}
-              >
-                 {/* Header Section */}
-                 <View className="flex-row justify-between items-start mb-6">
-                    <View className="flex-row items-center">
-                       {/* Round Logo Placeholder */}
-                       <View className="w-14 h-14 rounded-full bg-black border-2 border-white/10 items-center justify-center mr-4">
-                          <View className="items-center justify-center">
-                             <Text className="text-white text-[8px] font-black italic tracking-tighter leading-none">BOSTON</Text>
-                             <View style={{ backgroundColor: theme.primary }} className="h-[1px] w-8 my-0.5" />
-                             <Crown size={12} color={theme.secondary} />
-                          </View>
-                       </View>
-                       
-                       <View>
-                           <View className="flex-row items-center">
-                             <Text className="text-white/40 font-black text-[10px] uppercase tracking-widest mb-1 italic">NIVEL</Text>
-                           </View>
-                           <Text className="text-white text-3xl font-black uppercase italic tracking-tighter leading-none">
-                              {user.membershipLevel.toUpperCase()}
-                           </Text>
-                           <TouchableOpacity onPress={() => router.push('/club-info')} activeOpacity={0.7}>
-                             <StreakBadge streak={user.streak || 0} />
-                           </TouchableOpacity>
-                          <View className="flex-row items-center mt-2">
-                             <View style={{ backgroundColor: `${theme.primary}4D` }} className="h-[1px] flex-1" />
-                             <Star size={8} color="white" fill="white" className="mx-2" />
-                             <View style={{ backgroundColor: `${theme.primary}4D` }} className="h-[1px] flex-1" />
-                          </View>
-                       </View>
-                    </View>
- 
-                    {/* Points Pill */}
-                    <View style={{ backgroundColor: theme.surface, borderColor: `${theme.primary}4D`, borderWidth: 1 }} className="rounded-2xl p-2 flex-row items-center px-4 shadow-lg">
-                       <View style={{ backgroundColor: theme.primary }} className="w-8 h-8 rounded-full items-center justify-center mr-3">
-                          <Star size={14} color="white" fill="white" />
-                       </View>
-                       <View>
-                          <Text className="text-white font-black text-xl italic tracking-tighter leading-none">{user.points}</Text>
-                          <Text style={{ color: theme.primary }} className="font-black text-[8px] uppercase tracking-widest mt-0.5">PUNTOS</Text>
-                       </View>
-                       <ArrowRight size={12} color="white" className="ml-3 opacity-30" />
-                    </View>
-                 </View>
- 
-                 {/* New 3D Progress Bar */}
-                 <View className="relative mb-6">
-                    <View className="h-4 bg-black rounded-full w-full border border-white/5 overflow-hidden">
-                       {/* Track Background Texture */}
-                       <View className="absolute inset-0 opacity-20 flex-row">
-                          {PROGRESS_TEXTURE_BARS.map((i) => (
-                            <View key={i} className="w-1 h-full bg-white/20 mr-4 -rotate-45" />
-                          ))}
-                       </View>
-                       
-                       {/* Progress Fill with Gloss */}
-                       <View 
-                         style={{ width: `${nextTier?.currentProgress ?? 100}%` }} 
-                         className="absolute top-0 left-0 h-full"
-                       >
-                          <LinearGradient
-                            colors={[theme.primaryGlow, theme.primary, theme.primaryDark]}
-                            start={{ x: 0, y: 0 }}
-                            end={{ x: 0, y: 1 }}
-                            style={{ flex: 1, borderRadius: 10 }}
-                          />
-                          {/* Gloss Overlay */}
-                          <View className="absolute top-0 left-0 right-0 h-[40%] bg-white/20 rounded-full mx-1 mt-0.5" />
-                       </View>
-                    </View>
-                    
-                    {/* Progress Thumb - Burger Icon Style */}
-                    <View 
-                      style={{ left: `${(nextTier?.currentProgress ?? 100) - 2}%`, backgroundColor: theme.primary }}
-                      className="absolute top-[-4px] w-6 h-6 rounded-full border-2 border-[#1a1a1a] items-center justify-center shadow-xl"
-                    >
-                       <View className="w-2.5 h-0.5 bg-white rounded-full mb-0.5" />
-                       <View style={{ backgroundColor: theme.secondary }} className="w-3.5 h-1 rounded-sm mb-0.5" />
-                       <View className="w-3 h-0.5 bg-white rounded-full" />
-                    </View>
-                 </View>
-                 
-                 {/* Milestones */}
-                 <View className="flex-row justify-between px-2">
-                    <View className="items-center">
-                       <Star size={10} color={user.points >= (settings?.goldThreshold || 500) ? theme.secondary : '#333'} fill={user.points >= (settings?.goldThreshold || 500) ? theme.secondary : 'transparent'} className="mb-2" />
-                       <Text className={`text-[10px] font-black uppercase italic ${user.points >= (settings?.goldThreshold || 500) ? 'text-white' : 'text-white/20'}`}>ORO</Text>
-                    </View>
-                    <View className="items-center">
-                       <Star size={10} color={user.points >= (settings?.platinumThreshold || 1500) ? theme.secondary : '#333'} fill={user.points >= (settings?.platinumThreshold || 1500) ? theme.secondary : 'transparent'} className="mb-2" />
-                       <Text className={`text-[10px] font-black uppercase italic ${user.points >= (settings?.platinumThreshold || 1500) ? 'text-white' : 'text-white/20'}`}>PLATINO</Text>
-                    </View>
-                    <View className="items-center">
-                       <Star size={10} color={user.points >= (settings?.diamondThreshold || 5000) ? theme.secondary : '#333'} fill={user.points >= (settings?.diamondThreshold || 5000) ? theme.secondary : 'transparent'} className="mb-2" />
-                       <Text className={`text-[10px] font-black uppercase italic ${user.points >= (settings?.diamondThreshold || 5000) ? 'text-white' : 'text-white/20'}`}>DIAMANTE</Text>
-                    </View>
-                 </View>
-              </TouchableOpacity>
-           </FadeInView>
- 
-            {/* Premium Guide Banner */}
-            <FadeInView delay={600} className="px-6 mt-8">
-               <TouchableOpacity 
-                 activeOpacity={0.9}
-                 onPress={() => router.push('/club-info')}
-                 style={{ minHeight: 80, borderRadius: 24, overflow: 'hidden' }}
-                 className="relative"
-               >
-                  <LinearGradient
-                    colors={[theme.secondary, theme.secondaryDark]}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 0 }}
-                    style={{ flex: 1 }}
-                  >
-                     <View className="bg-black/90 rounded-[23px] m-[1px] p-5 flex-row items-center justify-between">
-                        <View className="flex-row items-center flex-1">
-                           <View style={{ backgroundColor: `${theme.secondary}1A`, borderColor: `${theme.secondary}33` }} className="w-12 h-12 rounded-2xl items-center justify-center border mr-4">
-                              <Zap size={24} color={theme.secondary} />
-                           </View>
-                           <View className="flex-1">
-                              <Text className="text-white font-black uppercase text-[11px] tracking-widest italic">¿Cómo sumar más puntos?</Text>
-                              <Text style={{ color: theme.secondary }} className="font-bold text-[8px] uppercase tracking-tighter mt-0.5">Domina el Club Boston y gana premios</Text>
-                           </View>
-                        </View>
-                        <View style={{ backgroundColor: theme.secondary }} className="px-4 py-2 rounded-xl">
-                           <ArrowRight size={14} color="black" />
-                        </View>
-                     </View>
-                  </LinearGradient>
-               </TouchableOpacity>
-            </FadeInView>
- 
-           {/* New Premium Action Grid */}
-         <View className="px-6 mt-12">
-            <View className="flex-row items-center justify-center mb-8">
-               <View className="h-[1px] w-8 bg-white/10" />
-               <Star size={8} color={theme.primary} fill={theme.primary} className="mx-3" />
-               <Text className="text-white font-black uppercase tracking-[0.3em] text-[10px]">Menú Boston VIP</Text>
-               <Star size={8} color={theme.primary} fill={theme.primary} className="mx-3" />
-               <View className="h-[1px] w-8 bg-white/10" />
-            </View>
-           
-           <View className="flex-row justify-between">
-              {/* Rewards Card */}
-              <TouchableOpacity 
-                onPress={() => router.push('/rewards')}
-                activeOpacity={0.8}
-                className="w-[31%] aspect-[0.7] border border-white/5 rounded-[2.5rem] p-4 items-center justify-between shadow-2xl shadow-black"
-                style={{ backgroundColor: theme.surface }}
-              >
-                 <View style={{ borderColor: `${theme.primary}4D`, borderWidth: 1 }} className="w-12 h-12 rounded-2xl items-center justify-center bg-white/5">
-                    <Gift size={24} color={theme.primary} />
-                 </View>
-                 <View className="items-center">
-                    <Text className="text-white font-black uppercase text-[10px] tracking-wider mb-1">Premios</Text>
-                    <Text className="text-white/30 font-bold uppercase text-[7px] text-center">Canjea tus puntos</Text>
-                 </View>
-                 <View style={{ backgroundColor: theme.primary }} className="w-8 h-8 rounded-full items-center justify-center">
-                    <ArrowRight size={14} color="white" />
-                 </View>
-              </TouchableOpacity>
-
-              {/* Agenda Card */}
-              <TouchableOpacity 
-                onPress={() => router.push('/events')}
-                activeOpacity={0.8}
-                className="w-[31%] aspect-[0.7] bg-[#0c0c0c] border border-white/5 rounded-[2.5rem] p-4 items-center justify-between shadow-2xl shadow-black"
-              >
-                 <View style={{ borderColor: `${theme.primary}4D` }} className="w-12 h-12 rounded-2xl border items-center justify-center bg-white/5 relative">
-                    <Calendar size={24} color={theme.primary} />
-                    <View className="absolute top-1 right-1">
-                       <Star size={8} color={theme.primary} fill={theme.primary} />
-                    </View>
-                 </View>
-                 <View className="items-center">
-                    <Text className="text-white font-black uppercase text-[10px] tracking-wider mb-1">Agenda</Text>
-                    <Text className="text-white/30 font-bold uppercase text-[7px] text-center">Eventos y promos</Text>
-                 </View>
-                 <View style={{ backgroundColor: theme.primary }} className="w-8 h-8 rounded-full items-center justify-center">
-                    <ArrowRight size={14} color="white" />
-                 </View>
-              </TouchableOpacity>
-
-              {/* Activity Card */}
-              <TouchableOpacity 
-                onPress={() => router.push('/history')}
-                activeOpacity={0.8}
-                className="w-[31%] aspect-[0.7] bg-[#0c0c0c] border border-white/5 rounded-[2.5rem] p-4 items-center justify-between shadow-2xl shadow-black"
-              >
-                 <View style={{ borderColor: `${theme.primary}4D` }} className="w-12 h-12 rounded-2xl border items-center justify-center bg-white/5">
-                    <TrendingUp size={24} color={theme.primary} />
-                 </View>
-                 <View className="items-center">
-                    <Text className="text-white font-black uppercase text-[10px] tracking-wider mb-1">Actividad</Text>
-                    <Text className="text-white/30 font-bold uppercase text-[7px] text-center">Tus movimientos</Text>
-                 </View>
-                 <View style={{ backgroundColor: theme.primary }} className="w-8 h-8 rounded-full items-center justify-center">
-                    <ArrowRight size={14} color="white" />
-                 </View>
-              </TouchableOpacity>
-           </View>
-        </View>
-
-        {/* Promos Destacadas Section - Bottom Placement */}
-        {promoBanners.length > 0 && (
-           <View className="mt-12 mb-8">
-              <View className="px-6 flex-row justify-between items-end mb-6">
-                 <View>
-                    <Text className="text-white/20 font-black text-[8px] uppercase tracking-[0.4em] mb-1">Especiales de hoy</Text>
-                    <Text className="text-white text-2xl font-black uppercase italic tracking-tighter">Promos Destacadas</Text>
-                 </View>
-                 <TouchableOpacity className="flex-row items-center bg-white/5 px-4 py-2 rounded-full border border-white/10">
-                    <Text style={{ color: theme.primary }} className="font-black text-[9px] uppercase tracking-widest mr-2">Ver Todas</Text>
-                    <ArrowRight size={10} color={theme.primary} />
-                 </TouchableOpacity>
-              </View>
-
-              <View style={{ height: 180 }}>
-                 <FlatList
-                    ref={promoListRef}
-                    data={promoBanners}
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    contentContainerStyle={{ paddingHorizontal: 24, gap: 16 }}
-                    snapToInterval={SCREEN_WIDTH * 0.85 + 16}
-                    decelerationRate="fast"
-                    onViewableItemsChanged={onPromoViewableItemsChangedRef.current}
-                    viewabilityConfig={viewabilityConfigRef.current}
-                    getItemLayout={(data, index) => ({
-                       length: SCREEN_WIDTH * 0.85 + 16,
-                       offset: (SCREEN_WIDTH * 0.85 + 16) * index,
-                       index,
-                    })}
-                    renderItem={({ item }: { item: any }) => (
-                      <TouchableOpacity 
-                        activeOpacity={0.9} 
-                        onPress={() => item.id !== 'empty' && router.push(`/banner/${item.id}`)}
-                        style={{ width: SCREEN_WIDTH * 0.85, height: 160 }} 
-                        className="relative bg-[#0c0c0c] rounded-[2.5rem] border border-white/5 overflow-hidden shadow-2xl"
-                      >
-                      <View className="flex-1 relative">
-                         {/* Image Content (Absolute background on the right) */}
-                         <View className="absolute top-0 right-0 w-[60%] h-full">
-                            <Image 
-                              source={{ uri: resolveImageUrl(item.imageUrl) || 'https://images.unsplash.com/photo-1550547660-d9450f859349?q=80&w=500' }} 
-                              className="w-full h-full"
-                              resizeMode="cover"
-                            />
-                            {/* Gradient to blend image with text area */}
-                            <LinearGradient
-                               colors={['#0c0c0c', 'rgba(12,12,12,0.7)', 'transparent']}
-                               start={{ x: 0, y: 0.5 }}
-                               end={{ x: 0.7, y: 0.5 }}
-                               style={{ position: 'absolute', top: 0, left: 0, bottom: 0, width: '100%' }}
-                            />
-                         </View>
-
-                         {/* Text Content (Foreground) */}
-                         <View className="flex-1 p-6 justify-center z-10">
-                            <Text 
-                              className="text-white text-4xl font-black uppercase italic tracking-tighter leading-[34px] mb-1"
-                              numberOfLines={2}
-                            >
-                               {item.title}
-                            </Text>
-                            <Text className="text-white/80 font-black uppercase text-[10px] tracking-widest mb-4">
-                               {item.description}
-                            </Text>
-                            <View className="bg-white/10 self-start px-2 py-1 rounded-md">
-                               <Text className="text-white/40 font-bold uppercase text-[7px] tracking-widest">
-                                  {item.condition || 'Válido hoy'}
-                               </Text>
-                            </View>
-                         </View>
-                      </View>
-                      </TouchableOpacity>
-                    )}
-                 />
-              </View>
-              
-              {/* Pagination Dots - Redesigned */}
-              <View className="flex-row justify-center gap-2 mt-4">
-                 {promoBanners.map((_, idx) => (
-                   <View 
-                     key={idx} 
-                     style={{ backgroundColor: idx === currentPromoIdx ? theme.primary : 'rgba(255,255,255,0.1)' }}
-                     className={`h-1.5 rounded-full transition-all ${idx === currentPromoIdx ? 'w-8' : 'w-2'}`} 
-                   />
-                 ))}
-              </View>
-           </View>
-        )}
-      </ScrollView>
-
-      {/* Guide Modal Modal */}
-      <Modal visible={showGuide} transparent animationType="slide">
-        <View className="flex-1 bg-black/80 justify-center p-6">
-           <View className="w-full bg-[#0d0d0d] border border-white/10 rounded-[40px] p-8 overflow-hidden">
-              <View style={{ backgroundColor: theme.primary }} className="absolute top-0 right-0 w-32 h-32 rounded-full opacity-10 blur-[60px]" />
-              <View className="flex-row justify-between items-start mb-8 z-10">
-                 <View className="flex-1 pr-4">
-                    <Text className="text-2xl font-black text-white italic uppercase tracking-tighter" numberOfLines={1}>Guía Boston</Text>
-                    <Text className="text-[9px] text-[#D4AF37] font-black uppercase tracking-[0.3em] mt-1" numberOfLines={1}>Cómo sumar y subir</Text>
-                 </View>
-                 <TouchableOpacity onPress={() => setShowGuide(false)} className="p-2 bg-white/5 rounded-full">
-                    <X size={20} color="white" />
-                 </TouchableOpacity>
-              </View>
-
-              <View className="flex-col gap-6">
-                 <View>
-                    <Text className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] mb-3">Regla de Oro</Text>
-                    <View className="p-5 rounded-3xl bg-white/5 border border-white/5 flex-row items-center gap-4">
-                       <Flame size={32} color="#ff4d4d" />
-                       <View className="flex-1">
-                          <Text className="text-xl font-black text-white italic" numberOfLines={1}>$1 = 1 PUNTO</Text>
-                          <Text className="text-[9px] text-white/40 font-bold mt-1 uppercase leading-tight">Cada peso gastado es un punto para tu cuenta.</Text>
-                       </View>
-                    </View>
-                 </View>
-
-                 <View>
-                    <Text className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] mb-4">Paso a paso</Text>
-                    <View className="flex-col gap-4">
-                      <View className="flex-row items-start gap-3">
-                        <Text className="text-[#D4AF37] font-black italic text-xs mt-0.5">01</Text>
-                        <Text className="text-[10px] text-white/70 font-medium leading-relaxed uppercase flex-1">Disfruta tu cena o bebida favorita en Boston.</Text>
-                      </View>
-                      <View className="flex-row items-start gap-3">
-                        <Text className="text-[#D4AF37] font-black italic text-xs mt-0.5">02</Text>
-                        <Text className="text-[10px] text-white/70 font-medium leading-relaxed uppercase flex-1">Al pagar, solicita tu código QR al staff o POSNET.</Text>
-                      </View>
-                      <View className="flex-row items-start gap-3">
-                        <Text className="text-[#D4AF37] font-black italic text-xs mt-0.5">03</Text>
-                        <Text className="text-[10px] text-white/70 font-medium leading-relaxed uppercase flex-1">Usa tu escáner para sumar puntos o pagar.</Text>
-                      </View>
-                    </View>
-                 </View>
-              </View>
-           </View>
-        </View>
-      </Modal>
-
-      {/* VIP Status & Benefits Unified Modal */}
-      <VipStatusModal 
-        isVisible={showBenefits}
-        onClose={() => setShowBenefits(false)}
-        user={user}
-        settings={settings}
-        onRedeemSuccess={handleRedeemVipBenefit}
-      />
-
-      {/* Splash Popup Modal */}
-      <Modal visible={showPopupModal} transparent animationType="fade">
-        <View className="flex-1 bg-black/90 justify-center items-center p-6">
-          <View className="w-full max-w-md bg-[#0a0a0a] rounded-[3rem] border-2 border-white/10 overflow-hidden relative shadow-2xl">
-            {/* Close Button */}
-            <TouchableOpacity 
-              onPress={() => setShowPopupModal(false)}
-              className="absolute top-4 right-4 z-50 p-3 bg-black/50 backdrop-blur-md rounded-full border border-white/20"
-            >
-              <X size={24} color="white" />
-            </TouchableOpacity>
-
-            {currentPopup?.mediaType === 'VIDEO' ? (
-               <View className="w-full h-[500px]">
-                 <VideoPlayer uri={resolveImageUrl(currentPopup.videoUrl) || ''} />
-               </View>
-            ) : (
-               <Image 
-                 source={{ uri: resolveImageUrl(currentPopup?.imageUrl) || '' }} 
-                 className="w-full h-[500px]" 
-                 resizeMode="cover"
-               />
-            )}
-            
-            <View className="p-8 items-center bg-gradient-to-t from-black to-transparent absolute bottom-0 w-full">
-              <Text className="text-2xl font-black text-white italic text-center uppercase tracking-tighter mb-2 shadow-black drop-shadow-md">
-                {currentPopup?.title}
-              </Text>
-              <Text className="text-white/80 text-center font-bold text-xs mb-6 px-4">
-                {currentPopup?.description}
-              </Text>
-              
-              <TouchableOpacity 
-                onPress={() => {
-                  setShowPopupModal(false);
-                  if (currentPopup?.id) {
-                    router.push(`/banner/${currentPopup.id}`);
-                  }
-                }}
-                className="w-full bg-boston-gold py-4 rounded-2xl shadow-[0_0_20px_rgba(212,175,55,0.3)]"
-              >
-                <Text className="text-black text-center font-black uppercase tracking-widest text-sm">
-                  {currentPopup?.benefits || 'VER MÁS'}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
-
-    </View>
-  );
+  return <DashboardDefault {...dashboardProps} />;
 }

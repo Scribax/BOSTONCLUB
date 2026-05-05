@@ -7,7 +7,6 @@ import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import { configureReanimatedLogger, ReanimatedLogLevel } from 'react-native-reanimated';
 import api, { logout } from '../../lib/api';
-import { useTheme } from '../../contexts/ThemeContext';
 
 // Silenciamos los warnings molestos de Reanimated durante el renderizado
 configureReanimatedLogger({
@@ -25,7 +24,7 @@ const IconRenderer = ({ name, size, color, strokeWidth }: any) => {
 };
 
 // Icono animado optimizado
-const AnimatedTabIcon = ({ focused, color, iconName, label, totalTabs = 4, themePrimary }: any) => {
+const AnimatedTabIcon = ({ focused, color, iconName, label, totalTabs = 4 }: any) => {
   const scaleAnim = useRef(new Animated.Value(focused ? 1.05 : 1)).current;
   const translateYAnim = useRef(new Animated.Value(focused ? -4 : 0)).current;
   const barWidth = useRef(new Animated.Value(focused ? 32 : 0)).current;
@@ -73,10 +72,10 @@ const AnimatedTabIcon = ({ focused, color, iconName, label, totalTabs = 4, theme
           position: 'absolute',
           bottom: 4,
           height: 3,
-          backgroundColor: themePrimary,
+          backgroundColor: '#FF2D2D',
           borderRadius: 2,
           width: barWidth,
-          shadowColor: themePrimary,
+          shadowColor: '#FF2D2D',
           shadowOffset: { width: 0, height: 0 },
           shadowOpacity: 0.9,
           shadowRadius: 6,
@@ -88,7 +87,7 @@ const AnimatedTabIcon = ({ focused, color, iconName, label, totalTabs = 4, theme
 };
 
 // Botón SCAN flotante
-const ScanButton = ({ onPress, theme }: any) => {
+const ScanButton = ({ onPress }: any) => {
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const glowAnim = useRef(new Animated.Value(1)).current;
 
@@ -106,7 +105,7 @@ const ScanButton = ({ onPress, theme }: any) => {
       if (Platform.OS !== 'web') {
         await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
       }
-    } catch (error) {}
+    } catch (error) { }
     onPress?.();
   };
 
@@ -117,20 +116,20 @@ const ScanButton = ({ onPress, theme }: any) => {
       onPressOut={() => Animated.spring(scaleAnim, { toValue: 1, friction: 4, useNativeDriver: true }).start()}
       style={{ top: -30, zIndex: 50, alignItems: 'center', justifyContent: 'center' }}
     >
-      <Animated.View 
+      <Animated.View
         style={{
           position: 'absolute',
           width: 70,
           height: 70,
           borderRadius: 35,
-          backgroundColor: theme.primary,
+          backgroundColor: '#FF2D2D',
           opacity: 0.15,
           transform: [{ scale: glowAnim }],
         }}
       />
       <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
         <LinearGradient
-          colors={[theme.primaryGlow, theme.primary, theme.primaryDark]}
+          colors={['#FF3B30', '#FF2D2D', '#910000']}
           style={{
             width: 68,
             height: 68,
@@ -149,7 +148,7 @@ const ScanButton = ({ onPress, theme }: any) => {
 };
 
 // Custom Tab Bar para tener control 100% absoluto sobre lo que se dibuja
-const CustomTabBar = ({ state, descriptors, navigation, isAdmin, theme }: any) => {
+const CustomTabBar = ({ state, descriptors, navigation, isAdmin }: any) => {
   // Filtramos estrictamente las rutas que queremos mostrar según el rol
   const visibleRoutes = state.routes.filter((route: any) => {
     if (isAdmin) {
@@ -187,15 +186,17 @@ const CustomTabBar = ({ state, descriptors, navigation, isAdmin, theme }: any) =
       <View style={{ flex: 1, flexDirection: 'row' }}>
         {visibleRoutes.map((route: any, index: number) => {
           const isFocused = state.index === state.routes.findIndex((r: any) => r.key === route.key);
-          
+
           const onPress = () => {
             if (route.name === 'staff-profile-placeholder') {
               Alert.alert("Modo Staff", "¿Deseas cerrar sesión?", [
                 { text: "Cancelar", style: "cancel" },
-                { text: "Cerrar Sesión", style: "destructive", onPress: async () => {
+                {
+                  text: "Cerrar Sesión", style: "destructive", onPress: async () => {
                     await logout();
                     navigation.replace('login');
-                }}
+                  }
+                }
               ]);
               return;
             }
@@ -227,11 +228,11 @@ const CustomTabBar = ({ state, descriptors, navigation, isAdmin, theme }: any) =
             return (
               <View key={route.key} style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
                 <View style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, alignItems: 'center', justifyContent: 'center' }}>
-                  <ScanButton onPress={onPress} theme={theme} />
+                  <ScanButton onPress={onPress} />
                 </View>
                 <Text
                   style={{
-                    color: isFocused ? theme.primary : 'rgba(255,255,255,0.4)',
+                    color: isFocused ? '#FF2D2D' : 'rgba(255,255,255,0.4)',
                     fontSize: 8,
                     fontWeight: '900',
                     marginTop: 38,
@@ -249,11 +250,10 @@ const CustomTabBar = ({ state, descriptors, navigation, isAdmin, theme }: any) =
             <Pressable key={route.key} onPress={onPress} style={{ flex: 1 }}>
               <AnimatedTabIcon
                 focused={isFocused}
-                color={isFocused ? theme.primary : 'rgba(255,255,255,0.4)'}
+                color={isFocused ? '#FF2D2D' : 'rgba(255,255,255,0.4)'}
                 iconName={iconName}
                 label={label}
                 totalTabs={totalTabs}
-                themePrimary={theme.primary}
               />
             </Pressable>
           );
@@ -265,7 +265,6 @@ const CustomTabBar = ({ state, descriptors, navigation, isAdmin, theme }: any) =
 
 export default function TabLayout() {
   const router = useRouter();
-  const { theme } = useTheme();
   const [role, setRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -319,7 +318,7 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{ headerShown: false, sceneStyle: { backgroundColor: '#050505' } }}
-      tabBar={(props) => <CustomTabBar {...props} isAdmin={isAdmin} theme={theme} />}
+      tabBar={(props) => <CustomTabBar {...props} isAdmin={isAdmin} />}
     >
       <Tabs.Screen name="index" options={{ href: null }} />
       <Tabs.Screen name="rewards" options={{ href: null }} />
