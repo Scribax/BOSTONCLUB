@@ -192,6 +192,13 @@ export default function ProfileHalloween({
           <View className={`absolute top-0 right-0 w-96 h-96 rounded-full opacity-10 blur-[120px] bg-[${theme.primary}]`} style={{ backgroundColor: theme.primary }} />
           <View className="absolute top-20 left-10 w-40 h-40 rounded-full opacity-10 blur-[80px]" style={{ backgroundColor: theme.primary }} />
 
+          {/* String Lights Overlay */}
+          <Image 
+            source={require('../../assets/images/lights_overlay.png')} 
+            style={{ position: 'absolute', top: -30, left: 0, width: '100%', height: 240, opacity: 0.5 }} 
+            resizeMode="cover" 
+          />
+
           <LinearGradient
             colors={['transparent', '#0a050f']}
             className="absolute inset-0 z-0"
