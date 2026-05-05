@@ -77,8 +77,8 @@ export const ChristmasTheme: AppTheme = {
  * Priority: Argentina > Halloween > Christmas > Boston (default)
  */
 export function selectTheme(flags: Record<string, boolean>): AppTheme {
-  if (flags['argentina_theme']) return ArgentinaTheme;
-  if (flags['halloween_theme']) return HalloweenTheme;
-  if (flags['christmas_theme']) return ChristmasTheme;
+  if (flags['theme_argentina']) return ArgentinaTheme;
+  if (flags['theme_halloween']) return HalloweenTheme;
+  if (flags['theme_christmas']) return ChristmasTheme;
   return BostonTheme;
 }
