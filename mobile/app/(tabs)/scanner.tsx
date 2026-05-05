@@ -4,9 +4,11 @@ import { CameraView, useCameraPermissions } from 'expo-camera';
 import { ArrowLeft, ScanLine, Sparkles, CheckCircle2, AlertCircle, XCircle, HelpCircle, Smartphone, CreditCard, Flame } from 'lucide-react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import api from '../../lib/api';
+import { useTheme } from '../../contexts/ThemeContext';
 
 export default function ScannerScreen() {
   const [permission, requestPermission] = useCameraPermissions();
+  const { theme } = useTheme();
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error" | "pos_waiting">("idle");
   const [message, setMessage] = useState("");
   const [scanned, setScanned] = useState(false);
@@ -67,7 +69,8 @@ export default function ScannerScreen() {
         </Text>
         <TouchableOpacity 
           onPress={requestPermission}
-          className="bg-boston-gold px-10 py-5 rounded-2xl"
+          style={{ backgroundColor: theme.secondary }}
+          className="px-10 py-5 rounded-2xl"
         >
           <Text className="text-black font-black uppercase text-xs italic">Permitir Acceso</Text>
         </TouchableOpacity>
@@ -163,8 +166,8 @@ export default function ScannerScreen() {
           </TouchableOpacity>
           <Text className="text-xl font-black uppercase tracking-tight text-white italic">Escanear QR</Text>
         </View>
-        <TouchableOpacity onPress={() => setShowTutorial(true)} className="p-3 bg-boston-gold/10 border border-boston-gold/20 rounded-full">
-          <HelpCircle size={20} color="#D4AF37" />
+        <TouchableOpacity onPress={() => setShowTutorial(true)} style={{ borderColor: `${theme.secondary}33`, backgroundColor: `${theme.secondary}1A` }} className="p-3 rounded-full border">  
+          <HelpCircle size={20} color={theme.secondary} />
         </TouchableOpacity>
       </View>
 
@@ -187,7 +190,7 @@ export default function ScannerScreen() {
                    <View className="absolute -bottom-4 -right-4 w-8 h-8 border-b-4 border-r-4 border-boston-gold rounded-br-[20px]" />
                 </View>
                 <View className="bg-black/60 px-6 py-3 rounded-full mt-10 border border-white/10">
-                  <Text className="text-boston-gold font-bold uppercase text-[10px] tracking-widest text-center">Enfoque el código QR</Text>
+                  <Text style={{ color: theme.secondary }} className="font-bold uppercase text-[10px] tracking-widest text-center">Enfoque el código QR</Text>
                 </View>
                 <Text className="text-white/80 text-[11px] text-center mt-6 uppercase font-black tracking-[0.2em] px-10 leading-5">
                    CENTRO DE ESCANEO UNIVERSAL
@@ -201,15 +204,15 @@ export default function ScannerScreen() {
 
         {status === 'loading' && (
           <View className="items-center justify-center p-10 z-10 bg-[#050505] flex-1">
-             <ActivityIndicator size="large" color="#D4AF37" className="mb-6 scale-150" />
+             <ActivityIndicator size="large" color={theme.secondary} className="mb-6 scale-150" />
              <Text className="text-sm font-bold uppercase tracking-widest text-white animate-pulse">Validando código...</Text>
           </View>
         )}
 
         {status === 'pos_waiting' && (
           <View className="items-center justify-center p-10 z-10 bg-[#050505] flex-1">
-             <ActivityIndicator size="large" color="#D4AF37" className="mb-6 scale-150" />
-             <Text className="text-2xl font-black mb-4 uppercase italic text-boston-gold text-center">ESPERANDO PAGO</Text>
+             <ActivityIndicator size="large" color={theme.secondary} className="mb-6 scale-150" />
+             <Text style={{ color: theme.secondary }} className="text-2xl font-black mb-4 uppercase italic text-center">ESPERANDO PAGO</Text>
              <Text className="text-white/60 text-sm mb-10 text-center font-medium leading-relaxed px-6">
                {message}
              </Text>

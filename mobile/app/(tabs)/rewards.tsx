@@ -5,6 +5,7 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import api from '../../lib/api';
 import { StatusBar } from 'expo-status-bar';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useTheme } from '../../contexts/ThemeContext';
 
 type Reward = {
   id: string;
@@ -26,6 +27,7 @@ const CATEGORIES = [
 
 export default function RewardsScreen() {
   const router = useRouter();
+  const { theme } = useTheme();
   const [userPoints, setUserPoints] = useState<number | null>(null);
   const [rewards, setRewards] = useState<Reward[]>([]);
   const [loading, setLoading] = useState(true);
@@ -90,7 +92,7 @@ export default function RewardsScreen() {
   if (loading && userPoints === null) {
     return (
       <View style={{ flex: 1, backgroundColor: 'black', alignItems: 'center', justifyContent: 'center' }}>
-        <ActivityIndicator size="large" color="#FF3B30" />
+        <ActivityIndicator size="large" color={theme.primary} />
       </View>
     );
   }
@@ -106,7 +108,7 @@ export default function RewardsScreen() {
                <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 10, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 2 }}>Puntos Boston</Text>
                <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
                   <Text style={{ color: 'white', fontSize: 32, fontWeight: '900', fontStyle: 'italic', letterSpacing: -1 }}>{pts}</Text>
-                  <Star size={16} color="#FF3B30" fill="#FF3B30" style={{ marginLeft: 8 }} />
+                  <Star size={16} color={theme.primary} fill={theme.primary} style={{ marginLeft: 8 }} />
                </View>
             </View>
             
@@ -135,12 +137,12 @@ export default function RewardsScreen() {
                     style={{ 
                       flexDirection: 'row', 
                       alignItems: 'center', 
-                      backgroundColor: isActive ? '#FF3B30' : 'rgba(255,255,255,0.05)',
+                      backgroundColor: isActive ? theme.primary : 'rgba(255,255,255,0.05)',
                       paddingHorizontal: 16,
                       paddingVertical: 10,
                       borderRadius: 20,
                       borderWidth: 1,
-                      borderColor: isActive ? '#FF3B30' : 'rgba(255,255,255,0.1)'
+                      borderColor: isActive ? theme.primary : 'rgba(255,255,255,0.1)'
                     }}
                   >
                      <Icon size={14} color={isActive ? 'white' : 'rgba(255,255,255,0.5)'} />
@@ -173,14 +175,14 @@ export default function RewardsScreen() {
                     colors={['transparent', 'rgba(0,0,0,0.8)', 'black']} 
                     style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '70%' }} 
                   />
-                  <View style={{ position: 'absolute', top: 20, left: 20, backgroundColor: '#FF3B30', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 }}>
+                  <View style={{ position: 'absolute', top: 20, left: 20, backgroundColor: theme.primary, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 }}>
                      <Text style={{ color: 'white', fontWeight: '900', fontSize: 9, textTransform: 'uppercase', fontStyle: 'italic' }}>Destacado</Text>
                   </View>
                   <View style={{ position: 'absolute', bottom: 20, left: 20, right: 20 }}>
                      <Text style={{ color: 'white', fontSize: 24, fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase' }}>{featuredReward.name}</Text>
                      <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
-                        <Ticket size={12} color="#FF3B30" />
-                        <Text style={{ color: '#FF3B30', fontWeight: '900', fontSize: 12, marginLeft: 6 }}>{featuredReward.pointsRequired} PUNTOS</Text>
+                         <Ticket size={12} color={theme.primary} />
+                         <Text style={{ color: theme.primary, fontWeight: '900', fontSize: 12, marginLeft: 6 }}>{featuredReward.pointsRequired} PUNTOS</Text>
                      </View>
                   </View>
                </View>
@@ -241,7 +243,7 @@ export default function RewardsScreen() {
                            <Text style={{ color: 'white', fontWeight: '900', fontSize: 18, textTransform: 'uppercase', fontStyle: 'italic', marginBottom: 2, lineHeight: 20 }} numberOfLines={2}>
                               {reward.name}
                            </Text>
-                           <Text style={{ color: '#D4AF37', fontWeight: '900', fontSize: 14, textTransform: 'uppercase', marginBottom: 12 }}>
+                           <Text style={{ color: theme.secondary, fontWeight: '900', fontSize: 14, textTransform: 'uppercase', marginBottom: 12 }}>
                               {reward.pointsRequired} PTS
                            </Text>
                            
@@ -254,10 +256,10 @@ export default function RewardsScreen() {
 
                            <View style={{ 
                              paddingVertical: 10, 
-                             backgroundColor: canRedeem ? '#2a0808' : 'rgba(255,255,255,0.05)', 
+                             backgroundColor: canRedeem ? `${theme.primary}22` : 'rgba(255,255,255,0.05)', 
                              borderRadius: 12, 
                              borderWidth: 1,
-                             borderColor: canRedeem ? '#FF3B30' : 'rgba(255,255,255,0.1)',
+                             borderColor: canRedeem ? theme.primary : 'rgba(255,255,255,0.1)',
                              alignItems: 'center'
                            }}>
                               {redeemingId === reward.id ? (
@@ -302,14 +304,14 @@ export default function RewardsScreen() {
 
                   <View style={{ padding: 32, alignItems: 'center' }}>
                      <View style={{ backgroundColor: 'rgba(255,59,48,0.1)', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 8, marginBottom: 16 }}>
-                        <Text style={{ color: '#FF3B30', fontSize: 10, fontWeight: '900', textTransform: 'uppercase' }}>Canje de Puntos</Text>
+                        <Text style={{ color: theme.primary, fontSize: 10, fontWeight: '900', textTransform: 'uppercase' }}>Canje de Puntos</Text>
                      </View>
                      <Text style={{ color: 'white', fontSize: 28, fontWeight: '900', textTransform: 'uppercase', fontStyle: 'italic', textAlign: 'center' }}>{confirmModal.reward.name}</Text>
                      <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, textAlign: 'center', marginTop: 12, lineHeight: 20 }}>¿Confirmas el canje de este premio por {confirmModal.reward.pointsRequired} puntos?</Text>
                      
                      <TouchableOpacity 
                        onPress={() => handleRedeem(confirmModal.reward!)}
-                       style={{ backgroundColor: '#FF3B30', width: '100%', paddingVertical: 22, borderRadius: 24, marginTop: 32, alignItems: 'center', shadowColor: '#FF3B30', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.3, shadowRadius: 20 }}
+                      style={{ backgroundColor: theme.primary, width: '100%', paddingVertical: 22, borderRadius: 24, marginTop: 32, alignItems: 'center', shadowColor: theme.primary, shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.3, shadowRadius: 20 }}
                      >
                         <Text style={{ color: 'white', fontWeight: '900', textTransform: 'uppercase', fontSize: 14, letterSpacing: 2 }}>Confirmar Canje</Text>
                      </TouchableOpacity>

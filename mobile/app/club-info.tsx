@@ -21,22 +21,19 @@ import {
 } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import api from '../lib/api';
-import { useFeatureFlags } from '../hooks/useFeatureFlags';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface AppSettings {
    pointsPerPeso?: number;
    referralRewardReferrer?: number;
 }
 
-const GOLD = '#E8C670';
-const DEEP_GOLD = '#B38B2E';
-
 export default function ClubInfoScreen() {
    const router = useRouter();
    const [settings, setSettings] = React.useState<AppSettings | null>(null);
    const [user, setUser] = React.useState<any>(null);
    const [loading, setLoading] = React.useState(true);
-   const { isEnabled } = useFeatureFlags();
+   const { isEnabled, theme } = useTheme();
 
    React.useEffect(() => {
       fetchData();
@@ -130,7 +127,7 @@ export default function ClubInfoScreen() {
    if (loading) {
       return (
          <SafeAreaView className="flex-1 bg-black items-center justify-center">
-            <ActivityIndicator size="large" color={GOLD} />
+            <ActivityIndicator size="large" color={theme.secondary} />
          </SafeAreaView>
       );
    }
@@ -151,7 +148,7 @@ export default function ClubInfoScreen() {
                   </TouchableOpacity>
 
                   <View className="flex-row items-center gap-x-2 self-end mb-8 bg-black/30 border border-[#E8C670]/30 rounded-3xl px-5 py-2">
-                     <Crown size={18} color={GOLD} />
+                     <Crown size={18} color={theme.secondary} />
                      <Text className="text-[#E8C670] text-sm font-bold tracking-widest uppercase">{user?.membershipLevel || 'BRONCE'}</Text>
                   </View>
 
@@ -189,7 +186,7 @@ export default function ClubInfoScreen() {
 
                   <View className="mt-8 h-2 bg-white/5 rounded-full overflow-hidden border border-white/5">
                      <LinearGradient
-                        colors={[GOLD, '#FF3B30']}
+                        colors={[theme.secondary, theme.primary]}
                         start={{ x: 0, y: 0.5 }}
                         end={{ x: 1, y: 0.5 }}
                         style={{ width: progressWidth as any, height: 8, borderRadius: 10 }}
@@ -216,15 +213,15 @@ export default function ClubInfoScreen() {
                      </View>
 
                      <View className="items-center px-4">
-                        <Zap size={32} color={GOLD} />
+                        <Zap size={32} color={theme.secondary} />
                         <Text className="text-[#E8C670] text-[8px] font-black tracking-[2px] mt-2">INSTANT</Text>
                      </View>
 
                      <View className="items-center flex-1">
                         <View className="w-14 h-14 bg-[#E8C670]/10 rounded-2xl items-center justify-center border border-[#E8C670]/30 mb-3">
-                           <Text className="text-[#E8C670] text-xl font-black italic">PTS</Text>
+                           <Text className="text-white text-xl font-black italic">PTS</Text>
                         </View>
-                        <Text className="text-[#E8C670] text-5xl font-black italic">{pointsRate}</Text>
+                        <Text style={{ color: theme.secondary }} className="text-5xl font-black italic">{pointsRate}</Text>
                      </View>
                   </View>
 
@@ -266,7 +263,7 @@ export default function ClubInfoScreen() {
                 />
                <MissionCard
                   icon={Coins}
-                  color={GOLD}
+                  color={theme.secondary}
                   title="Escanea en barra"
                   description="Usa el QR del POSNET"
                   onPress={() => router.push('/(tabs)/scanner')}
@@ -282,7 +279,7 @@ export default function ClubInfoScreen() {
                   className="h-20 rounded-3xl overflow-hidden border border-[#E8C670]/30 shadow-2xl shadow-boston-gold/20"
                >
                   <LinearGradient
-                     colors={[GOLD, DEEP_GOLD]}
+                     colors={[theme.secondary, theme.secondaryDark]}
                      start={{ x: 0, y: 0 }}
                      end={{ x: 1, y: 1 }}
                      style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}

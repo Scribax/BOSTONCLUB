@@ -12,6 +12,7 @@ import { VideoPlayer } from '../../components/VideoPlayer';
 import { FadeInView } from '../../components/FadeInView';
 import { LinearGradient } from 'expo-linear-gradient';
 import { VipStatusModal } from '../../components/VipStatusModal';
+import { useTheme } from '../../contexts/ThemeContext';
 
 LogBox.ignoreLogs([
   '[Reanimated] Reading from `value` during component render',
@@ -73,6 +74,7 @@ const StreakBadge = ({ streak }: { streak: number }) => {
 
 export default function DashboardScreen() {
   const router = useRouter();
+  const { theme, isEnabled } = useTheme();
   const { width: SCREEN_WIDTH } = useWindowDimensions();
   const CAROUSEL_WIDTH = SCREEN_WIDTH - 48; // SCREEN_WIDTH minus px-6 (24px * 2)
   const [user, setUser] = useState<UserData | null>(null);
@@ -351,7 +353,7 @@ export default function DashboardScreen() {
       <StatusBar style="light" />
       
       {/* Background Aura */}
-      <View className={`absolute top-0 right-0 w-80 h-80 rounded-full opacity-10 blur-[100px] ${getAuraColor()}`} />
+      <View style={{ backgroundColor: theme.primary }} className={`absolute top-0 right-0 w-80 h-80 rounded-full opacity-10 blur-[100px]`} />
 
       <ScrollView 
         className="flex-1 bg-[#050505]"
@@ -487,14 +489,18 @@ export default function DashboardScreen() {
                 activeOpacity={0.9}
                 onPress={() => { setShowBenefits(true); fetchVipBenefits(); }}
                 style={{
-                  shadowColor: '#ff0000',
+                  shadowColor: theme.primary,
                   shadowOffset: { width: 0, height: 0 },
                   shadowOpacity: 0.8,
                   shadowRadius: 25,
                   elevation: 20,
-                  zIndex: 50
+                  zIndex: 50,
+                  borderWidth: 1, 
+                  borderColor: `${theme.primary}66`, 
+                  backgroundColor: theme.surface, 
+                  borderRadius: 40, 
+                  padding: 24
                 }}
-                className="bg-[#0a0a0a] rounded-[2.5rem] p-6 border border-[#ff0000]/40"
               >
                  {/* Header Section */}
                  <View className="flex-row justify-between items-start mb-6">
@@ -527,13 +533,13 @@ export default function DashboardScreen() {
                     </View>
  
                     {/* Points Pill */}
-                    <View className="bg-black border border-boston-red/30 rounded-2xl p-2 flex-row items-center px-4 shadow-lg shadow-boston-red/20">
-                       <View className="w-8 h-8 bg-boston-red rounded-full items-center justify-center mr-3">
+                    <View style={{ backgroundColor: theme.surface, borderColor: `${theme.primary}4D`, borderWidth: 1 }} className="rounded-2xl p-2 flex-row items-center px-4 shadow-lg">
+                       <View style={{ backgroundColor: theme.primary }} className="w-8 h-8 rounded-full items-center justify-center mr-3">
                           <Star size={14} color="white" fill="white" />
                        </View>
                        <View>
                           <Text className="text-white font-black text-xl italic tracking-tighter leading-none">{user.points}</Text>
-                          <Text className="text-boston-red font-black text-[8px] uppercase tracking-widest mt-0.5">PUNTOS</Text>
+                          <Text style={{ color: theme.primary }} className="font-black text-[8px] uppercase tracking-widest mt-0.5">PUNTOS</Text>
                        </View>
                        <ArrowRight size={12} color="white" className="ml-3 opacity-30" />
                     </View>
@@ -555,7 +561,7 @@ export default function DashboardScreen() {
                          className="absolute top-0 left-0 h-full"
                        >
                           <LinearGradient
-                            colors={['#ff4d4d', '#cc0000', '#990000']}
+                            colors={[theme.primaryGlow, theme.primary, theme.primaryDark]}
                             start={{ x: 0, y: 0 }}
                             end={{ x: 0, y: 1 }}
                             style={{ flex: 1, borderRadius: 10 }}
@@ -567,8 +573,8 @@ export default function DashboardScreen() {
                     
                     {/* Progress Thumb - Burger Icon Style */}
                     <View 
-                      style={{ left: `${(nextTier?.currentProgress ?? 100) - 2}%` }}
-                      className="absolute top-[-4px] w-6 h-6 rounded-full bg-boston-red border-2 border-[#1a1a1a] items-center justify-center shadow-xl shadow-boston-red/50"
+                      style={{ left: `${(nextTier?.currentProgress ?? 100) - 2}%`, backgroundColor: theme.primary }}
+                      className="absolute top-[-4px] w-6 h-6 rounded-full border-2 border-[#1a1a1a] items-center justify-center shadow-xl"
                     >
                        <View className="w-2.5 h-0.5 bg-white rounded-full mb-0.5" />
                        <View className="w-3.5 h-1 bg-boston-gold rounded-sm mb-0.5" />
@@ -641,10 +647,11 @@ export default function DashboardScreen() {
               <TouchableOpacity 
                 onPress={() => router.push('/rewards')}
                 activeOpacity={0.8}
-                className="w-[31%] aspect-[0.7] bg-[#0c0c0c] border border-white/5 rounded-[2.5rem] p-4 items-center justify-between shadow-2xl shadow-black"
+                className="w-[31%] aspect-[0.7] border border-white/5 rounded-[2.5rem] p-4 items-center justify-between shadow-2xl shadow-black"
+                style={{ backgroundColor: theme.surface }}
               >
-                 <View className="w-12 h-12 rounded-2xl border border-[#FF3B30]/30 items-center justify-center bg-white/5">
-                    <Gift size={24} color="#FF3B30" />
+                 <View style={{ borderColor: `${theme.primary}4D`, borderWidth: 1 }} className="w-12 h-12 rounded-2xl items-center justify-center bg-white/5">
+                    <Gift size={24} color={theme.primary} />
                  </View>
                  <View className="items-center">
                     <Text className="text-white font-black uppercase text-[10px] tracking-wider mb-1">Premios</Text>

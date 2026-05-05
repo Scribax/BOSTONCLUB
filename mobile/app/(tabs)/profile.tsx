@@ -10,7 +10,7 @@ import * as SecureStore from 'expo-secure-store';
 import { VipStatusModal } from '../../components/VipStatusModal';
 import QRCode from 'react-native-qrcode-svg';
 import { QrCode as QrIcon } from 'lucide-react-native';
-import { useFeatureFlags } from '../../hooks/useFeatureFlags';
+import { useTheme } from '../../contexts/ThemeContext';
 
 export default function ProfileScreen() {
   const [user, setUser] = useState<any>(null);
@@ -32,7 +32,7 @@ export default function ProfileScreen() {
   const [showMemberQr, setShowMemberQr] = useState(false);
   const [memberToken, setMemberToken] = useState<string | null>(null);
   const [tokenExpiry, setTokenExpiry] = useState<number | null>(null);
-  const { isEnabled } = useFeatureFlags();
+  const { isEnabled, theme } = useTheme();
 
   const AVATARS = [
     { id: 'default', name: 'Original', icon: null },
@@ -334,10 +334,11 @@ export default function ProfileScreen() {
               <TouchableOpacity 
                 onPress={() => setShowMemberQr(true)}
                 activeOpacity={0.8}
-                className="mt-8 bg-boston-gold/10 border border-boston-gold/30 px-10 py-4 rounded-[2rem] flex-row items-center shadow-lg shadow-boston-gold/10"
+                style={{ borderColor: `${theme.secondary}4D`, backgroundColor: `${theme.secondary}1A` }}
+                className="mt-8 px-10 py-4 rounded-[2rem] flex-row items-center shadow-lg"
               >
-                <QrIcon size={20} color="#D4AF37" className="mr-3" />
-                <Text className="text-boston-gold font-black uppercase text-[10px] tracking-widest">Mi Carnet Digital</Text>
+                <QrIcon size={20} color={theme.secondary} className="mr-3" />
+                <Text style={{ color: theme.secondary }} className="font-black uppercase text-[10px] tracking-widest">Mi Carnet Digital</Text>
               </TouchableOpacity>
             </View>
 
@@ -396,7 +397,8 @@ export default function ProfileScreen() {
                   <TouchableOpacity
                     activeOpacity={0.7}
                     onPress={handleShareReferral}
-                    className="bg-boston-gold h-12 w-12 rounded-2xl items-center justify-center shadow-lg shadow-boston-gold/20"
+                    style={{ backgroundColor: theme.secondary }}
+                className="h-12 w-12 rounded-2xl items-center justify-center shadow-lg"
                   >
                     <Share2 size={20} color="black" />
                   </TouchableOpacity>
@@ -528,7 +530,8 @@ export default function ProfileScreen() {
               <TouchableOpacity
                 onPress={handleSavePhone}
                 disabled={saving}
-                className={`w-full bg-boston-gold rounded-2xl py-5 items-center shadow-xl shadow-boston-gold/20 ${saving ? 'opacity-50' : ''}`}
+                style={{ opacity: saving ? 0.5 : 1, backgroundColor: theme.secondary }}
+                className="w-full rounded-2xl py-5 items-center shadow-xl"
               >
                 {saving ? (
                   <ActivityIndicator color="black" />
