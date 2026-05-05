@@ -221,3 +221,12 @@ model CustomAvatar {
   name      String?
   createdAt DateTime @default(now())
 }
+
+model FeatureFlag {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  enabled     Boolean  @default(false)
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
