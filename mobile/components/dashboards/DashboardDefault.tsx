@@ -76,10 +76,11 @@ const StreakBadge = ({ streak }: { streak: number }) => {
 export default function DashboardDefault({
   user, banners, promoBanners, activeRedemption, settings, nextTier,
   loading, setLoading, errorStatus, refreshing, onRefresh, loadProfile,
-  theme, router, isScreenFocused, currentPopup, showPopupModal, setShowPopupModal,
+  router, isScreenFocused, currentPopup, showPopupModal, setShowPopupModal,
   resolveImageUrl, showGuide, setShowGuide, showBenefits, setShowBenefits,
   fetchVipBenefits, vipBenefits, vipBenefitsLoading, redeemingVipId, handleRedeemVipBenefit
 }: DashboardProps) {
+  const { theme, isHappyHour } = useTheme();
   const { width: SCREEN_WIDTH } = useWindowDimensions();
   const CAROUSEL_WIDTH = SCREEN_WIDTH - 48; // SCREEN_WIDTH minus px-6 (24px * 2)
   const [currentBannerIdx, setCurrentBannerIdx] = useState(0);
@@ -209,6 +210,15 @@ export default function DashboardDefault({
               <UserIcon size={18} color="white" />
             </TouchableOpacity>
           </View>
+
+          {/* Happy Hour Banner */}
+          {isHappyHour && (
+            <Animated.View entering={FadeIn.delay(300)} style={{ position: 'absolute', top: 120, width: '100%', zIndex: 40, alignItems: 'center' }}>
+              <View style={{ backgroundColor: theme.secondary, paddingHorizontal: 20, paddingVertical: 8, borderRadius: 20, shadowColor: theme.secondary, shadowOffset: {width: 0, height: 0}, shadowOpacity: 0.8, shadowRadius: 15, borderWidth: 1, borderColor: '#FFF' }}>
+                <Text style={{ color: 'black', fontWeight: '900', fontSize: 11, textTransform: 'uppercase', letterSpacing: 2 }}>¡HAPPY HOUR ACTIVO! Puntos x2</Text>
+              </View>
+            </Animated.View>
+          )}
 
           {/* Hero Carousel */}
           <View style={{ height: SCREEN_HEIGHT * 0.75 }}>

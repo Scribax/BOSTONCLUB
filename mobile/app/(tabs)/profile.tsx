@@ -8,6 +8,7 @@ import * as SecureStore from 'expo-secure-store';
 import { useTheme } from '../../contexts/ThemeContext';
 import ProfileDefault from '../../components/profile/ProfileDefault';
 import ProfileHalloween from '../../components/profile/ProfileHalloween';
+import ProfileArgentina from '../../components/profile/ProfileArgentina';
 
 export default function ProfileScreen() {
   const { isEnabled, theme } = useTheme();
@@ -91,9 +92,8 @@ export default function ProfileScreen() {
     isEnabled
   };
 
-  if (theme.name === 'halloween') {
-    return <ProfileHalloween {...props} />;
-  }
+  if (theme.name === 'halloween') return <ProfileHalloween {...props} />;
+  if (theme.name === 'argentina') return <ProfileArgentina {...props} />;
 
   return <ProfileDefault {...props} />;
 }

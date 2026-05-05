@@ -3,6 +3,7 @@ import api from '../lib/api';
 import { useTheme } from '../contexts/ThemeContext';
 import VipStatusDefault from './vip/VipStatusDefault';
 import VipStatusHalloween from './vip/VipStatusHalloween';
+import VipStatusArgentina from './vip/VipStatusArgentina';
 
 interface VipStatusModalProps {
   isVisible: boolean;
@@ -78,9 +79,8 @@ export const VipStatusModal = ({ isVisible, onClose, user, settings, onRedeemSuc
     isVisible, onClose, user, settings, benefits, loading, redeemingId, handleRedeem, fetchBenefits, theme, nextTier
   };
 
-  if (theme.name === 'halloween') {
-    return <VipStatusHalloween {...props} />;
-  }
+  if (theme.name === 'halloween') return <VipStatusHalloween {...props} />;
+  if (theme.name === 'argentina') return <VipStatusArgentina {...props} />;
 
   return <VipStatusDefault {...props} />;
 };

@@ -11,6 +11,7 @@ import { VipStatusModal } from '../../components/VipStatusModal';
 import QRCode from 'react-native-qrcode-svg';
 import { QrCode as QrIcon } from 'lucide-react-native';
 import { ProfileProps } from './types';
+import { useTheme } from '../../contexts/ThemeContext';
 
 const AVATARS = [
   { id: 'default', name: 'Original', icon: null },
@@ -27,6 +28,7 @@ export default function ProfileDefault({
   isBiometricSupported, biometricsEnabled, setBiometricsEnabled, 
   theme, isEnabled 
 }: ProfileProps) {
+  const { isHappyHour } = useTheme();
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [newWhatsapp, setNewWhatsapp] = useState(user.whatsapp || '');
   const [saving, setSaving] = useState(false);
@@ -256,8 +258,9 @@ export default function ProfileDefault({
             {/* Main Stats Bar */}
             <View className="flex-row items-center mt-10 bg-white/[0.03] border border-white/5 rounded-[2rem] p-5 w-[90%] shadow-2xl">
               <View className="flex-1 items-center border-r border-white/5">
-                <Text className="text-boston-gold text-xl font-black italic">{user.points || 0}</Text>
+                <Text className={`text-boston-gold text-xl font-black italic ${isHappyHour ? 'animate-pulse' : ''}`}>{user.points || 0}</Text>
                 <Text className="text-white/40 text-[8px] font-black uppercase tracking-widest mt-1">Puntos Totales</Text>
+                {isHappyHour && <Text className="text-boston-gold font-black text-[7px] uppercase mt-1">(x2 Activo)</Text>}
               </View>
               <View className="flex-1 items-center border-r border-white/5">
                 <View className="flex-row items-center">
@@ -276,7 +279,7 @@ export default function ProfileDefault({
         </View>
 
         {/* Content Section */}
-        <View className="px-6 -mt-6 pb-24">
+        <View className="px-6 -mt-6 pb-36">
 
           {/* Referral Premium Card */}
           {isEnabled('enable_referrals') && (

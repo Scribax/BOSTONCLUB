@@ -3,6 +3,7 @@ import api from '../lib/api';
 import { useTheme } from '../contexts/ThemeContext';
 import ClubInfoDefault from '../components/info/ClubInfoDefault';
 import ClubInfoHalloween from '../components/info/ClubInfoHalloween';
+import ClubInfoArgentina from '../components/info/ClubInfoArgentina';
 
 export default function ClubInfoScreen() {
   const [settings, setSettings] = useState<any>(null);
@@ -43,9 +44,8 @@ export default function ClubInfoScreen() {
     user, settings, loading, theme, isEnabled, pointsRate, referralPoints, streak, multiplier, progressWidth
   };
 
-  if (theme.name === 'halloween') {
-    return <ClubInfoHalloween {...props} />;
-  }
+  if (theme.name === 'halloween') return <ClubInfoHalloween {...props} />;
+  if (theme.name === 'argentina') return <ClubInfoArgentina {...props} />;
 
   return <ClubInfoDefault {...props} />;
 }

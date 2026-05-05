@@ -12,10 +12,11 @@ import { logout } from '../../lib/api';
 export default function DashboardHalloween({
   user, banners, promoBanners, activeRedemption, settings, nextTier,
   loading, setLoading, errorStatus, refreshing, onRefresh, loadProfile,
-  theme, router, isScreenFocused, currentPopup, showPopupModal, setShowPopupModal,
+  router, isScreenFocused, currentPopup, showPopupModal, setShowPopupModal,
   resolveImageUrl, showGuide, setShowGuide, showBenefits, setShowBenefits,
   fetchVipBenefits, vipBenefits, vipBenefitsLoading, redeemingVipId, handleRedeemVipBenefit
 }: DashboardProps) {
+  const { theme, isHappyHour } = useTheme();
   const { width: SCREEN_WIDTH } = useWindowDimensions();
 
   if (loading || (!user && !errorStatus)) {
@@ -89,6 +90,15 @@ export default function DashboardHalloween({
             <UserIcon size={18} color={theme.primary} />
           </TouchableOpacity>
         </View>
+
+        {/* Happy Hour Banner */}
+        {isHappyHour && (
+          <Animated.View entering={FadeIn.delay(300)} style={{ width: '100%', zIndex: 40, alignItems: 'center', marginTop: -10, marginBottom: 16 }}>
+            <View style={{ backgroundColor: '#9333EA', paddingHorizontal: 20, paddingVertical: 8, borderRadius: 20, shadowColor: '#9333EA', shadowOffset: {width: 0, height: 0}, shadowOpacity: 0.8, shadowRadius: 15, borderWidth: 1, borderColor: '#FFF' }}>
+              <Text style={{ color: 'white', fontWeight: '900', fontSize: 11, textTransform: 'uppercase', letterSpacing: 2 }}>¡PACTO DE ALMAS! Almas x2</Text>
+            </View>
+          </Animated.View>
+        )}
 
         {/* Greeting Section */}
         <View className="px-6 mb-6">

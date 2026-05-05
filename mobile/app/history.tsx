@@ -4,6 +4,7 @@ import api from '../lib/api';
 import { useTheme } from '../contexts/ThemeContext';
 import HistoryDefault from '../components/history/HistoryDefault';
 import HistoryHalloween from '../components/history/HistoryHalloween';
+import HistoryArgentina from '../components/history/HistoryArgentina';
 import { HistoryEvent } from '../components/history/types';
 
 export default function HistoryScreen() {
@@ -81,9 +82,8 @@ export default function HistoryScreen() {
     filteredHistory, stats, theme
   };
 
-  if (theme.name === 'halloween') {
-    return <HistoryHalloween {...props} />;
-  }
+  if (theme.name === 'halloween') return <HistoryHalloween {...props} />;
+  if (theme.name === 'argentina') return <HistoryArgentina {...props} />;
 
   return <HistoryDefault {...props} />;
 }

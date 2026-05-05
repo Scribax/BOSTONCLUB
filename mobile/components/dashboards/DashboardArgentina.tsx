@@ -70,6 +70,7 @@ export default function DashboardArgentina({
   resolveImageUrl, showGuide, setShowGuide, showBenefits, setShowBenefits,
   fetchVipBenefits, vipBenefits, vipBenefitsLoading, redeemingVipId, handleRedeemVipBenefit
 }: DashboardProps) {
+  const { theme, isHappyHour } = useTheme();
   const { width: SW } = useWindowDimensions();
 
   // ── Loading ──────────────────────────────────────────────────────────
@@ -136,7 +137,7 @@ export default function DashboardArgentina({
                 <Star size={9} color={GOLD} fill={GOLD} />
                 <Star size={9} color={GOLD} fill={GOLD} />
               </View>
-              <Text style={{ color: '#fff', fontSize: 30, fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', letterSpacing: -1, lineHeight: 30 }}>
+              <Text style={{ color: '#fff', fontSize: 38, fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', letterSpacing: -1.5, lineHeight: 38 }}>
                 ¡Hola{' '}
                 <Text style={{ color: CELESTE }}>Muchachos!</Text>
               </Text>
@@ -152,6 +153,15 @@ export default function DashboardArgentina({
               <UserIcon size={18} color={CELESTE} />
             </TouchableOpacity>
           </View>
+
+          {/* Happy Hour Banner */}
+          {isHappyHour && (
+            <Animated.View entering={FadeIn.delay(300)} style={{ width: '100%', alignItems: 'center', marginBottom: 20 }}>
+              <View style={{ backgroundColor: GOLD, paddingHorizontal: 20, paddingVertical: 8, borderRadius: 20, shadowColor: GOLD, shadowOffset: {width: 0, height: 0}, shadowOpacity: 0.8, shadowRadius: 15, borderWidth: 1, borderColor: '#FFF' }}>
+                <Text style={{ color: 'black', fontWeight: '900', fontSize: 11, textTransform: 'uppercase', letterSpacing: 2 }}>¡TIEMPO DE DESCUENTO! Puntos x2</Text>
+              </View>
+            </Animated.View>
+          )}
 
           {/* Player card row */}
           <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 20 }}>

@@ -3,6 +3,7 @@
  * All point-awarding actions MUST go through awardPointsToUser to ensure
  * consistent streak tracking, multipliers, history, and level upgrades.
  */
+import { isFeatureEnabled } from './featureFlag.service';
 
 // ─── Constants ─────────────────────────────────────────────────────────────
 const STREAK_WINDOW_DAYS = 2; // Max gap between visits to keep streak
@@ -94,14 +95,27 @@ export async function awardPointsToUser(
   }
 
   // 3. Apply multiplier
-  const multiplier = isStreakEligible ? calcStreakMultiplier(newStreak) : 1.0;
+  const isHappyHour = await isFeatureEnabled('enable_happy_hour');
+  const isHappyHourEligible = isHappyHour && source === 'COMPRA_POSNET';
+
+  let multiplier = isStreakEligible ? calcStreakMultiplier(newStreak) : 1.0;
+  if (isHappyHourEligible) {
+    multiplier *= 2;
+  }
+
   const finalPoints = Math.round(basePoints * multiplier);
   const streakBonus = finalPoints - basePoints;
 
   // 4. Create point history
-  const historyDescription = multiplier > 1
-    ? `${description} (🔥 Racha x${multiplier} → +${streakBonus} bonus)`
-    : description;
+  let historyDescription = description;
+  
+  if (isHappyHourEligible && isStreakEligible && newStreak >= 4) {
+    historyDescription = `${description} (✨ HAPPY HOUR x2 & 🔥 Racha → +${streakBonus} bonus)`;
+  } else if (isHappyHourEligible) {
+    historyDescription = `${description} (✨ HAPPY HOUR x2 → +${streakBonus} bonus)`;
+  } else if (isStreakEligible && multiplier > 1) {
+    historyDescription = `${description} (🔥 Racha x${multiplier} → +${streakBonus} bonus)`;
+  }
 
   await tx.pointHistory.create({
     data: {

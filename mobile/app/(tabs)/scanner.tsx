@@ -6,6 +6,7 @@ import api from '../../lib/api';
 import { useTheme } from '../../contexts/ThemeContext';
 import ScannerDefault from '../../components/scanner/ScannerDefault';
 import ScannerHalloween from '../../components/scanner/ScannerHalloween';
+import ScannerArgentina from '../../components/scanner/ScannerArgentina';
 
 export default function ScannerScreen() {
   const [permission, requestPermission] = useCameraPermissions();
@@ -121,9 +122,8 @@ export default function ScannerScreen() {
     permission, requestPermission, status, message, scanned, handleBarcodeScanned, resetScanner, showTutorial, setShowTutorial, theme
   };
 
-  if (theme.name === 'halloween') {
-    return <ScannerHalloween {...props} />;
-  }
+  if (theme.name === 'halloween') return <ScannerHalloween {...props} />;
+  if (theme.name === 'argentina') return <ScannerArgentina {...props} />;
 
   return <ScannerDefault {...props} />;
 }

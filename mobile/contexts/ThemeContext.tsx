@@ -7,6 +7,7 @@ interface ThemeContextValue {
   flags: Record<string, boolean>;
   isEnabled: (flag: string) => boolean;
   refreshTheme: () => void;
+  isHappyHour: boolean;
 }
 
 const ThemeContext = createContext<ThemeContextValue>({
@@ -14,6 +15,7 @@ const ThemeContext = createContext<ThemeContextValue>({
   flags: {},
   isEnabled: () => false,
   refreshTheme: () => {},
+  isHappyHour: false,
 });
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
@@ -45,8 +47,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     [flags]
   );
 
+  const isHappyHour = isEnabled('enable_happy_hour');
+
   return (
-    <ThemeContext.Provider value={{ theme, flags, isEnabled, refreshTheme: fetchFlags }}>
+    <ThemeContext.Provider value={{ theme, flags, isEnabled, refreshTheme: fetchFlags, isHappyHour }}>
       {children}
     </ThemeContext.Provider>
   );

@@ -5,6 +5,7 @@ import api from '../../lib/api';
 import { useTheme } from '../../contexts/ThemeContext';
 import RewardsDefault from '../../components/rewards/RewardsDefault';
 import RewardsHalloween from '../../components/rewards/RewardsHalloween';
+import RewardsArgentina from '../../components/rewards/RewardsArgentina';
 import { Reward } from '../../components/rewards/types';
 
 export default function RewardsScreen() {
@@ -49,9 +50,8 @@ export default function RewardsScreen() {
     theme
   };
 
-  if (theme.name === 'halloween') {
-    return <RewardsHalloween {...props} />;
-  }
+  if (theme.name === 'halloween') return <RewardsHalloween {...props} />;
+  if (theme.name === 'argentina') return <RewardsArgentina {...props} />;
 
   return <RewardsDefault {...props} />;
 }

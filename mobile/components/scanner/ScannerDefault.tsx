@@ -3,10 +3,12 @@ import { View, Text, TouchableOpacity, ActivityIndicator, StyleSheet, Modal, Scr
 import { CameraView } from 'expo-camera';
 import { ArrowLeft, ScanLine, CheckCircle2, XCircle, HelpCircle } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
+import { useTheme } from '../../contexts/ThemeContext';
 import { ScannerProps } from './types';
 
 export default function ScannerDefault(props: ScannerProps) {
   const router = useRouter();
+  const { isHappyHour } = useTheme();
   const { permission, requestPermission, status, message, scanned, handleBarcodeScanned, resetScanner, showTutorial, setShowTutorial, theme } = props;
 
   if (!permission.granted) {
@@ -53,10 +55,14 @@ export default function ScannerDefault(props: ScannerProps) {
                    <View className="absolute -bottom-4 -left-4 w-8 h-8 border-b-4 border-l-4 border-boston-gold rounded-bl-[20px]" />
                    <View className="absolute -bottom-4 -right-4 w-8 h-8 border-b-4 border-r-4 border-boston-gold rounded-br-[20px]" />
                 </View>
-                <View className="bg-black/60 px-6 py-3 rounded-full mt-10 border border-white/10">
-                  <Text style={{ color: theme.secondary }} className="font-bold uppercase text-[10px] tracking-widest text-center">Enfoque el código QR</Text>
+                <View className={`px-6 py-3 rounded-full mt-10 border ${isHappyHour ? 'bg-[#D4AF37]/20 border-[#D4AF37]' : 'bg-black/60 border-white/10'}`}>
+                  <Text style={{ color: isHappyHour ? '#FFF' : theme.secondary }} className="font-bold uppercase text-[10px] tracking-widest text-center">
+                    {isHappyHour ? '⭐ MODO HAPPY HOUR: PUNTOS x2 ⭐' : 'Enfoque el código QR'}
+                  </Text>
                 </View>
-                <Text className="text-white/80 text-[11px] text-center mt-6 uppercase font-black tracking-[0.2em] px-10 leading-5">CENTRO DE ESCANEO UNIVERSAL</Text>
+                <Text className="text-white/80 text-[11px] text-center mt-6 uppercase font-black tracking-[0.2em] px-10 leading-5">
+                  {isHappyHour ? 'TODOS TUS CONSUMOS SE MULTIPLICAN' : 'CENTRO DE ESCANEO UNIVERSAL'}
+                </Text>
                 <Text className="text-white/40 text-[9px] text-center mt-2 uppercase tracking-[0.1em] px-12 leading-4">Apunta aquí para realizar pagos, hacer tu Check-in o sumar puntos con los códigos del Club.</Text>
              </View>
           </View>

@@ -5,6 +5,7 @@ import api from '../lib/api';
 import { useTheme } from '../contexts/ThemeContext';
 import RewardQRDefault from '../components/redemptions/RewardQRDefault';
 import RewardQRHalloween from '../components/redemptions/RewardQRHalloween';
+import RewardQRArgentina from '../components/redemptions/RewardQRArgentina';
 
 export default function RewardQRScreen() {
   const { token, reward } = useLocalSearchParams<{ token: string; reward: string }>();
@@ -104,9 +105,8 @@ export default function RewardQRScreen() {
     token, reward: reward || '', isCompleted, timeLeft, totpTimestamp, cancelling, handleCancel, theme, fadeAnim
   };
 
-  if (theme.name === 'halloween') {
-    return <RewardQRHalloween {...props} />;
-  }
+  if (theme.name === 'halloween') return <RewardQRHalloween {...props} />;
+  if (theme.name === 'argentina') return <RewardQRArgentina {...props} />;
 
   return <RewardQRDefault {...props} />;
 }

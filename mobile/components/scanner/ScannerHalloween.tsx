@@ -3,10 +3,12 @@ import { View, Text, TouchableOpacity, ActivityIndicator, StyleSheet, Modal, Scr
 import { CameraView } from 'expo-camera';
 import { ArrowLeft, Skull, CheckCircle2, XCircle, HelpCircle, Flame, Moon, Sparkles, Ghost } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
+import { useTheme } from '../../contexts/ThemeContext';
 import { ScannerProps } from './types';
 
 export default function ScannerHalloween(props: ScannerProps) {
   const router = useRouter();
+  const { isHappyHour } = useTheme();
   const { permission, requestPermission, status, message, scanned, handleBarcodeScanned, resetScanner, showTutorial, setShowTutorial, theme } = props;
 
   if (!permission.granted) {
@@ -58,12 +60,16 @@ export default function ScannerHalloween(props: ScannerProps) {
                    <Sparkles size={24} color={theme.primary} className="opacity-40" />
                 </View>
 
-                <View style={{ borderColor: `${theme.primary}33` }} className="bg-black/80 px-8 py-4 rounded-full mt-10 border">
-                  <Text style={{ color: theme.primary }} className="font-black uppercase text-[11px] tracking-[0.3em] text-center italic">Canaliza la Energía</Text>
+                <View style={{ borderColor: isHappyHour ? '#9333EA' : `${theme.primary}33` }} className={`px-8 py-4 rounded-full mt-10 border ${isHappyHour ? 'bg-[#9333EA]/30' : 'bg-black/80'}`}>
+                  <Text style={{ color: isHappyHour ? '#FFF' : theme.primary }} className="font-black uppercase text-[11px] tracking-[0.3em] text-center italic">
+                    {isHappyHour ? '¡PACTO DE ALMAS: x2!' : 'Canaliza la Energía'}
+                  </Text>
                 </View>
 
                 <View className="mt-8 items-center px-10">
-                   <Text className="text-white font-black text-[12px] uppercase tracking-[0.4em] mb-2">Alma del Aquelarre</Text>
+                   <Text className="text-white font-black text-[12px] uppercase tracking-[0.4em] mb-2">
+                     {isHappyHour ? 'TUS ALMAS SE MULTIPLICAN' : 'Alma del Aquelarre'}
+                   </Text>
                    <Text className="text-white/40 text-[10px] text-center uppercase tracking-widest leading-4">
                      Apunta tu cámara para absorber puntos y realizar pactos mágicos en Boston.
                    </Text>

@@ -5,6 +5,7 @@ import api from '../lib/api';
 import { useTheme } from '../contexts/ThemeContext';
 import EventsDefault from '../components/events/EventsDefault';
 import EventsHalloween from '../components/events/EventsHalloween';
+import EventsArgentina from '../components/events/EventsArgentina';
 import { EventData } from '../components/events/types';
 
 export default function EventsScreen() {
@@ -53,9 +54,8 @@ export default function EventsScreen() {
     theme
   };
 
-  if (theme.name === 'halloween') {
-    return <EventsHalloween {...props} />;
-  }
+  if (theme.name === 'halloween') return <EventsHalloween {...props} />;
+  if (theme.name === 'argentina') return <EventsArgentina {...props} />;
 
   return <EventsDefault {...props} />;
 }
