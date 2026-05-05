@@ -191,9 +191,6 @@ export default function DashboardDefault({
       {/* Background Aura */}
       <View style={{ backgroundColor: theme.primary }} className={`absolute top-0 right-0 w-80 h-80 rounded-full opacity-10 blur-[100px]`} />
 
-      {/* Happy Hour Confetti — FUERA del ScrollView para no interferir con el scroll */}
-      {isHappyHour && <HappyHourExplosion />}
-
       <ScrollView
         className="flex-1 bg-[#050505]"
         showsVerticalScrollIndicator={false}

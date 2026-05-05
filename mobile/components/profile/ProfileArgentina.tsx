@@ -237,9 +237,9 @@ export default function ProfileArgentina({
           {/* Stats Bar */}
           <View style={{ flexDirection: 'row', marginTop: 40, backgroundColor: '#060D18', borderRadius: 32, padding: 24, width: '90%', borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)', shadowColor: '#000', shadowOpacity: 0.5, shadowRadius: 10 }}>
             <View style={{ flex: 1, alignItems: 'center', borderRightWidth: 1, borderRightColor: 'rgba(255,255,255,0.05)' }}>
-              <Text style={{ color: CELESTE, fontSize: 22, fontWeight: '900', fontStyle: 'italic' }} className={isHappyHour ? 'animate-pulse' : ''}>{user.points || 0}</Text>
+              <Text style={{ color: CELESTE, fontSize: 22, fontWeight: '900', fontStyle: 'italic' }}>{user.points || 0}</Text>
               <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 9, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 2, marginTop: 4 }}>Gloria</Text>
-              {isHappyHour && <Text style={{ color: CELESTE, fontSize: 8, fontWeight: '900', textTransform: 'uppercase', marginTop: 4 }}>(x2 Activo)</Text>}
+              {isHappyHour && <Text style={{ color: CELESTE, fontSize: 8, fontWeight: '900', textTransform: 'uppercase', marginTop: 4 }}>⚡ x2 ACTIVO</Text>}
             </View>
             <View style={{ flex: 1, alignItems: 'center', borderRightWidth: 1, borderRightColor: 'rgba(255,255,255,0.05)' }}>
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>

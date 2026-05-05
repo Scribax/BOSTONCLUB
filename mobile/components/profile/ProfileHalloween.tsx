@@ -257,9 +257,9 @@ export default function ProfileHalloween({
             {/* Main Stats Bar */}
             <View className="flex-row items-center mt-10 bg-[#0d0714] border rounded-[2rem] p-5 w-[90%] shadow-2xl" style={{ borderColor: `${theme.primary}33` }}>
               <View className="flex-1 items-center border-r" style={{ borderColor: `${theme.primary}20` }}>
-                <Text style={{ color: theme.primary }} className={`text-xl font-black italic ${isHappyHour ? 'animate-pulse' : ''}`}>{user.points || 0}</Text>
+                <Text style={{ color: theme.primary }} className="text-xl font-black italic">{user.points || 0}</Text>
                 <Text className="text-white/40 text-[8px] font-black uppercase tracking-widest mt-1">Almas</Text>
-                {isHappyHour && <Text style={{ color: theme.primary }} className="font-black text-[7px] uppercase mt-1">(x2 Activo)</Text>}
+                {isHappyHour && <Text style={{ color: theme.primary }} className="font-black text-[7px] uppercase mt-1">⚡ x2 ACTIVO</Text>}
               </View>
               <View className="flex-1 items-center border-r" style={{ borderColor: `${theme.primary}20` }}>
                 <View className="flex-row items-center">

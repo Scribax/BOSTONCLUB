@@ -120,9 +120,6 @@ export default function DashboardArgentina({
       <View style={{ position: 'absolute', top: -100, right: -80, width: 340, height: 340, borderRadius: 999, backgroundColor: CELESTE, opacity: 0.07 }} />
       <View style={{ position: 'absolute', bottom: 100, left: -80, width: 260, height: 260, borderRadius: 999, backgroundColor: GOLD, opacity: 0.04 }} />
 
-      {/* Happy Hour Confetti — FUERA del ScrollView */}
-      {isHappyHour && <HappyHourExplosion />}
-
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 120 }}

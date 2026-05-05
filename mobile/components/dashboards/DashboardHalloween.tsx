@@ -74,9 +74,6 @@ export default function DashboardHalloween({
       {/* Halloween Aura */}
       <View style={{ backgroundColor: theme.primaryGlow || theme.primary }} className={`absolute top-0 right-0 w-96 h-96 rounded-full opacity-20 blur-[120px]`} />
 
-      {/* Happy Hour Confetti — FUERA del ScrollView */}
-      {isHappyHour && <HappyHourExplosion />}
-
       <ScrollView
         className="flex-1 bg-transparent"
         showsVerticalScrollIndicator={false}
