@@ -42,10 +42,7 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "ok", message: "Boston Club API is running" });
 });
 
-// Ruta de prueba para Sentry
-app.get("/api/debug-sentry", (req, res) => {
-  throw new Error("¡Este es un error de prueba para verificar Sentry en Boston Club!");
-});
+
 
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
