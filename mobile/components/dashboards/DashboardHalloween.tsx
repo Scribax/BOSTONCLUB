@@ -98,6 +98,40 @@ export default function DashboardHalloween({
           </Text>
         </View>
 
+        {/* Active Ticket Banner - Spooky Style */}
+        {activeRedemption && (
+          <FadeInView className="px-6 mt-2 mb-6 z-[60]">
+            <TouchableOpacity
+              activeOpacity={0.9}
+              onPress={() => router.push({
+                pathname: '/reward-qr',
+                params: { token: activeRedemption.qrToken, reward: activeRedemption.title }
+              })}
+              style={{ 
+                backgroundColor: theme.primary,
+                shadowColor: theme.primary,
+                shadowOffset: { width: 0, height: 10 },
+                shadowOpacity: 0.5,
+                shadowRadius: 20,
+              }}
+              className="rounded-[2.5rem] p-6 flex-row items-center shadow-2xl"
+            >
+              <View className="w-14 h-14 rounded-2xl bg-black/20 items-center justify-center mr-4 border border-black/10">
+                <Skull size={28} color="black" />
+              </View>
+              <View className="flex-1">
+                <Text className="text-black font-black text-[9px] uppercase tracking-[0.3em] mb-1 italic">Invocación Lista</Text>
+                <Text className="text-black font-black text-2xl italic uppercase tracking-tighter leading-none" numberOfLines={1}>
+                  {activeRedemption.title}
+                </Text>
+              </View>
+              <View className="w-10 h-10 rounded-full bg-black/10 items-center justify-center">
+                <ArrowRight size={20} color="black" />
+              </View>
+            </TouchableOpacity>
+          </FadeInView>
+        )}
+
         {/* Tarot Banners Grid */}
         <View className="px-6 flex-row flex-wrap justify-between">
           {banners.slice(0, 2).map((item, idx) => (
