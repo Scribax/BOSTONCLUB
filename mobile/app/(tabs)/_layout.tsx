@@ -7,6 +7,7 @@ import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import { configureReanimatedLogger, ReanimatedLogLevel } from 'react-native-reanimated';
 import api, { logout } from '../../lib/api';
+import { useTheme } from '../../contexts/ThemeContext';
 
 // Silenciamos los warnings molestos de Reanimated durante el renderizado
 configureReanimatedLogger({
@@ -25,10 +26,13 @@ const IconRenderer = ({ name, size, color, strokeWidth }: any) => {
 
 // Icono animado optimizado
 const AnimatedTabIcon = ({ focused, color, iconName, label, totalTabs = 4 }: any) => {
+  const { theme } = useTheme();
   const scaleAnim = useRef(new Animated.Value(focused ? 1.05 : 1)).current;
   const translateYAnim = useRef(new Animated.Value(focused ? -4 : 0)).current;
   const barWidth = useRef(new Animated.Value(focused ? 32 : 0)).current;
   const opacityAnim = useRef(new Animated.Value(focused ? 1 : 0.6)).current;
+  
+  const activeColor = focused ? theme.primary : 'rgba(255,255,255,0.4)';
 
   useEffect(() => {
     Animated.parallel([
@@ -50,11 +54,11 @@ const AnimatedTabIcon = ({ focused, color, iconName, label, totalTabs = 4 }: any
           opacity: opacityAnim,
         }}
       >
-        <IconRenderer name={iconName} size={24} color={color} strokeWidth={focused ? 2.5 : 2} />
+        <IconRenderer name={iconName} size={24} color={activeColor} strokeWidth={focused ? 2.5 : 2} />
         <Text
           numberOfLines={1}
           style={{
-            color,
+            color: activeColor,
             fontSize: 8,
             fontWeight: '900',
             marginTop: 5,
@@ -66,16 +70,16 @@ const AnimatedTabIcon = ({ focused, color, iconName, label, totalTabs = 4 }: any
         </Text>
       </Animated.View>
 
-      {/* Indicador rojo activo */}
+      {/* Indicador activo dinámico */}
       <Animated.View
         style={{
           position: 'absolute',
           bottom: 4,
           height: 3,
-          backgroundColor: '#FF2D2D',
+          backgroundColor: theme.primary,
           borderRadius: 2,
           width: barWidth,
-          shadowColor: '#FF2D2D',
+          shadowColor: theme.primary,
           shadowOffset: { width: 0, height: 0 },
           shadowOpacity: 0.9,
           shadowRadius: 6,
@@ -88,6 +92,7 @@ const AnimatedTabIcon = ({ focused, color, iconName, label, totalTabs = 4 }: any
 
 // Botón SCAN flotante
 const ScanButton = ({ onPress }: any) => {
+  const { theme } = useTheme();
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const glowAnim = useRef(new Animated.Value(1)).current;
 
@@ -122,14 +127,14 @@ const ScanButton = ({ onPress }: any) => {
           width: 70,
           height: 70,
           borderRadius: 35,
-          backgroundColor: '#FF2D2D',
+          backgroundColor: theme.primary,
           opacity: 0.15,
           transform: [{ scale: glowAnim }],
         }}
       />
       <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
         <LinearGradient
-          colors={['#FF3B30', '#FF2D2D', '#910000']}
+          colors={[theme.primary, theme.secondary || '#910000']}
           style={{
             width: 68,
             height: 68,
@@ -140,7 +145,11 @@ const ScanButton = ({ onPress }: any) => {
             borderColor: '#050505',
           }}
         >
-          <LucideIcons.Scan size={28} color="#000" strokeWidth={3} />
+          {theme.name === 'halloween' ? (
+             <LucideIcons.Zap size={28} color="#000" strokeWidth={3} />
+          ) : (
+             <LucideIcons.Scan size={28} color="#000" strokeWidth={3} />
+          )}
         </LinearGradient>
       </Animated.View>
     </Pressable>
@@ -149,6 +158,7 @@ const ScanButton = ({ onPress }: any) => {
 
 // Custom Tab Bar para tener control 100% absoluto sobre lo que se dibuja
 const CustomTabBar = ({ state, descriptors, navigation, isAdmin }: any) => {
+  const { theme } = useTheme();
   // Filtramos estrictamente las rutas que queremos mostrar según el rol
   const visibleRoutes = state.routes.filter((route: any) => {
     if (isAdmin) {
@@ -212,12 +222,23 @@ const CustomTabBar = ({ state, descriptors, navigation, isAdmin }: any) => {
             }
           };
 
-          // Configuramos los iconos según la ruta
+          // Configuramos los iconos según la ruta y el tema
           let iconName = '';
           let label = '';
-          if (route.name === 'index') { iconName = 'Home'; label = 'INICIO'; }
-          if (route.name === 'rewards') { iconName = 'Gift'; label = 'PREMIOS'; }
-          if (route.name === 'profile') { iconName = 'UserCircle'; label = 'PERFIL'; }
+          const isHalloween = theme.name === 'halloween';
+
+          if (route.name === 'index') { 
+            iconName = isHalloween ? 'Ghost' : 'Home'; 
+            label = isHalloween ? 'PORTAL' : 'INICIO'; 
+          }
+          if (route.name === 'rewards') { 
+            iconName = isHalloween ? 'Flame' : 'Gift'; 
+            label = isHalloween ? 'POCIONES' : 'PREMIOS'; 
+          }
+          if (route.name === 'profile') { 
+            iconName = isHalloween ? 'Skull' : 'UserCircle'; 
+            label = isHalloween ? 'PANTEÓN' : 'PERFIL'; 
+          }
           if (route.name === 'staff-scanner') { iconName = 'Scan'; label = 'SCAN'; }
           if (route.name === 'staff-history') { iconName = 'History'; label = 'HISTORIAL'; }
           if (route.name === 'staff-profile-placeholder') { iconName = 'LogOut'; label = 'SALIR'; }
@@ -232,7 +253,7 @@ const CustomTabBar = ({ state, descriptors, navigation, isAdmin }: any) => {
                 </View>
                 <Text
                   style={{
-                    color: isFocused ? '#FF2D2D' : 'rgba(255,255,255,0.4)',
+                    color: isFocused ? theme.primary : 'rgba(255,255,255,0.4)',
                     fontSize: 8,
                     fontWeight: '900',
                     marginTop: 38,
@@ -240,7 +261,7 @@ const CustomTabBar = ({ state, descriptors, navigation, isAdmin }: any) => {
                     textTransform: 'uppercase',
                   }}
                 >
-                  SCAN
+                  {isHalloween ? 'CONJURO' : 'SCAN'}
                 </Text>
               </View>
             );
