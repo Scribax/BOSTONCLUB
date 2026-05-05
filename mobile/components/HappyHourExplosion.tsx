@@ -1,22 +1,19 @@
 import React, { useEffect } from 'react';
 import { View, Dimensions, StyleSheet } from 'react-native';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, withRepeat, withSequence, withDelay, Easing } from 'react-native-reanimated';
-import { Star, Sparkles, Zap, Flame, Trophy, Coins } from 'lucide-react-native';
 
 const { width, height } = Dimensions.get('window');
 
-// Variedad de íconos que caerán
-const ICONS = [Star, Sparkles, Zap, Flame, Coins, Trophy];
-// Colores representativos de los 3 temas (Oro, Celeste, Morado)
+// Colores representativos de los 3 temas (Oro, Celeste, Morado, Rojo, Blanco)
 const COLORS = ['#D4AF37', '#75AADB', '#9333EA', '#FF4D4D', '#FFFFFF'];
 
 const Particle = ({ delay, index }: { delay: number, index: number }) => {
-  const Icon = ICONS[index % ICONS.length];
   const color = COLORS[index % COLORS.length];
+  const isCircle = index % 2 === 0;
   
   // Posición inicial aleatoria a lo ancho
   const initialX = Math.random() * width;
-  const size = 12 + Math.random() * 20; // Tamaño entre 12 y 32
+  const size = 6 + Math.random() * 8; // Tamaño más pequeño y ligero (6 a 14)
 
   const translateY = useSharedValue(-50);
   const translateX = useSharedValue(initialX);
@@ -71,17 +68,17 @@ const Particle = ({ delay, index }: { delay: number, index: number }) => {
       { translateY: translateY.value },
       { rotate: `${rotation.value}deg` }
     ],
-    opacity: opacity.value
+    opacity: opacity.value,
+    width: size,
+    height: isCircle ? size : size * 1.5,
+    backgroundColor: color,
+    borderRadius: isCircle ? size / 2 : 2,
   }));
 
-  return (
-    <Animated.View style={style}>
-      <Icon size={size} color={color} fill={color} />
-    </Animated.View>
-  );
+  return <Animated.View style={style} />;
 };
 
-export default function HappyHourExplosion({ count = 30 }: { count?: number }) {
+export default function HappyHourExplosion({ count = 15 }: { count?: number }) {
   const particles = Array.from({ length: count }).map((_, i) => ({
     id: i,
     // Distribuimos el inicio (delay) para que no caigan todos al mismo tiempo
