@@ -10,6 +10,7 @@ import * as SecureStore from 'expo-secure-store';
 import { VipStatusModal } from '../../components/VipStatusModal';
 import QRCode from 'react-native-qrcode-svg';
 import { QrCode as QrIcon } from 'lucide-react-native';
+import { useFeatureFlags } from '../../hooks/useFeatureFlags';
 
 export default function ProfileScreen() {
   const [user, setUser] = useState<any>(null);
@@ -31,6 +32,7 @@ export default function ProfileScreen() {
   const [showMemberQr, setShowMemberQr] = useState(false);
   const [memberToken, setMemberToken] = useState<string | null>(null);
   const [tokenExpiry, setTokenExpiry] = useState<number | null>(null);
+  const { isEnabled } = useFeatureFlags();
 
   const AVATARS = [
     { id: 'default', name: 'Original', icon: null },
@@ -365,48 +367,50 @@ export default function ProfileScreen() {
         <View className="px-6 -mt-6 pb-24">
 
           {/* Referral Premium Card */}
-          <View className="relative mb-8 overflow-hidden rounded-[2.5rem] border border-boston-gold/30 shadow-2xl shadow-boston-gold/10">
-            <LinearGradient
-              colors={['#D4AF37', '#8A6D3B']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              className="absolute inset-0 opacity-[0.08]"
-            />
-            <View className="p-8">
-              <View className="flex-row items-center justify-between mb-4">
-                <View className="flex-row items-center">
-                  <View className="bg-boston-gold/20 p-2.5 rounded-2xl mr-4">
-                    <Users size={24} color="#D4AF37" />
+          {isEnabled('enable_referrals') && (
+            <View className="relative mb-8 overflow-hidden rounded-[2.5rem] border border-boston-gold/30 shadow-2xl shadow-boston-gold/10">
+              <LinearGradient
+                colors={['#D4AF37', '#8A6D3B']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                className="absolute inset-0 opacity-[0.08]"
+              />
+              <View className="p-8">
+                <View className="flex-row items-center justify-between mb-4">
+                  <View className="flex-row items-center">
+                    <View className="bg-boston-gold/20 p-2.5 rounded-2xl mr-4">
+                      <Users size={24} color="#D4AF37" />
+                    </View>
+                    <View>
+                      <Text className="text-boston-gold font-black text-xs uppercase tracking-[0.2em]">Invitá Amigos</Text>
+                      <Text className="text-white/40 text-[9px] font-bold uppercase mt-0.5">Ganá puntos por cada referido</Text>
+                    </View>
                   </View>
+                </View>
+
+                <View className="bg-black/40 rounded-[1.5rem] p-5 border border-white/5 flex-row items-center justify-between shadow-inner">
                   <View>
-                    <Text className="text-boston-gold font-black text-xs uppercase tracking-[0.2em]">Invitá Amigos</Text>
-                    <Text className="text-white/40 text-[9px] font-bold uppercase mt-0.5">Ganá puntos por cada referido</Text>
+                    <Text className="text-white/30 text-[8px] font-black uppercase tracking-widest mb-1">Tu Código Único</Text>
+                    <Text className="text-white text-2xl font-black tracking-[0.3em]">{user.referralCode}</Text>
                   </View>
+                  <TouchableOpacity
+                    activeOpacity={0.7}
+                    onPress={handleShareReferral}
+                    className="bg-boston-gold h-12 w-12 rounded-2xl items-center justify-center shadow-lg shadow-boston-gold/20"
+                  >
+                    <Share2 size={20} color="black" />
+                  </TouchableOpacity>
                 </View>
-              </View>
 
-              <View className="bg-black/40 rounded-[1.5rem] p-5 border border-white/5 flex-row items-center justify-between shadow-inner">
-                <View>
-                  <Text className="text-white/30 text-[8px] font-black uppercase tracking-widest mb-1">Tu Código Único</Text>
-                  <Text className="text-white text-2xl font-black tracking-[0.3em]">{user.referralCode}</Text>
+                <View className="mt-5 flex-row items-center">
+                  <View className="h-[4px] w-[4px] rounded-full bg-boston-gold mr-3" />
+                  <Text className="text-white/60 text-[9px] font-bold uppercase leading-4 flex-1">
+                    Tú recibís <Text className="text-boston-gold">{user.referralRewardReferrer || 500} pts</Text> y tu amigo <Text className="text-boston-gold">{user.referralRewardReferee || 200} pts</Text>
+                  </Text>
                 </View>
-                <TouchableOpacity
-                  activeOpacity={0.7}
-                  onPress={handleShareReferral}
-                  className="bg-boston-gold h-12 w-12 rounded-2xl items-center justify-center shadow-lg shadow-boston-gold/20"
-                >
-                  <Share2 size={20} color="black" />
-                </TouchableOpacity>
-              </View>
-
-              <View className="mt-5 flex-row items-center">
-                <View className="h-[4px] w-[4px] rounded-full bg-boston-gold mr-3" />
-                <Text className="text-white/60 text-[9px] font-bold uppercase leading-4 flex-1">
-                  Tú recibís <Text className="text-boston-gold">{user.referralRewardReferrer || 500} pts</Text> y tu amigo <Text className="text-boston-gold">{user.referralRewardReferee || 200} pts</Text>
-                </Text>
               </View>
             </View>
-          </View>
+          )}
           {/* Settings Groups */}
           <Text className="text-white/30 text-[9px] font-black uppercase tracking-[0.4em] mb-4 ml-4">Información Personal</Text>
 

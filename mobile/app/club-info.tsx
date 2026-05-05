@@ -21,6 +21,7 @@ import {
 } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import api from '../lib/api';
+import { useFeatureFlags } from '../hooks/useFeatureFlags';
 
 interface AppSettings {
    pointsPerPeso?: number;
@@ -35,6 +36,7 @@ export default function ClubInfoScreen() {
    const [settings, setSettings] = React.useState<AppSettings | null>(null);
    const [user, setUser] = React.useState<any>(null);
    const [loading, setLoading] = React.useState(true);
+   const { isEnabled } = useFeatureFlags();
 
    React.useEffect(() => {
       fetchData();
@@ -244,15 +246,17 @@ export default function ClubInfoScreen() {
                </View>
 
             <View className="gap-y-4">
-               <MissionCard
-                  icon={Users}
-                  color="#3B82F6"
-                  title="Invita y conquista"
-                  description="Trae amigos al club"
-                  reward={`${referralPoints}`}
-                  accent
-                  onPress={() => router.push('/(tabs)/profile')}
-               />
+               {isEnabled('enable_referrals') && (
+                  <MissionCard
+                     icon={Users}
+                     color="#3B82F6"
+                     title="Invita y conquista"
+                     description="Trae amigos al club"
+                     reward={`${referralPoints}`}
+                     accent
+                     onPress={() => router.push('/(tabs)/profile')}
+                  />
+               )}
                <MissionCard
                    icon={Sparkles}
                    color="#10B981"

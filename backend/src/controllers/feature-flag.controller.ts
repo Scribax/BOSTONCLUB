@@ -4,6 +4,24 @@ import { clearFlagCache, setFlagCache } from '../services/featureFlag.service';
 
 const prisma = new PrismaClient();
 
+export const getPublicFlags = async (req: Request, res: Response) => {
+  try {
+    const flags = await prisma.featureFlag.findMany({
+      select: { name: true, enabled: true },
+    });
+    
+    const flagsMap = flags.reduce((acc, flag) => {
+      acc[flag.name] = flag.enabled;
+      return acc;
+    }, {} as Record<string, boolean>);
+    
+    res.json(flagsMap);
+  } catch (error) {
+    console.error('Error fetching public feature flags:', error);
+    res.status(500).json({ error: 'Failed to fetch feature flags' });
+  }
+};
+
 export const getAllFlags = async (req: Request, res: Response) => {
   try {
     const flags = await prisma.featureFlag.findMany({
