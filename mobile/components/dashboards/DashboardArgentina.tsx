@@ -4,11 +4,11 @@ import {
   RefreshControl, Image, Modal, useWindowDimensions, FlatList,
 } from 'react-native';
 import {
-  Trophy, Star, Shirt, MapPin, ClipboardList, ArrowRight,
+  Trophy, Star, MapPin, ClipboardList, ArrowRight,
   User as UserIcon, X, Zap, ChevronRight,
 } from 'lucide-react-native';
-import { StatusBar } from 'expo-status-bar';
 import { VideoPlayer } from '../../components/VideoPlayer';
+import { StatusBar } from 'expo-status-bar';
 import { FadeInView } from '../../components/FadeInView';
 import { LinearGradient } from 'expo-linear-gradient';
 import { VipStatusModal } from '../VipStatusModal';
@@ -152,20 +152,20 @@ export default function DashboardArgentina({
 
           {/* Player card row */}
           <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 20 }}>
-            {/* Jersey number bubble */}
+            {/* Argentine flag bubble */}
             <View style={{
               width: 90, height: 90, borderRadius: 28,
               backgroundColor: `${CELESTE}15`, borderWidth: 2, borderColor: `${CELESTE}33`,
               alignItems: 'center', justifyContent: 'center',
               shadowColor: CELESTE, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.4, shadowRadius: 20,
             }}>
-              <Shirt size={40} color={CELESTE} />
+              <Text style={{ fontSize: 44 }}>🇦🇷</Text>
             </View>
 
             {/* Name & rank */}
             <View style={{ flex: 1, paddingBottom: 4 }}>
               <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 9, fontWeight: '900', letterSpacing: 3, textTransform: 'uppercase', marginBottom: 4 }}>
-                Capitán
+                ¡Hola Muchachos! · Capitán
               </Text>
               <Text style={{ color: '#fff', fontSize: 32, fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', letterSpacing: -1, lineHeight: 32 }}>
                 {user.firstName}
@@ -292,11 +292,19 @@ export default function DashboardArgentina({
                   activeOpacity={0.9}
                   style={{ width: SW * 0.62, borderRadius: 24, overflow: 'hidden', backgroundColor: NAVY_MID }}
                 >
-                  <Image
-                    source={{ uri: resolveImageUrl(item.imageUrl) || 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=500' }}
-                    style={{ width: '100%', height: 200 }}
-                    resizeMode="cover"
-                  />
+                  {item.mediaType === 'VIDEO' && item.videoUrl ? (
+                    isScreenFocused ? (
+                      <VideoPlayer uri={resolveImageUrl(item.videoUrl) || ''} style={{ width: '100%', height: 200 }} />
+                    ) : (
+                      <Image source={{ uri: resolveImageUrl(item.imageUrl) || '' }} style={{ width: '100%', height: 200, opacity: 0.8 }} resizeMode="cover" />
+                    )
+                  ) : (
+                    <Image
+                      source={{ uri: resolveImageUrl(item.imageUrl) || '' }}
+                      style={{ width: '100%', height: 200 }}
+                      resizeMode="cover"
+                    />
+                  )}
                   <LinearGradient
                     colors={['transparent', 'rgba(2,11,26,0.95)']}
                     style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '65%', padding: 16, justifyContent: 'flex-end' }}
@@ -385,6 +393,7 @@ export default function DashboardArgentina({
                   onPress={() => item.id !== 'empty' && router.push(`/banner/${item.id}`)}
                   activeOpacity={0.9}
                   style={{ width: SW * 0.78, height: 130, backgroundColor: NAVY_MID, borderWidth: 1, borderColor: 'rgba(255,255,255,0.07)', borderRadius: 22, overflow: 'hidden', flexDirection: 'row' }}
+                  key={item.id}
                 >
                   <View style={{ flex: 1, padding: 18, justifyContent: 'center' }}>
                     <Text style={{ color: '#fff', fontWeight: '900', fontSize: 15, fontStyle: 'italic', textTransform: 'uppercase', letterSpacing: -0.3, lineHeight: 17, marginBottom: 8 }} numberOfLines={2}>
@@ -395,11 +404,19 @@ export default function DashboardArgentina({
                     </View>
                   </View>
                   <View style={{ width: 120, position: 'relative' }}>
-                    <Image
-                      source={{ uri: resolveImageUrl(item.imageUrl) || 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=500' }}
-                      style={{ width: '100%', height: '100%' }}
-                      resizeMode="cover"
-                    />
+                    {item.mediaType === 'VIDEO' && item.videoUrl ? (
+                      isScreenFocused ? (
+                        <VideoPlayer uri={resolveImageUrl(item.videoUrl) || ''} style={{ width: '100%', height: '100%' }} />
+                      ) : (
+                        <Image source={{ uri: resolveImageUrl(item.imageUrl) || '' }} style={{ width: '100%', height: '100%', opacity: 0.8 }} resizeMode="cover" />
+                      )
+                    ) : (
+                      <Image
+                        source={{ uri: resolveImageUrl(item.imageUrl) || '' }}
+                        style={{ width: '100%', height: '100%' }}
+                        resizeMode="cover"
+                      />
+                    )}
                     <LinearGradient
                       colors={[NAVY_MID, 'transparent']}
                       start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }}
