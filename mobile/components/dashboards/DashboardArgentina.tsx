@@ -129,13 +129,16 @@ export default function DashboardArgentina({
           style={{ paddingTop: 60, paddingHorizontal: 24, paddingBottom: 32 }}
         >
           {/* Top bar */}
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-              <Star size={10} color={GOLD} fill={GOLD} />
-              <Star size={10} color={GOLD} fill={GOLD} />
-              <Star size={10} color={GOLD} fill={GOLD} />
-              <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 9, fontWeight: '900', letterSpacing: 3, textTransform: 'uppercase', marginLeft: 6 }}>
-                Mundial Edition
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+            <View>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, marginBottom: 4 }}>
+                <Star size={9} color={GOLD} fill={GOLD} />
+                <Star size={9} color={GOLD} fill={GOLD} />
+                <Star size={9} color={GOLD} fill={GOLD} />
+              </View>
+              <Text style={{ color: '#fff', fontSize: 30, fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', letterSpacing: -1, lineHeight: 30 }}>
+                ¡Hola{' '}
+                <Text style={{ color: CELESTE }}>Muchachos!</Text>
               </Text>
             </View>
             <TouchableOpacity
@@ -165,7 +168,7 @@ export default function DashboardArgentina({
             {/* Name & rank */}
             <View style={{ flex: 1, paddingBottom: 4 }}>
               <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 9, fontWeight: '900', letterSpacing: 3, textTransform: 'uppercase', marginBottom: 4 }}>
-                ¡Hola Muchachos! · Capitán
+                Capitán
               </Text>
               <Text style={{ color: '#fff', fontSize: 32, fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', letterSpacing: -1, lineHeight: 32 }}>
                 {user.firstName}
