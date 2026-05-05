@@ -13,6 +13,7 @@ import { FadeInView } from '../../components/FadeInView';
 import { LinearGradient } from 'expo-linear-gradient';
 import { VipStatusModal } from '../VipStatusModal';
 import { useTheme } from '../../contexts/ThemeContext';
+import HappyHourExplosion from '../../components/HappyHourExplosion';
 import { DashboardProps } from './types';
 
 LogBox.ignoreLogs([
@@ -213,11 +214,14 @@ export default function DashboardDefault({
 
           {/* Happy Hour Banner */}
           {isHappyHour && (
-            <FadeInView delay={300} style={{ position: 'absolute', top: 120, width: '100%', zIndex: 40, alignItems: 'center' }}>
-              <View style={{ backgroundColor: theme.secondary, paddingHorizontal: 20, paddingVertical: 8, borderRadius: 20, shadowColor: theme.secondary, shadowOffset: {width: 0, height: 0}, shadowOpacity: 0.8, shadowRadius: 15, borderWidth: 1, borderColor: '#FFF' }}>
-                <Text style={{ color: 'black', fontWeight: '900', fontSize: 11, textTransform: 'uppercase', letterSpacing: 2 }}>¡HAPPY HOUR ACTIVO! Puntos x2</Text>
-              </View>
-            </FadeInView>
+            <>
+              <HappyHourExplosion count={20} />
+              <FadeInView delay={300} style={{ position: 'absolute', top: 120, width: '100%', zIndex: 40, alignItems: 'center' }}>
+                <View style={{ backgroundColor: theme.secondary, paddingHorizontal: 20, paddingVertical: 8, borderRadius: 20, shadowColor: theme.secondary, shadowOffset: {width: 0, height: 0}, shadowOpacity: 0.8, shadowRadius: 15, borderWidth: 1, borderColor: '#FFF' }}>
+                  <Text style={{ color: 'black', fontWeight: '900', fontSize: 11, textTransform: 'uppercase', letterSpacing: 2 }}>¡HAPPY HOUR ACTIVO! Puntos x2</Text>
+                </View>
+              </FadeInView>
+            </>
           )}
 
           {/* Hero Carousel */}

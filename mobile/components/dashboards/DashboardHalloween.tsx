@@ -6,8 +6,10 @@ import { VideoPlayer } from '../../components/VideoPlayer';
 import { FadeInView } from '../../components/FadeInView';
 import { LinearGradient } from 'expo-linear-gradient';
 import { VipStatusModal } from '../VipStatusModal';
+import HappyHourExplosion from '../../components/HappyHourExplosion';
 import { DashboardProps } from './types';
 import { logout } from '../../lib/api';
+import { useTheme } from '../../contexts/ThemeContext';
 
 export default function DashboardHalloween({
   user, banners, promoBanners, activeRedemption, settings, nextTier,
@@ -93,11 +95,14 @@ export default function DashboardHalloween({
 
         {/* Happy Hour Banner */}
         {isHappyHour && (
-          <FadeInView delay={300} style={{ width: '100%', zIndex: 40, alignItems: 'center', marginTop: -10, marginBottom: 16 }}>
-            <View style={{ backgroundColor: '#9333EA', paddingHorizontal: 20, paddingVertical: 8, borderRadius: 20, shadowColor: '#9333EA', shadowOffset: {width: 0, height: 0}, shadowOpacity: 0.8, shadowRadius: 15, borderWidth: 1, borderColor: '#FFF' }}>
-              <Text style={{ color: 'white', fontWeight: '900', fontSize: 11, textTransform: 'uppercase', letterSpacing: 2 }}>¡PACTO DE ALMAS! Almas x2</Text>
-            </View>
-          </FadeInView>
+          <>
+            <HappyHourExplosion count={20} />
+            <FadeInView delay={300} style={{ width: '100%', zIndex: 40, alignItems: 'center', marginTop: -10, marginBottom: 16 }}>
+              <View style={{ backgroundColor: '#9333EA', paddingHorizontal: 20, paddingVertical: 8, borderRadius: 20, shadowColor: '#9333EA', shadowOffset: {width: 0, height: 0}, shadowOpacity: 0.8, shadowRadius: 15, borderWidth: 1, borderColor: '#FFF' }}>
+                <Text style={{ color: 'white', fontWeight: '900', fontSize: 11, textTransform: 'uppercase', letterSpacing: 2 }}>¡PACTO DE ALMAS! Almas x2</Text>
+              </View>
+            </FadeInView>
+          </>
         )}
 
         {/* Greeting Section */}

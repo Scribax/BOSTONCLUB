@@ -12,6 +12,8 @@ import { StatusBar } from 'expo-status-bar';
 import { FadeInView } from '../../components/FadeInView';
 import { LinearGradient } from 'expo-linear-gradient';
 import { VipStatusModal } from '../VipStatusModal';
+import { useTheme } from '../../contexts/ThemeContext';
+import HappyHourExplosion from '../../components/HappyHourExplosion';
 import { DashboardProps } from './types';
 import { logout } from '../../lib/api';
 
@@ -156,11 +158,14 @@ export default function DashboardArgentina({
 
           {/* Happy Hour Banner */}
           {isHappyHour && (
-            <FadeInView delay={300} style={{ width: '100%', alignItems: 'center', marginBottom: 20 }}>
-              <View style={{ backgroundColor: GOLD, paddingHorizontal: 20, paddingVertical: 8, borderRadius: 20, shadowColor: GOLD, shadowOffset: {width: 0, height: 0}, shadowOpacity: 0.8, shadowRadius: 15, borderWidth: 1, borderColor: '#FFF' }}>
-                <Text style={{ color: 'black', fontWeight: '900', fontSize: 11, textTransform: 'uppercase', letterSpacing: 2 }}>¡TIEMPO DE DESCUENTO! Puntos x2</Text>
-              </View>
-            </FadeInView>
+            <>
+              <HappyHourExplosion count={20} />
+              <FadeInView delay={300} style={{ width: '100%', alignItems: 'center', marginBottom: 20 }}>
+                <View style={{ backgroundColor: GOLD, paddingHorizontal: 20, paddingVertical: 8, borderRadius: 20, shadowColor: GOLD, shadowOffset: {width: 0, height: 0}, shadowOpacity: 0.8, shadowRadius: 15, borderWidth: 1, borderColor: '#FFF' }}>
+                  <Text style={{ color: 'black', fontWeight: '900', fontSize: 11, textTransform: 'uppercase', letterSpacing: 2 }}>¡TIEMPO DE DESCUENTO! Puntos x2</Text>
+                </View>
+              </FadeInView>
+            </>
           )}
 
           {/* Player card row */}
