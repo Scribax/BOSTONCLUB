@@ -74,6 +74,9 @@ export default function DashboardHalloween({
       {/* Halloween Aura */}
       <View style={{ backgroundColor: theme.primaryGlow || theme.primary }} className={`absolute top-0 right-0 w-96 h-96 rounded-full opacity-20 blur-[120px]`} />
 
+      {/* Happy Hour Confetti — FUERA del ScrollView */}
+      {isHappyHour && <HappyHourExplosion />}
+
       <ScrollView
         className="flex-1 bg-transparent"
         showsVerticalScrollIndicator={false}
@@ -93,16 +96,13 @@ export default function DashboardHalloween({
           </TouchableOpacity>
         </View>
 
-        {/* Happy Hour Banner */}
+        {/* Happy Hour Banner pill */}
         {isHappyHour && (
-          <>
-            <HappyHourExplosion count={20} />
-            <FadeInView delay={300} style={{ width: '100%', zIndex: 40, alignItems: 'center', marginTop: -10, marginBottom: 16 }}>
-              <View style={{ backgroundColor: '#9333EA', paddingHorizontal: 20, paddingVertical: 8, borderRadius: 20, shadowColor: '#9333EA', shadowOffset: {width: 0, height: 0}, shadowOpacity: 0.8, shadowRadius: 15, borderWidth: 1, borderColor: '#FFF' }}>
-                <Text style={{ color: 'white', fontWeight: '900', fontSize: 11, textTransform: 'uppercase', letterSpacing: 2 }}>¡PACTO DE ALMAS! Almas x2</Text>
-              </View>
-            </FadeInView>
-          </>
+          <FadeInView delay={300} style={{ width: '100%', zIndex: 40, alignItems: 'center', marginTop: -10, marginBottom: 16 }}>
+            <View style={{ backgroundColor: '#9333EA', paddingHorizontal: 20, paddingVertical: 8, borderRadius: 20, shadowColor: '#9333EA', shadowOffset: {width: 0, height: 0}, shadowOpacity: 0.8, shadowRadius: 15, borderWidth: 1, borderColor: '#FFF' }}>
+              <Text style={{ color: 'white', fontWeight: '900', fontSize: 11, textTransform: 'uppercase', letterSpacing: 2 }}>¡PACTO DE ALMAS! Almas x2</Text>
+            </View>
+          </FadeInView>
         )}
 
         {/* Greeting Section */}

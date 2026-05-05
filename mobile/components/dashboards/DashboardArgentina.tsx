@@ -120,6 +120,9 @@ export default function DashboardArgentina({
       <View style={{ position: 'absolute', top: -100, right: -80, width: 340, height: 340, borderRadius: 999, backgroundColor: CELESTE, opacity: 0.07 }} />
       <View style={{ position: 'absolute', bottom: 100, left: -80, width: 260, height: 260, borderRadius: 999, backgroundColor: GOLD, opacity: 0.04 }} />
 
+      {/* Happy Hour Confetti — FUERA del ScrollView */}
+      {isHappyHour && <HappyHourExplosion />}
+
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 120 }}
@@ -156,16 +159,13 @@ export default function DashboardArgentina({
             </TouchableOpacity>
           </View>
 
-          {/* Happy Hour Banner */}
+          {/* Happy Hour Banner pill */}
           {isHappyHour && (
-            <>
-              <HappyHourExplosion count={20} />
-              <FadeInView delay={300} style={{ width: '100%', alignItems: 'center', marginBottom: 20 }}>
-                <View style={{ backgroundColor: GOLD, paddingHorizontal: 20, paddingVertical: 8, borderRadius: 20, shadowColor: GOLD, shadowOffset: {width: 0, height: 0}, shadowOpacity: 0.8, shadowRadius: 15, borderWidth: 1, borderColor: '#FFF' }}>
-                  <Text style={{ color: 'black', fontWeight: '900', fontSize: 11, textTransform: 'uppercase', letterSpacing: 2 }}>¡TIEMPO DE DESCUENTO! Puntos x2</Text>
-                </View>
-              </FadeInView>
-            </>
+            <FadeInView delay={300} style={{ width: '100%', alignItems: 'center', marginBottom: 20 }}>
+              <View style={{ backgroundColor: GOLD, paddingHorizontal: 20, paddingVertical: 8, borderRadius: 20, shadowColor: GOLD, shadowOffset: {width: 0, height: 0}, shadowOpacity: 0.8, shadowRadius: 15, borderWidth: 1, borderColor: '#FFF' }}>
+                <Text style={{ color: 'black', fontWeight: '900', fontSize: 11, textTransform: 'uppercase', letterSpacing: 2 }}>¡TIEMPO DE DESCUENTO! Puntos x2</Text>
+              </View>
+            </FadeInView>
           )}
 
           {/* Player card row */}

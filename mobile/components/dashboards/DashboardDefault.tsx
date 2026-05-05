@@ -191,6 +191,9 @@ export default function DashboardDefault({
       {/* Background Aura */}
       <View style={{ backgroundColor: theme.primary }} className={`absolute top-0 right-0 w-80 h-80 rounded-full opacity-10 blur-[100px]`} />
 
+      {/* Happy Hour Confetti — FUERA del ScrollView para no interferir con el scroll */}
+      {isHappyHour && <HappyHourExplosion />}
+
       <ScrollView
         className="flex-1 bg-[#050505]"
         showsVerticalScrollIndicator={false}
@@ -212,16 +215,13 @@ export default function DashboardDefault({
             </TouchableOpacity>
           </View>
 
-          {/* Happy Hour Banner */}
+          {/* Happy Hour Banner pill — dentro del scroll, estático */}
           {isHappyHour && (
-            <>
-              <HappyHourExplosion count={20} />
-              <FadeInView delay={300} style={{ position: 'absolute', top: 120, width: '100%', zIndex: 40, alignItems: 'center' }}>
-                <View style={{ backgroundColor: theme.secondary, paddingHorizontal: 20, paddingVertical: 8, borderRadius: 20, shadowColor: theme.secondary, shadowOffset: {width: 0, height: 0}, shadowOpacity: 0.8, shadowRadius: 15, borderWidth: 1, borderColor: '#FFF' }}>
-                  <Text style={{ color: 'black', fontWeight: '900', fontSize: 11, textTransform: 'uppercase', letterSpacing: 2 }}>¡HAPPY HOUR ACTIVO! Puntos x2</Text>
-                </View>
-              </FadeInView>
-            </>
+            <FadeInView delay={300} style={{ position: 'absolute', top: 120, width: '100%', zIndex: 40, alignItems: 'center' }}>
+              <View style={{ backgroundColor: theme.secondary, paddingHorizontal: 20, paddingVertical: 8, borderRadius: 20, shadowColor: theme.secondary, shadowOffset: {width: 0, height: 0}, shadowOpacity: 0.8, shadowRadius: 15, borderWidth: 1, borderColor: '#FFF' }}>
+                <Text style={{ color: 'black', fontWeight: '900', fontSize: 11, textTransform: 'uppercase', letterSpacing: 2 }}>¡HAPPY HOUR ACTIVO! Puntos x2</Text>
+              </View>
+            </FadeInView>
           )}
 
           {/* Hero Carousel */}
