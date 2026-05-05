@@ -1,6 +1,12 @@
 import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl, Image, Modal, useWindowDimensions } from 'react-native';
-import { Trophy, Star, Shirt, MapPin, ClipboardList, ArrowRight, User as UserIcon, X } from 'lucide-react-native';
+import {
+  View, Text, ScrollView, TouchableOpacity, ActivityIndicator,
+  RefreshControl, Image, Modal, useWindowDimensions, FlatList,
+} from 'react-native';
+import {
+  Trophy, Star, Shirt, MapPin, ClipboardList, ArrowRight,
+  User as UserIcon, X, Zap, ChevronRight,
+} from 'lucide-react-native';
 import { StatusBar } from 'expo-status-bar';
 import { VideoPlayer } from '../../components/VideoPlayer';
 import { FadeInView } from '../../components/FadeInView';
@@ -9,6 +15,54 @@ import { VipStatusModal } from '../VipStatusModal';
 import { DashboardProps } from './types';
 import { logout } from '../../lib/api';
 
+// ── Colores del kit Argentina ──────────────────────────────────────────
+const CELESTE  = '#75AADB';
+const GOLD     = '#F0C040';
+const NAVY     = '#020B1A';
+const NAVY_MID = '#060D18';
+
+// ── Componente pill de stat ────────────────────────────────────────────
+const StatPill = ({ label, value, accent = false }: { label: string; value: string | number; accent?: boolean }) => (
+  <View style={{
+    backgroundColor: accent ? `${CELESTE}1A` : 'rgba(255,255,255,0.04)',
+    borderWidth: 1, borderColor: accent ? `${CELESTE}44` : 'rgba(255,255,255,0.08)',
+    borderRadius: 16, paddingHorizontal: 18, paddingVertical: 12,
+    alignItems: 'center', flex: 1,
+  }}>
+    <Text style={{ color: accent ? CELESTE : 'rgba(255,255,255,0.9)', fontSize: 20, fontWeight: '900', fontStyle: 'italic', lineHeight: 22 }}>
+      {value}
+    </Text>
+    <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 8, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 1.5, marginTop: 3 }}>
+      {label}
+    </Text>
+  </View>
+);
+
+// ── Componente acción horizontal ──────────────────────────────────────
+const ActionBtn = ({ icon: Icon, label, sub, onPress }: any) => (
+  <TouchableOpacity
+    onPress={onPress}
+    activeOpacity={0.8}
+    style={{
+      backgroundColor: NAVY_MID, borderWidth: 1, borderColor: 'rgba(255,255,255,0.07)',
+      borderRadius: 24, padding: 20, flex: 1, gap: 12,
+    }}
+  >
+    <View style={{
+      width: 44, height: 44, borderRadius: 14,
+      backgroundColor: `${CELESTE}15`, borderWidth: 1, borderColor: `${CELESTE}33`,
+      alignItems: 'center', justifyContent: 'center',
+    }}>
+      <Icon size={22} color={CELESTE} />
+    </View>
+    <View>
+      <Text style={{ color: '#fff', fontWeight: '900', fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5 }}>{label}</Text>
+      <Text style={{ color: 'rgba(255,255,255,0.3)', fontWeight: '700', fontSize: 9, textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 2 }}>{sub}</Text>
+    </View>
+  </TouchableOpacity>
+);
+
+// ══════════════════════════════════════════════════════════════════════
 export default function DashboardArgentina({
   user, banners, promoBanners, activeRedemption, settings, nextTier,
   loading, setLoading, errorStatus, refreshing, onRefresh, loadProfile,
@@ -16,38 +70,35 @@ export default function DashboardArgentina({
   resolveImageUrl, showGuide, setShowGuide, showBenefits, setShowBenefits,
   fetchVipBenefits, vipBenefits, vipBenefitsLoading, redeemingVipId, handleRedeemVipBenefit
 }: DashboardProps) {
-  const { width: SCREEN_WIDTH } = useWindowDimensions();
+  const { width: SW } = useWindowDimensions();
 
+  // ── Loading ──────────────────────────────────────────────────────────
   if (loading || (!user && !errorStatus)) {
     return (
-      <View className="flex-1 bg-[#03080F] items-center justify-center">
-        <ActivityIndicator size="large" color={theme.primary} />
-        <Text className="text-white/50 uppercase font-black tracking-widest text-[10px] mt-4">Boston Club • Modo Mundial</Text>
+      <View style={{ flex: 1, backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center' }}>
+        <ActivityIndicator size="large" color={CELESTE} />
+        <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 9, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 3, marginTop: 16 }}>
+          Cargando Concentración
+        </Text>
       </View>
     );
   }
 
+  // ── Error ────────────────────────────────────────────────────────────
   if (errorStatus === 'connection') {
     return (
-      <View className="flex-1 bg-[#03080F] items-center justify-center px-10">
-        <View className="w-20 h-20 bg-white/5 rounded-3xl items-center justify-center border border-white/10 mb-6">
-          <Text className="text-4xl">📡</Text>
-        </View>
-        <Text className="text-white text-xl font-black italic uppercase tracking-tighter text-center mb-2">Error de conexión</Text>
-        <Text className="text-white/40 text-[10px] font-bold text-center mb-10 leading-4 uppercase tracking-widest">
-          No pudimos conectar con los servidores de Boston. Revisa tus datos móviles o WiFi.
+      <View style={{ flex: 1, backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40 }}>
+        <Text style={{ fontSize: 40, marginBottom: 20 }}>📡</Text>
+        <Text style={{ color: '#fff', fontSize: 18, fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', marginBottom: 8 }}>Sin Señal</Text>
+        <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 10, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 2, textAlign: 'center', marginBottom: 40, lineHeight: 16 }}>
+          No pudimos conectar con Boston. Revisá tu WiFi o datos.
         </Text>
-
-        <TouchableOpacity
-          onPress={() => { setLoading(true); loadProfile(); }}
-          style={{ backgroundColor: theme.primary }}
-          className="py-4 px-10 rounded-2xl shadow-lg"
-        >
-          <Text className="text-black font-black uppercase text-xs tracking-widest">Reintentar Conexión</Text>
+        <TouchableOpacity onPress={() => { setLoading(true); loadProfile(); }}
+          style={{ backgroundColor: CELESTE, paddingHorizontal: 40, paddingVertical: 16, borderRadius: 20 }}>
+          <Text style={{ color: '#000', fontWeight: '900', textTransform: 'uppercase', letterSpacing: 2 }}>Reintentar</Text>
         </TouchableOpacity>
-
-        <TouchableOpacity onPress={async () => { await logout(); router.replace('/login'); }} className="mt-6">
-          <Text className="text-white/20 font-bold uppercase text-[9px] tracking-widest underline">Cambiar de cuenta</Text>
+        <TouchableOpacity onPress={async () => { await logout(); router.replace('/login'); }} style={{ marginTop: 24 }}>
+          <Text style={{ color: 'rgba(255,255,255,0.2)', fontSize: 9, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 2 }}>Cambiar de cuenta</Text>
         </TouchableOpacity>
       </View>
     );
@@ -55,253 +106,342 @@ export default function DashboardArgentina({
 
   if (!user) return null;
 
+  const progress = nextTier?.currentProgress ?? 100;
+
+  // ── Render ───────────────────────────────────────────────────────────
   return (
-    <View className="flex-1 bg-[#03080F] relative">
+    <View style={{ flex: 1, backgroundColor: NAVY }}>
       <StatusBar style="light" />
 
-      {/* Argentina Aura */}
-      <View style={{ backgroundColor: theme.primary }} className={`absolute top-0 right-0 w-96 h-96 rounded-full opacity-10 blur-[120px]`} />
+      {/* Glow background */}
+      <View style={{ position: 'absolute', top: -100, right: -80, width: 340, height: 340, borderRadius: 999, backgroundColor: CELESTE, opacity: 0.07 }} />
+      <View style={{ position: 'absolute', bottom: 100, left: -80, width: 260, height: 260, borderRadius: 999, backgroundColor: GOLD, opacity: 0.04 }} />
 
       <ScrollView
-        className="flex-1 bg-transparent"
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 100 }}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.primary} />}
+        contentContainerStyle={{ paddingBottom: 120 }}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={CELESTE} />}
       >
-        {/* Top Bar */}
-        <View className="w-full z-50 flex-row justify-between items-center px-6 pt-16 mb-6">
-          <View style={{ backgroundColor: `${theme.primary}1A`, borderColor: `${theme.primary}33` }} className="backdrop-blur-md px-4 py-2 rounded-xl border">
-            <Text style={{ color: theme.primary }} className="font-black text-[10px] tracking-widest uppercase italic">Concentración Selección</Text>
-          </View>
-          <TouchableOpacity
-            onPress={() => router.push('/profile')}
-            className="w-11 h-11 rounded-full bg-black/50 border border-white/10 items-center justify-center shadow-2xl backdrop-blur-md"
-          >
-            <UserIcon size={18} color={theme.primary} />
-          </TouchableOpacity>
-        </View>
 
-        {/* Greeting Section */}
-        <View className="px-6 mb-6">
-          <View className="flex-row items-center mb-1">
-             <Star size={12} color={theme.primary} fill={theme.primary} className="mr-1" />
-             <Star size={12} color={theme.primary} fill={theme.primary} className="mr-1" />
-             <Star size={12} color={theme.primary} fill={theme.primary} />
-          </View>
-          <Text className="text-white/50 font-black text-xs uppercase tracking-[0.3em] mb-1">¡Muchachos, hola!</Text>
-          <Text className="text-white text-4xl font-black italic uppercase tracking-tighter shadow-black drop-shadow-md">
-            Capitán {user.firstName}
-          </Text>
-        </View>
-
-        {/* Active Ticket Banner - World Cup Style */}
-        {activeRedemption && (
-          <FadeInView className="px-6 mt-2 mb-6 z-[60]">
+        {/* ══ HERO HEADER ══════════════════════════════════════════════ */}
+        <LinearGradient
+          colors={[`${CELESTE}18`, 'transparent']}
+          style={{ paddingTop: 60, paddingHorizontal: 24, paddingBottom: 32 }}
+        >
+          {/* Top bar */}
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <Star size={10} color={GOLD} fill={GOLD} />
+              <Star size={10} color={GOLD} fill={GOLD} />
+              <Star size={10} color={GOLD} fill={GOLD} />
+              <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 9, fontWeight: '900', letterSpacing: 3, textTransform: 'uppercase', marginLeft: 6 }}>
+                Mundial Edition
+              </Text>
+            </View>
             <TouchableOpacity
-              activeOpacity={0.9}
-              onPress={() => router.push({
-                pathname: '/reward-qr',
-                params: { token: activeRedemption.qrToken, reward: activeRedemption.title }
-              })}
-              style={{ backgroundColor: theme.primary }}
-              className="rounded-[2.5rem] p-6 flex-row items-center shadow-2xl"
+              onPress={() => router.push('/profile')}
+              style={{
+                width: 40, height: 40, borderRadius: 20,
+                backgroundColor: 'rgba(255,255,255,0.06)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)',
+                alignItems: 'center', justifyContent: 'center',
+              }}
             >
-              <View className="w-14 h-14 rounded-2xl bg-white/20 items-center justify-center mr-4 border border-white/10">
-                <Trophy size={28} color="white" />
+              <UserIcon size={18} color={CELESTE} />
+            </TouchableOpacity>
+          </View>
+
+          {/* Player card row */}
+          <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 20 }}>
+            {/* Jersey number bubble */}
+            <View style={{
+              width: 90, height: 90, borderRadius: 28,
+              backgroundColor: `${CELESTE}15`, borderWidth: 2, borderColor: `${CELESTE}33`,
+              alignItems: 'center', justifyContent: 'center',
+              shadowColor: CELESTE, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.4, shadowRadius: 20,
+            }}>
+              <Shirt size={40} color={CELESTE} />
+            </View>
+
+            {/* Name & rank */}
+            <View style={{ flex: 1, paddingBottom: 4 }}>
+              <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 9, fontWeight: '900', letterSpacing: 3, textTransform: 'uppercase', marginBottom: 4 }}>
+                Capitán
+              </Text>
+              <Text style={{ color: '#fff', fontSize: 32, fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', letterSpacing: -1, lineHeight: 32 }}>
+                {user.firstName}
+              </Text>
+              <Text style={{ color: '#fff', fontSize: 14, fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', letterSpacing: -0.5, opacity: 0.5 }}>
+                {user.lastName || ''}
+              </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8, gap: 8 }}>
+                <View style={{
+                  backgroundColor: `${CELESTE}22`, borderWidth: 1, borderColor: `${CELESTE}44`,
+                  paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8,
+                }}>
+                  <Text style={{ color: CELESTE, fontSize: 9, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 2 }}>
+                    {user.membershipLevel}
+                  </Text>
+                </View>
               </View>
-              <View className="flex-1">
-                <Text className="text-white font-black text-[9px] uppercase tracking-[0.3em] mb-1 italic">Trofeo Listo para Canje</Text>
-                <Text className="text-white font-black text-2xl italic uppercase tracking-tighter leading-none" numberOfLines={1}>
-                  {activeRedemption.title}
-                </Text>
-              </View>
-              <View className="w-10 h-10 rounded-full bg-white/10 items-center justify-center">
-                <ArrowRight size={20} color="white" />
-              </View>
+            </View>
+          </View>
+        </LinearGradient>
+
+        {/* ══ ACTIVE REDEMPTION (Ticket de partido) ════════════════════ */}
+        {activeRedemption && (
+          <FadeInView style={{ paddingHorizontal: 24, marginTop: -8, marginBottom: 24 }}>
+            <TouchableOpacity
+              onPress={() => router.push({ pathname: '/reward-qr', params: { token: activeRedemption.qrToken, reward: activeRedemption.title } })}
+              activeOpacity={0.9}
+            >
+              <LinearGradient
+                colors={[CELESTE, '#4A87C2']}
+                start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+                style={{ borderRadius: 24, padding: 20, flexDirection: 'row', alignItems: 'center', gap: 16 }}
+              >
+                <View style={{ width: 52, height: 52, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center' }}>
+                  <Trophy size={26} color="#fff" />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 8, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 2, marginBottom: 2 }}>
+                    🎟 Entrada Lista para Canjear
+                  </Text>
+                  <Text style={{ color: '#fff', fontSize: 18, fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', letterSpacing: -0.5 }} numberOfLines={1}>
+                    {activeRedemption.title}
+                  </Text>
+                </View>
+                <ArrowRight size={20} color="rgba(255,255,255,0.7)" />
+              </LinearGradient>
             </TouchableOpacity>
           </FadeInView>
         )}
 
-        {/* News Banners Grid */}
-        <View className="px-6 flex-row flex-wrap justify-between">
-          {banners.slice(0, 2).map((item, idx) => (
-            <TouchableOpacity
-              key={item.id}
-              activeOpacity={0.9}
-              onPress={() => item.id !== 'empty' && router.push(`/banner/${item.id}`)}
-              style={{ width: '48%', aspectRatio: 0.75 }}
-              className="relative rounded-[2rem] border border-white/10 overflow-hidden shadow-2xl bg-[#080F1C] mb-4"
-            >
-              <Image source={{ uri: resolveImageUrl(item.imageUrl) || 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=500' }} className="w-full h-full opacity-90" resizeMode="cover" />
-              <LinearGradient colors={['transparent', 'rgba(3,8,15,0.9)', '#03080f']} className="absolute inset-0" />
-              <View className="absolute bottom-4 left-0 right-0 px-4 items-center">
-                <Text className="text-white font-black text-base italic uppercase tracking-tighter text-center leading-tight mb-1" numberOfLines={2}>
-                  {item.title}
-                </Text>
-                <View style={{ backgroundColor: `${theme.primary}33` }} className="px-2 py-1 rounded-full border border-white/10">
-                  <Text style={{ color: theme.primary }} className="font-bold text-[7px] uppercase tracking-widest">Leer Nota</Text>
-                </View>
-              </View>
-            </TouchableOpacity>
-          ))}
-        </View>
+        {/* ══ STATS ROW (ficha de jugador) ═════════════════════════════ */}
+        <View style={{ paddingHorizontal: 24, marginBottom: 32 }}>
+          <View style={{ flexDirection: 'row', gap: 10 }}>
+            <StatPill label="Gloria" value={user.points.toLocaleString()} accent />
+            <StatPill label="Racha" value={`${user.streak || 0}🔥`} />
+            <StatPill label="Nivel" value={user.membershipLevel?.slice(0, 3)} />
+          </View>
 
-        {/* Tier Card - Captain Style */}
-        <FadeInView delay={400} className="px-6 mt-4">
+          {/* Progress bar estilo marcador */}
           <TouchableOpacity
-            activeOpacity={0.9}
             onPress={() => { setShowBenefits(true); fetchVipBenefits(); }}
-            style={{ 
-               backgroundColor: '#060D18', 
-               borderColor: `${theme.primary}4D`, 
-               borderWidth: 1, 
-               borderRadius: 30, 
-               padding: 25,
-               shadowColor: theme.primary,
-               shadowOffset: { width: 0, height: 10 },
-               shadowOpacity: 0.3,
-               shadowRadius: 15
+            activeOpacity={0.9}
+            style={{
+              marginTop: 12, backgroundColor: NAVY_MID,
+              borderWidth: 1, borderColor: 'rgba(255,255,255,0.07)',
+              borderRadius: 20, padding: 18,
             }}
           >
-            <View className="flex-row justify-between items-start mb-6">
-              <View className="flex-row items-center">
-                <View style={{ backgroundColor: `${theme.primary}1A` }} className="w-14 h-14 rounded-2xl items-center justify-center mr-4 border border-white/5">
-                  <Shirt size={28} color={theme.primary} />
-                </View>
-                <View>
-                  <Text style={{ color: theme.primary }} className="font-black text-[9px] uppercase tracking-[0.2em] mb-1 italic">JERARQUÍA SELECCIÓN</Text>
-                  <Text className="text-white text-2xl font-black uppercase italic tracking-tighter leading-none">
-                    {user.membershipLevel.toUpperCase()}
-                  </Text>
-                </View>
-              </View>
-
-              <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderColor: `${theme.primary}4D`, borderWidth: 1 }} className="rounded-2xl p-3 px-4 items-center">
-                <Text className="text-white font-black text-xl italic tracking-tighter leading-none">{user.points}</Text>
-                <Text style={{ color: theme.primary }} className="font-black text-[7px] uppercase tracking-widest mt-1">GLORIA</Text>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+              <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 9, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 2 }}>
+                Camino a {nextTier?.name || 'Cima'}
+              </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                <Text style={{ color: CELESTE, fontSize: 11, fontWeight: '900' }}>
+                  {Math.round(progress)}%
+                </Text>
+                <ChevronRight size={14} color={CELESTE} />
               </View>
             </View>
 
-            <View className="relative h-2 bg-white/5 rounded-full w-full border border-white/5 overflow-hidden mb-6">
-              <View style={{ width: `${nextTier?.currentProgress ?? 100}%`, backgroundColor: theme.primary }} className="absolute top-0 left-0 h-full" />
+            {/* Stadium-style progress bar */}
+            <View style={{ height: 6, backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 3, overflow: 'hidden' }}>
+              <LinearGradient
+                colors={[CELESTE, '#4A87C2']}
+                start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+                style={{ height: '100%', width: `${progress}%`, borderRadius: 3 }}
+              />
             </View>
 
-            <View className="flex-row justify-between px-2">
-               {[1,2,3].map(i => (
-                 <Star key={i} size={14} color={nextTier?.currentProgress && nextTier.currentProgress > (i * 30) ? theme.primary : '#222'} fill={nextTier?.currentProgress && nextTier.currentProgress > (i * 30) ? theme.primary : 'transparent'} />
-               ))}
+            {/* Stars below progress */}
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 }}>
+              {[1, 2, 3, 4].map(i => (
+                <Star
+                  key={i} size={12}
+                  color={progress > i * 25 ? GOLD : 'rgba(255,255,255,0.1)'}
+                  fill={progress > i * 25 ? GOLD : 'transparent'}
+                />
+              ))}
             </View>
           </TouchableOpacity>
-        </FadeInView>
+        </View>
 
-        {/* Action Grid */}
-        <View className="px-6 mt-10">
-          <View className="flex-row items-center justify-center mb-8">
-            <View style={{ backgroundColor: `${theme.primary}33` }} className="h-[1px] w-12" />
-            <Text style={{ color: theme.primary }} className="font-black uppercase tracking-[0.4em] text-[9px] mx-4">Entrenamiento</Text>
-            <View style={{ backgroundColor: `${theme.primary}33` }} className="h-[1px] w-12" />
+        {/* ══ NEWS BANNERS (horizontal scroll tipo transmisión) ════════ */}
+        {banners.length > 0 && (
+          <View style={{ marginBottom: 32 }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 24, marginBottom: 16 }}>
+              <Text style={{ color: '#fff', fontSize: 16, fontWeight: '900', textTransform: 'uppercase', fontStyle: 'italic', letterSpacing: -0.5 }}>
+                Últimas Noticias
+              </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#EF4444' }} />
+                <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 8, fontWeight: '900', letterSpacing: 2, textTransform: 'uppercase' }}>En Vivo</Text>
+              </View>
+            </View>
+            <FlatList
+              data={banners.slice(0, 5)}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ paddingLeft: 24, paddingRight: 8, gap: 14 }}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  onPress={() => item.id !== 'empty' && router.push(`/banner/${item.id}`)}
+                  activeOpacity={0.9}
+                  style={{ width: SW * 0.62, borderRadius: 24, overflow: 'hidden', backgroundColor: NAVY_MID }}
+                >
+                  <Image
+                    source={{ uri: resolveImageUrl(item.imageUrl) || 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=500' }}
+                    style={{ width: '100%', height: 200 }}
+                    resizeMode="cover"
+                  />
+                  <LinearGradient
+                    colors={['transparent', 'rgba(2,11,26,0.95)']}
+                    style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '65%', padding: 16, justifyContent: 'flex-end' }}
+                  >
+                    <Text style={{ color: '#fff', fontWeight: '900', fontSize: 14, fontStyle: 'italic', textTransform: 'uppercase', letterSpacing: -0.3, lineHeight: 16, marginBottom: 8 }} numberOfLines={2}>
+                      {item.title}
+                    </Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                      <View style={{ backgroundColor: `${CELESTE}22`, borderWidth: 1, borderColor: `${CELESTE}44`, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 }}>
+                        <Text style={{ color: CELESTE, fontSize: 7, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 1 }}>Ver nota</Text>
+                      </View>
+                    </View>
+                  </LinearGradient>
+                </TouchableOpacity>
+              )}
+            />
+          </View>
+        )}
+
+        {/* ══ ACCIONES (estilo vestuario) ═══════════════════════════════ */}
+        <View style={{ paddingHorizontal: 24, marginBottom: 32 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+            <View style={{ height: 1, flex: 1, backgroundColor: 'rgba(255,255,255,0.06)' }} />
+            <Text style={{ color: 'rgba(255,255,255,0.2)', fontSize: 8, fontWeight: '900', letterSpacing: 3, textTransform: 'uppercase' }}>
+              Vestuario
+            </Text>
+            <View style={{ height: 1, flex: 1, backgroundColor: 'rgba(255,255,255,0.06)' }} />
           </View>
 
-          <View className="flex-row justify-between">
-            <TouchableOpacity onPress={() => router.push('/rewards')} activeOpacity={0.8} className="w-[31%] aspect-square bg-[#080F1C] border border-white/10 rounded-[2.5rem] p-4 items-center justify-center">
-              <Trophy size={26} color={theme.primary} className="mb-2" />
-              <Text className="text-white font-black uppercase text-[9px] tracking-wider mb-1">Trofeos</Text>
-              <Text className="text-white/30 font-bold uppercase text-[6px] text-center">Tus premios</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity onPress={() => router.push('/events')} activeOpacity={0.8} className="w-[31%] aspect-square bg-[#080F1C] border border-white/10 rounded-[2.5rem] p-4 items-center justify-center">
-              <MapPin size={26} color={theme.primary} className="mb-2" />
-              <Text className="text-white font-black uppercase text-[9px] tracking-wider mb-1">Estadio</Text>
-              <Text className="text-white/30 font-bold uppercase text-[6px] text-center">Partidos</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity onPress={() => router.push('/history')} activeOpacity={0.8} className="w-[31%] aspect-square bg-[#080F1C] border border-white/10 rounded-[2.5rem] p-4 items-center justify-center">
-              <ClipboardList size={26} color={theme.primary} className="mb-2" />
-              <Text className="text-white font-black uppercase text-[9px] tracking-wider mb-1">Planilla</Text>
-              <Text className="text-white/30 font-bold uppercase text-[6px] text-center">Tu juego</Text>
-            </TouchableOpacity>
+          <View style={{ flexDirection: 'row', gap: 12 }}>
+            <ActionBtn icon={Trophy} label="Trofeos" sub="Tus premios" onPress={() => router.push('/rewards')} />
+            <ActionBtn icon={MapPin} label="Estadio" sub="Partidos" onPress={() => router.push('/events')} />
+            <ActionBtn icon={ClipboardList} label="Planilla" sub="Tu juego" onPress={() => router.push('/history')} />
           </View>
         </View>
 
-        {/* Club Info Banner */}
-        <FadeInView delay={600} className="px-6 mt-10">
-          <TouchableOpacity
-            activeOpacity={0.9}
-            onPress={() => router.push('/club-info')}
-            style={{ minHeight: 90, borderRadius: 32, overflow: 'hidden', borderColor: `${theme.primary}33`, borderWidth: 1 }}
-            className="relative bg-[#080F1C] shadow-2xl"
-          >
-            <View className="flex-row items-center p-5 justify-between">
-              <View className="flex-row items-center flex-1">
-                <View style={{ backgroundColor: `${theme.primary}1A`, borderColor: `${theme.primary}33` }} className="w-14 h-14 rounded-2xl items-center justify-center border mr-4">
-                  <Star size={28} color={theme.primary} fill={theme.primary} />
-                </View>
-                <View className="flex-1">
-                  <Text className="text-white font-black uppercase text-[12px] tracking-[0.2em] italic">¿Cómo alcanzar la Gloria?</Text>
-                  <Text style={{ color: theme.primary }} className="font-bold text-[9px] uppercase tracking-widest mt-1">Aprende a sumar puntos y ser Leyenda</Text>
-                </View>
+        {/* ══ BANNER ALCANZAR GLORIA (Club Info) ══════════════════════ */}
+        <FadeInView style={{ paddingHorizontal: 24, marginBottom: 32 }}>
+          <TouchableOpacity onPress={() => router.push('/club-info')} activeOpacity={0.85}>
+            <LinearGradient
+              colors={[`${CELESTE}14`, NAVY_MID]}
+              start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+              style={{
+                borderRadius: 24, borderWidth: 1, borderColor: `${CELESTE}22`,
+                padding: 20, flexDirection: 'row', alignItems: 'center', gap: 16,
+              }}
+            >
+              <View style={{
+                width: 52, height: 52, borderRadius: 16,
+                backgroundColor: `${CELESTE}15`, borderWidth: 1, borderColor: `${CELESTE}33`,
+                alignItems: 'center', justifyContent: 'center',
+              }}>
+                <Zap size={26} color={CELESTE} />
               </View>
-              <View style={{ backgroundColor: theme.primary }} className="w-10 h-10 rounded-2xl items-center justify-center shadow-lg">
-                <ArrowRight size={18} color="white" />
+              <View style={{ flex: 1 }}>
+                <Text style={{ color: '#fff', fontWeight: '900', fontSize: 13, textTransform: 'uppercase', fontStyle: 'italic', letterSpacing: -0.3 }}>
+                  ¿Cómo alcanzar la Gloria?
+                </Text>
+                <Text style={{ color: CELESTE, fontWeight: '700', fontSize: 9, textTransform: 'uppercase', letterSpacing: 1, marginTop: 3 }}>
+                  Aprende a sumar puntos y ser Leyenda
+                </Text>
               </View>
-            </View>
+              <View style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: CELESTE, alignItems: 'center', justifyContent: 'center' }}>
+                <ArrowRight size={16} color="#000" />
+              </View>
+            </LinearGradient>
           </TouchableOpacity>
         </FadeInView>
 
-        {/* Promos */}
+        {/* ══ PROMOS (horizontal, estilo tablón del vestuario) ═════════ */}
         {promoBanners.length > 0 && (
-          <View className="mt-12 px-6">
-             <Text className="text-white text-2xl font-black uppercase italic tracking-tighter mb-5">Promos de Selección</Text>
-             {promoBanners.map(item => (
-                <TouchableOpacity 
-                  key={item.id}
-                  activeOpacity={0.9} 
+          <View style={{ marginBottom: 20 }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 24, marginBottom: 16 }}>
+              <Text style={{ color: '#fff', fontSize: 16, fontWeight: '900', textTransform: 'uppercase', fontStyle: 'italic', letterSpacing: -0.5 }}>
+                Promos de Selección
+              </Text>
+            </View>
+            <FlatList
+              data={promoBanners}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ paddingLeft: 24, paddingRight: 8, gap: 14 }}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <TouchableOpacity
                   onPress={() => item.id !== 'empty' && router.push(`/banner/${item.id}`)}
-                  className="w-full h-36 bg-[#080F1C] border border-white/10 rounded-[2.5rem] mb-5 flex-row overflow-hidden shadow-2xl"
+                  activeOpacity={0.9}
+                  style={{ width: SW * 0.78, height: 130, backgroundColor: NAVY_MID, borderWidth: 1, borderColor: 'rgba(255,255,255,0.07)', borderRadius: 22, overflow: 'hidden', flexDirection: 'row' }}
                 >
-                   <View className="flex-1 p-6 justify-center z-10">
-                      <Text className="text-white text-xl font-black uppercase italic tracking-tighter leading-tight mb-2" numberOfLines={2}>
-                         {item.title}
-                      </Text>
-                      <Text className="text-white/40 font-bold uppercase text-[9px] tracking-widest mb-3" numberOfLines={2}>
-                         {item.description}
-                      </Text>
-                      <View style={{ backgroundColor: `${theme.primary}33` }} className="self-start px-3 py-1 rounded-full border border-white/5">
-                        <Text style={{ color: theme.primary }} className="text-[7px] font-black uppercase">Ver Promo</Text>
-                      </View>
-                   </View>
-                   <View className="w-1/3 h-full relative">
-                      <Image source={{ uri: resolveImageUrl(item.imageUrl) || 'https://images.unsplash.com/photo-1550547660-d9450f859349?q=80&w=500' }} className="w-full h-full" resizeMode="cover" />
-                      <LinearGradient colors={['#080F1C', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} className="absolute inset-0" />
-                   </View>
+                  <View style={{ flex: 1, padding: 18, justifyContent: 'center' }}>
+                    <Text style={{ color: '#fff', fontWeight: '900', fontSize: 15, fontStyle: 'italic', textTransform: 'uppercase', letterSpacing: -0.3, lineHeight: 17, marginBottom: 8 }} numberOfLines={2}>
+                      {item.title}
+                    </Text>
+                    <View style={{ backgroundColor: `${CELESTE}22`, borderWidth: 1, borderColor: `${CELESTE}33`, alignSelf: 'flex-start', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 }}>
+                      <Text style={{ color: CELESTE, fontSize: 8, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 1 }}>Ver Promo</Text>
+                    </View>
+                  </View>
+                  <View style={{ width: 120, position: 'relative' }}>
+                    <Image
+                      source={{ uri: resolveImageUrl(item.imageUrl) || 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=500' }}
+                      style={{ width: '100%', height: '100%' }}
+                      resizeMode="cover"
+                    />
+                    <LinearGradient
+                      colors={[NAVY_MID, 'transparent']}
+                      start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }}
+                      style={{ position: 'absolute', inset: 0 }}
+                    />
+                  </View>
                 </TouchableOpacity>
-             ))}
+              )}
+            />
           </View>
         )}
+
       </ScrollView>
 
+      {/* ── Modals ─────────────────────────────────────────────────── */}
       <VipStatusModal isVisible={showBenefits} onClose={() => setShowBenefits(false)} user={user} settings={settings} onRedeemSuccess={handleRedeemVipBenefit} />
 
       <Modal visible={showPopupModal} transparent animationType="fade">
-        <View className="flex-1 bg-black/90 justify-center items-center p-6">
-          <View className="w-full max-w-md bg-[#060D18] rounded-[3rem] border border-white/10 overflow-hidden relative shadow-2xl">
-            <TouchableOpacity onPress={() => setShowPopupModal(false)} className="absolute top-4 right-4 z-50 p-3 bg-black/50 backdrop-blur-md rounded-full border border-white/20">
-              <X size={24} color="white" />
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.9)', justifyContent: 'center', alignItems: 'center', padding: 24 }}>
+          <View style={{ width: '100%', maxWidth: 400, backgroundColor: NAVY_MID, borderRadius: 40, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', overflow: 'hidden' }}>
+            <TouchableOpacity onPress={() => setShowPopupModal(false)} style={{ position: 'absolute', top: 16, right: 16, zIndex: 50, padding: 10, backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: 20, borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)' }}>
+              <X size={20} color="#fff" />
             </TouchableOpacity>
             {currentPopup?.mediaType === 'VIDEO' ? (
-              <View className="w-full h-[500px]">
+              <View style={{ width: '100%', height: 460 }}>
                 <VideoPlayer uri={resolveImageUrl(currentPopup.videoUrl) || ''} />
               </View>
             ) : (
-              <Image source={{ uri: resolveImageUrl(currentPopup?.imageUrl) || '' }} className="w-full h-[500px]" resizeMode="cover" />
+              <Image source={{ uri: resolveImageUrl(currentPopup?.imageUrl) || '' }} style={{ width: '100%', height: 460 }} resizeMode="cover" />
             )}
-            <View className="p-8 items-center bg-gradient-to-t from-black to-transparent absolute bottom-0 w-full">
-              <Text className="text-2xl font-black text-white italic text-center uppercase tracking-tighter mb-2 shadow-black drop-shadow-md">{currentPopup?.title}</Text>
-              <Text className="text-white/80 text-center font-bold text-xs mb-6 px-4">{currentPopup?.description}</Text>
-              <TouchableOpacity onPress={() => { setShowPopupModal(false); if (currentPopup?.id) router.push(`/banner/${currentPopup.id}`); }} style={{ backgroundColor: theme.primary }} className="w-full py-5 rounded-3xl">
-                <Text className="text-white text-center font-black uppercase tracking-widest text-sm">{currentPopup?.benefits || 'IR A LA CANCHA'}</Text>
+            <LinearGradient colors={['transparent', NAVY_MID]} style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 200, padding: 28, justifyContent: 'flex-end' }}>
+              <Text style={{ color: '#fff', fontSize: 20, fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', letterSpacing: -0.5, textAlign: 'center', marginBottom: 8 }}>{currentPopup?.title}</Text>
+              <Text style={{ color: 'rgba(255,255,255,0.6)', textAlign: 'center', fontSize: 12, fontWeight: '600', marginBottom: 20, paddingHorizontal: 16 }}>{currentPopup?.description}</Text>
+              <TouchableOpacity
+                onPress={() => { setShowPopupModal(false); if (currentPopup?.id) router.push(`/banner/${currentPopup.id}`); }}
+                style={{ backgroundColor: CELESTE, borderRadius: 18, paddingVertical: 18 }}
+              >
+                <Text style={{ color: '#000', fontWeight: '900', fontSize: 12, textTransform: 'uppercase', letterSpacing: 2, textAlign: 'center' }}>
+                  {currentPopup?.benefits || 'IR A LA CANCHA →'}
+                </Text>
               </TouchableOpacity>
-            </View>
+            </LinearGradient>
           </View>
         </View>
       </Modal>
