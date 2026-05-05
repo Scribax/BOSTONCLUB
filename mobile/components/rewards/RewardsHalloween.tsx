@@ -285,7 +285,7 @@ export default function RewardsHalloween({ userPoints, rewards, loading, theme }
                        onPress={() => handleRedeem(confirmModal.reward!)}
                       style={{ backgroundColor: theme.primary, width: '100%', paddingVertical: 24, borderRadius: 24, marginTop: 32, alignItems: 'center', shadowColor: theme.primary, shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.4, shadowRadius: 20 }}
                      >
-                        <Text style={{ color: 'black', fontWeight: '900', textTransform: 'uppercase', fontSize: 15, letterSpacing: 3 }}>INBOCAR AHORA</Text>
+                        <Text style={{ color: 'black', fontWeight: '900', textTransform: 'uppercase', fontSize: 15, letterSpacing: 3 }}>INVOCAR AHORA</Text>
                      </TouchableOpacity>
 
                      <TouchableOpacity 
