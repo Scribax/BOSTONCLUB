@@ -66,7 +66,7 @@ const ActionBtn = ({ icon: Icon, label, sub, onPress }: any) => (
 export default function DashboardArgentina({
   user, banners, promoBanners, activeRedemption, settings, nextTier,
   loading, setLoading, errorStatus, refreshing, onRefresh, loadProfile,
-  theme, router, isScreenFocused, currentPopup, showPopupModal, setShowPopupModal,
+  router, isScreenFocused, currentPopup, showPopupModal, setShowPopupModal,
   resolveImageUrl, showGuide, setShowGuide, showBenefits, setShowBenefits,
   fetchVipBenefits, vipBenefits, vipBenefitsLoading, redeemingVipId, handleRedeemVipBenefit
 }: DashboardProps) {
