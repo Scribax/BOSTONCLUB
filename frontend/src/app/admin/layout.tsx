@@ -1,6 +1,6 @@
 "use client";
 
-import { ShieldCheck, Users, QrCode, LayoutDashboard, CalendarPlus, Gift, Zap, Monitor, Settings, Smartphone, Coins, Smile } from "lucide-react";
+import { ShieldCheck, Users, QrCode, LayoutDashboard, CalendarPlus, Gift, Zap, Monitor, Settings, Smartphone, Coins, Smile, ToggleLeft } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -73,6 +73,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <Link href="/admin/settings/vip" className="flex flex-col md:flex-row items-center gap-2 md:gap-4 p-3 md:px-4 md:py-3 rounded-xl hover:bg-white/5 transition-colors text-white/70 hover:text-white">
            <Settings className="w-5 h-5 text-white/40" />
            <span className="text-[10px] md:text-sm font-bold uppercase tracking-wider">Ajustes VIP</span>
+        </Link>
+
+        <Link href="/admin/settings/flags" className="flex flex-col md:flex-row items-center gap-2 md:gap-4 p-3 md:px-4 md:py-3 rounded-xl hover:bg-white/5 transition-colors text-white/70 hover:text-white">
+           <ToggleLeft className="w-5 h-5 text-boston-red-glow" />
+           <span className="text-[10px] md:text-sm font-bold uppercase tracking-wider">Feature Flags</span>
         </Link>
 
         <Link href="/admin/settings/puntos" className="flex flex-col md:flex-row items-center gap-2 md:gap-4 p-3 md:px-4 md:py-3 rounded-xl hover:bg-white/5 transition-colors text-white/70 hover:text-white">

@@ -34,3 +34,19 @@ export const isFeatureEnabled = async (flagName: string): Promise<boolean> => {
     return false;
   }
 };
+
+export const clearFlagCache = async (flagName: string) => {
+  try {
+    await redis.del(`feature_flag:${flagName}`);
+  } catch (error) {
+    console.error(`Error clearing feature flag cache for ${flagName}:`, error);
+  }
+};
+
+export const setFlagCache = async (flagName: string, isEnabled: boolean) => {
+  try {
+    await redis.set(`feature_flag:${flagName}`, isEnabled ? 'true' : 'false', 'EX', 60);
+  } catch (error) {
+    console.error(`Error setting feature flag cache for ${flagName}:`, error);
+  }
+};
