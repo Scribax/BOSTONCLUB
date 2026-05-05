@@ -5,6 +5,7 @@ import { ArrowLeft, CheckCircle2, XCircle, Scan, History as HistoryIcon, LogOut 
 import { useRouter, useFocusEffect } from 'expo-router';
 import api, { logout } from '../../lib/api';
 import { StatusBar } from 'expo-status-bar';
+import { useTheme } from '../../contexts/ThemeContext';
 
 export default function StaffScannerScreen() {
   const [permission, requestPermission] = useCameraPermissions();
@@ -13,6 +14,7 @@ export default function StaffScannerScreen() {
   const [scanned, setScanned] = useState(false);
   const [redemptionData, setRedemptionData] = useState<any>(null);
   const router = useRouter();
+  const { theme } = useTheme();
 
   const resetScanner = () => {
     setScanned(false);
@@ -36,20 +38,21 @@ export default function StaffScannerScreen() {
   );
 
   if (!permission) {
-    return <View className="flex-1 bg-boston-black" />;
+    return <View className="flex-1 bg-black" />;
   }
 
   if (!permission.granted) {
     return (
-      <View className="flex-1 bg-boston-black items-center justify-center p-10">
-        <Scan size={60} color="#D4AF37" className="mb-6 opacity-20" />
+      <View className="flex-1 bg-black items-center justify-center p-10">
+        <Scan size={60} color={theme.secondary} className="mb-6 opacity-20" />
         <Text className="text-white text-xl font-black uppercase italic text-center mb-4">Acceso Staff</Text>
         <Text className="text-white/50 text-center mb-10 leading-relaxed uppercase text-[10px] tracking-widest">
           Necesitas acceso a la cámara para validar los QRs de los clientes.
         </Text>
         <TouchableOpacity 
           onPress={requestPermission}
-          className="bg-boston-gold px-10 py-5 rounded-2xl"
+          style={{ backgroundColor: theme.secondary }}
+          className="px-10 py-5 rounded-2xl"
         >
           <Text className="text-black font-black uppercase text-xs italic">Permitir Acceso</Text>
         </TouchableOpacity>
@@ -94,11 +97,11 @@ export default function StaffScannerScreen() {
       {/* Staff Header */}
       <View className="pt-16 pb-6 px-6 flex-row items-center justify-between border-b border-white/5 bg-black/80 z-20">
         <View>
-          <Text className="text-[10px] font-black text-boston-gold uppercase tracking-[0.3em] mb-1">Panel de Control</Text>
+          <Text style={{ color: theme.secondary }} className="text-[10px] font-black uppercase tracking-[0.3em] mb-1">Panel de Control</Text>
           <Text className="text-xl font-black uppercase tracking-tight text-white italic">MODO STAFF</Text>
         </View>
         <TouchableOpacity onPress={handleLogout} className="p-3 bg-white/5 rounded-full">
-          <LogOut size={20} color="#FF3B30" />
+          <LogOut size={20} color={theme.primary} />
         </TouchableOpacity>
       </View>
 
@@ -113,16 +116,16 @@ export default function StaffScannerScreen() {
                }}
              />
              <View className="flex-1 bg-black/60 justify-center items-center">
-                <View className="w-72 h-72 border-[4px] border-boston-gold rounded-[50px] items-center justify-center bg-black/20">
-                   <View className="absolute -top-1 -left-1 w-12 h-12 border-t-8 border-l-8 border-boston-gold rounded-tl-[40px]" />
-                   <View className="absolute -top-1 -right-1 w-12 h-12 border-t-8 border-r-8 border-boston-gold rounded-tr-[40px]" />
-                   <View className="absolute -bottom-1 -left-1 w-12 h-12 border-b-8 border-l-8 border-boston-gold rounded-bl-[40px]" />
-                   <View className="absolute -bottom-1 -right-1 w-12 h-12 border-b-8 border-r-8 border-boston-gold rounded-br-[40px]" />
+                <View style={{ borderColor: theme.secondary }} className="w-72 h-72 border-[4px] rounded-[50px] items-center justify-center bg-black/20">
+                   <View style={{ borderTopColor: theme.secondary, borderLeftColor: theme.secondary }} className="absolute -top-1 -left-1 w-12 h-12 border-t-8 border-l-8 rounded-tl-[40px]" />
+                   <View style={{ borderTopColor: theme.secondary, borderRightColor: theme.secondary }} className="absolute -top-1 -right-1 w-12 h-12 border-t-8 border-r-8 rounded-tr-[40px]" />
+                   <View style={{ borderBottomColor: theme.secondary, borderLeftColor: theme.secondary }} className="absolute -bottom-1 -left-1 w-12 h-12 border-b-8 border-l-8 rounded-bl-[40px]" />
+                   <View style={{ borderBottomColor: theme.secondary, borderRightColor: theme.secondary }} className="absolute -bottom-1 -right-1 w-12 h-12 border-b-8 border-r-8 rounded-br-[40px]" />
                    
-                   <Scan size={40} color="rgba(212, 175, 55, 0.4)" />
+                   <Scan size={40} color={`${theme.secondary}66`} />
                 </View>
                 
-                <View className="bg-boston-gold px-8 py-3 rounded-full mt-12 shadow-2xl">
+                <View style={{ backgroundColor: theme.secondary }} className="px-8 py-3 rounded-full mt-12 shadow-2xl">
                    <Text className="text-black font-black uppercase text-[12px] tracking-widest text-center">ESCANEAR QR CLIENTE</Text>
                 </View>
                 
@@ -134,7 +137,7 @@ export default function StaffScannerScreen() {
         ) : (
           <View className="flex-1 bg-black items-center justify-center p-10">
              {status === 'loading' && (
-               <ActivityIndicator size="large" color="#D4AF37" />
+               <ActivityIndicator size="large" color={theme.secondary} />
              )}
              
              {status === 'success' && (
@@ -151,7 +154,7 @@ export default function StaffScannerScreen() {
                        <Text className="text-white text-lg font-bold mb-4 uppercase italic">{redemptionData.user?.firstName} {redemptionData.user?.lastName}</Text>
                        
                        <Text className="text-white/40 text-[10px] font-black uppercase mb-1">Premio/Beneficio</Text>
-                       <Text className="text-boston-gold text-xl font-black uppercase">{redemptionData.reward?.name || redemptionData.event?.title || redemptionData.vipBenefit?.title}</Text>
+                       <Text style={{ color: theme.secondary }} className="text-xl font-black uppercase">{redemptionData.reward?.name || redemptionData.event?.title || redemptionData.vipBenefit?.title}</Text>
                     </View>
                   )}
 

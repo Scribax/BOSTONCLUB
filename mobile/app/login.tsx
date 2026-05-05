@@ -5,7 +5,7 @@ import { Mail, Lock, Crown, ArrowRight, User as UserIcon, Phone, Eye, EyeOff } f
 import api, { setAuthToken } from '../lib/api';
 import { StatusBar } from 'expo-status-bar';
 import { VideoPlayer } from '../components/VideoPlayer';
-import { useFeatureFlags } from '../hooks/useFeatureFlags';
+import { useTheme } from '../contexts/ThemeContext';
 
 LogBox.ignoreLogs([
   '[Reanimated] Reading from `value` during component render',
@@ -25,7 +25,7 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
-  const { isEnabled } = useFeatureFlags();
+  const { isEnabled, theme } = useTheme();
   const router = useRouter();
 
   useEffect(() => {
@@ -141,25 +141,25 @@ export default function LoginScreen() {
       )}
       
       {/* Background Glows Overlay */}
-      <View className="absolute top-0 right-0 w-64 h-64 bg-boston-red opacity-[0.1] rounded-full blur-[80px]" />
-      <View className="absolute bottom-0 left-0 w-64 h-64 bg-boston-gold opacity-[0.1] rounded-full blur-[80px]" />
+      <View style={{ backgroundColor: theme.primary }} className="absolute top-0 right-0 w-64 h-64 opacity-[0.1] rounded-full blur-[80px]" />
+      <View style={{ backgroundColor: theme.secondary }} className="absolute bottom-0 left-0 w-64 h-64 opacity-[0.1] rounded-full blur-[80px]" />
       <View className="absolute inset-0 bg-black/60" />
 
       <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }} className="px-6 py-12">
         {/* Header */}
         <View className="items-center mb-10 z-10">
-          <View className="w-20 h-20 bg-[#111] rounded-2xl items-center justify-center shadow-xl border border-white/5 mb-4 border-boston-gold/20">
-            <Crown size={40} color="#D4AF37" />
+          <View style={{ borderColor: `${theme.secondary}33` }} className="w-20 h-20 bg-[#111] rounded-2xl items-center justify-center shadow-xl border border-white/5 mb-4">
+            <Crown size={40} color={theme.secondary} />
           </View>
           <Text className="text-3xl font-black tracking-tight text-white uppercase text-center italic">
-            Boston <Text className="text-[#ff4d4d]">Club</Text>
+            Boston <Text style={{ color: theme.primary }}>Club</Text>
           </Text>
           <View className="flex-row items-center mt-2 space-x-2">
-             <View className="h-[1px] w-4 bg-boston-gold/30" />
-             <Text className="text-[10px] font-black tracking-[0.3em] text-boston-gold uppercase opacity-80 mx-2">
+             <View style={{ backgroundColor: `${theme.secondary}4D` }} className="h-[1px] w-4" />
+             <Text style={{ color: theme.secondary }} className="text-[10px] font-black tracking-[0.3em] uppercase opacity-80 mx-2">
                Fidelización Premium
              </Text>
-             <View className="h-[1px] w-4 bg-boston-gold/30" />
+             <View style={{ backgroundColor: `${theme.secondary}4D` }} className="h-[1px] w-4" />
           </View>
         </View>
 
@@ -295,16 +295,16 @@ export default function LoginScreen() {
               disabled={loading}
               className={`w-full mt-6 rounded-[1rem] p-[1px] relative overflow-hidden ${loading ? 'opacity-50' : ''}`}
             >
-              <View className="absolute inset-0 bg-boston-gold opacity-50" />
-              <View className="flex-row items-center justify-center bg-boston-black py-4 px-8 rounded-[1rem] border border-boston-gold/50 shadow-xl shadow-boston-gold/20">
+              <View style={{ backgroundColor: theme.secondary }} className="absolute inset-0 opacity-50" />
+              <View style={{ borderColor: `${theme.secondary}80` }} className="flex-row items-center justify-center bg-black py-4 px-8 rounded-[1rem] border shadow-xl">
                 {loading ? (
-                  <ActivityIndicator color="#D4AF37" />
+                  <ActivityIndicator color={theme.secondary} />
                 ) : (
                   <>
                     <Text className="text-xs font-black text-white uppercase tracking-[0.2em] mr-3">
                       {isLogin ? "Iniciar Sesión" : "Crear Perfil"}
                     </Text>
-                    <ArrowRight size={18} color="#D4AF37" />
+                    <ArrowRight size={18} color={theme.secondary} />
                   </>
                 )}
               </View>
@@ -315,9 +315,9 @@ export default function LoginScreen() {
             <TouchableOpacity onPress={() => { setIsLogin(!isLogin); setEmail(''); setPassword(''); }}>
               <Text className="text-[10px] font-black text-white/50 uppercase tracking-[0.2em]">
                 {isLogin ? (
-                  <>¿No tienes cuenta? <Text className="text-boston-gold">Regístrate gratis</Text></>
+                  <>¿No tienes cuenta? <Text style={{ color: theme.secondary }}>Regístrate gratis</Text></>
                 ) : (
-                  <>¿Ya eres socio? <Text className="text-boston-gold">Identifícate</Text></>
+                  <>¿Ya eres socio? <Text style={{ color: theme.secondary }}>Identifícate</Text></>
                 )}
               </Text>
             </TouchableOpacity>

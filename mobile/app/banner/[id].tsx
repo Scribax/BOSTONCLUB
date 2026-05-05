@@ -8,6 +8,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { FadeInView } from '../../components/FadeInView';
 import { StatusBar } from 'expo-status-bar';
 import { BlurView } from 'expo-blur';
+import { useTheme } from '../../contexts/ThemeContext';
 
 const resolveImageUrl = (url: string) => {
   if (!url) return '';
@@ -23,6 +24,7 @@ const resolveImageUrl = (url: string) => {
 export default function BannerDetailScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
+  const { theme } = useTheme();
   const [banner, setBanner] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [redemptionLoading, setRedemptionLoading] = useState(false);
@@ -85,7 +87,7 @@ export default function BannerDetailScreen() {
   if (loading) {
     return (
       <View className="flex-1 bg-[#050505] items-center justify-center">
-        <Sparkles color="#D4AF37" size={32} className="mb-4" />
+        <Sparkles color={theme.secondary} size={32} className="mb-4" />
         <ActivityIndicator color="white" />
       </View>
     );
@@ -94,9 +96,9 @@ export default function BannerDetailScreen() {
   if (!banner) {
     return (
       <View className="flex-1 bg-white items-center justify-center px-6">
-        <AlertCircle color="#ff4d4d" size={40} className="mb-4" />
+        <AlertCircle color={theme.primary} size={40} className="mb-4" />
         <Text className="text-black text-xl font-black uppercase italic mb-2">Ups! No hay nada aquí</Text>
-        <TouchableOpacity onPress={() => router.back()} className="mt-4 bg-boston-red px-8 py-4 rounded-2xl">
+        <TouchableOpacity onPress={() => router.back()} style={{ backgroundColor: theme.primary }} className="mt-4 px-8 py-4 rounded-2xl">
           <Text className="text-white font-black uppercase text-xs tracking-widest">VOLVER AL CLUB</Text>
         </TouchableOpacity>
       </View>
@@ -122,7 +124,7 @@ export default function BannerDetailScreen() {
         <BlurView intensity={80} tint="dark" style={{ flex: 1 }} />
         <View className="absolute inset-0 pt-12 px-6 flex-row items-center justify-between">
            <Text className="text-white text-lg font-black italic tracking-tighter uppercase">
-            BOSTON <Text className="text-boston-red">CLUB</Text>
+            BOSTON <Text style={{ color: theme.primary }}>CLUB</Text>
            </Text>
            <TouchableOpacity className="w-10 h-10 bg-white/10 rounded-full items-center justify-center">
               <Share2 color="white" size={18} />
@@ -187,8 +189,8 @@ export default function BannerDetailScreen() {
           <View className="absolute bottom-16 w-full px-8">
              <FadeInView delay={200}>
                 <View className="flex-row items-center mb-2">
-                   <View className="h-[2px] w-8 bg-boston-red mr-3" />
-                   <Text className="text-boston-red font-black text-[10px] uppercase tracking-[0.4em]">EXCLUSIVO</Text>
+                   <View style={{ backgroundColor: theme.primary }} className="h-[2px] w-8 mr-3" />
+                   <Text style={{ color: theme.primary }} className="font-black text-[10px] uppercase tracking-[0.4em]">EXCLUSIVO</Text>
                 </View>
                 <Text className="text-white text-5xl font-black uppercase italic tracking-tighter leading-[48px]">
                   {banner.title}
@@ -224,7 +226,7 @@ export default function BannerDetailScreen() {
               </Text>
 
               {banner.benefits && (
-                <View className="bg-boston-red rounded-[2.5rem] p-8 mb-12 shadow-xl shadow-boston-red/20">
+               <View style={{ backgroundColor: theme.primary }} className="rounded-[2.5rem] p-8 mb-12 shadow-xl shadow-black/20">
                    <View className="flex-row items-center mb-4">
                       <View className="w-10 h-10 bg-white/20 rounded-full items-center justify-center mr-4">
                          <Sparkles color="white" size={20} />
@@ -249,7 +251,7 @@ export default function BannerDetailScreen() {
                     <ActivityIndicator color="white" />
                   ) : (
                     <>
-                      <QrCode color="#D4AF37" size={24} className="mr-3" />
+                      <QrCode color={theme.secondary} size={24} className="mr-3" />
                       <Text className="text-white font-black text-sm uppercase tracking-[0.2em]">
                          {banner.buttonText || '¡LO QUIERO!'}
                       </Text>
@@ -269,7 +271,8 @@ export default function BannerDetailScreen() {
                 <TouchableOpacity 
                   activeOpacity={0.8}
                   onPress={() => router.push({ pathname: '/events', params: { highlightId: banner.linkedEventId } })}
-                  className="bg-boston-gold py-6 rounded-[2rem] flex-row items-center justify-center shadow-xl shadow-boston-gold/20"
+                  style={{ backgroundColor: theme.secondary }}
+                  className="py-6 rounded-[2rem] flex-row items-center justify-center shadow-xl shadow-black/20"
                 >
                    <Calendar color="black" size={20} className="mr-3" />
                    <Text className="text-black font-black text-xs uppercase tracking-[0.2em]">IR AL EVENTO</Text>

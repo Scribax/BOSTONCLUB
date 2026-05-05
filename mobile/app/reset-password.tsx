@@ -4,6 +4,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Lock, ArrowRight, ShieldAlert, ChevronLeft } from 'lucide-react-native';
 import api from '../lib/api';
 import { StatusBar } from 'expo-status-bar';
+import { useTheme } from '../contexts/ThemeContext';
 
 export default function ResetPasswordScreen() {
   const [code, setCode] = useState('');
@@ -12,6 +13,7 @@ export default function ResetPasswordScreen() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const { email } = useLocalSearchParams();
+  const { theme } = useTheme();
 
   const handleReset = async () => {
     if (code.length !== 6) {
@@ -57,10 +59,10 @@ export default function ResetPasswordScreen() {
         </TouchableOpacity>
 
         <View className="items-center mb-10">
-          <View className="w-20 h-20 bg-boston-red/10 rounded-3xl items-center justify-center border border-boston-red/20 mb-6">
-            <ShieldAlert size={40} color="#ff4d4d" />
+          <View style={{ backgroundColor: `${theme.primary}1A`, borderColor: `${theme.primary}33` }} className="w-20 h-20 rounded-3xl items-center justify-center border mb-6">
+            <ShieldAlert size={40} color={theme.primary} />
           </View>
-          <Text className="text-3xl font-black text-white uppercase italic text-center text-red-500">Nueva Contraseña</Text>
+          <Text style={{ color: theme.primary }} className="text-3xl font-black uppercase italic text-center">Nueva Contraseña</Text>
           <Text className="text-white/40 text-center mt-4 px-6 leading-5 uppercase text-[10px] tracking-widest font-bold">
             Ingresa el código enviado a tu email y tu nueva contraseña
           </Text>
@@ -108,7 +110,8 @@ export default function ResetPasswordScreen() {
           <TouchableOpacity 
             onPress={handleReset}
             disabled={loading}
-            className="bg-boston-gold py-5 rounded-2xl flex-row items-center justify-center shadow-lg"
+            style={{ backgroundColor: theme.secondary }}
+            className="py-5 rounded-2xl flex-row items-center justify-center shadow-lg"
           >
             {loading ? (
               <ActivityIndicator color="black" />

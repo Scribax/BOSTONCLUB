@@ -5,6 +5,7 @@ import { ShieldCheck, ArrowRight, Mail } from 'lucide-react-native';
 import api, { setAuthToken } from '../lib/api';
 import { StatusBar } from 'expo-status-bar';
 import axios from 'axios';
+import { useTheme } from '../contexts/ThemeContext';
 
 export default function VerifyEmailScreen() {
   const [code, setCode] = useState('');
@@ -12,6 +13,7 @@ export default function VerifyEmailScreen() {
   const [resending, setResending] = useState(false);
   const router = useRouter();
   const { email: initialEmail, pendingToken } = useLocalSearchParams<{ email: string; pendingToken: string }>();
+  const { theme } = useTheme();
   const [displayEmail, setDisplayEmail] = useState(initialEmail || '');
   const [isEditingEmail, setIsEditingEmail] = useState(false);
   const [newEmail, setNewEmail] = useState(initialEmail || '');
@@ -106,12 +108,12 @@ export default function VerifyEmailScreen() {
       <StatusBar style="light" />
       
       <View className="items-center mb-10">
-        <View className="w-20 h-20 bg-boston-gold/10 rounded-3xl items-center justify-center border border-boston-gold/20 mb-6">
-          <ShieldCheck size={40} color="#D4AF37" />
+        <View style={{ backgroundColor: `${theme.secondary}1A`, borderColor: `${theme.secondary}33` }} className="w-20 h-20 rounded-3xl items-center justify-center border mb-6">
+          <ShieldCheck size={40} color={theme.secondary} />
         </View>
         <Text className="text-3xl font-black text-white uppercase italic text-center">Verifica tu Cuenta</Text>
         <Text className="text-white/40 text-center mt-4 px-6 leading-5">
-          Hemos enviado un código de 6 dígitos a su correo electrónico {displayEmail ? <Text className="text-boston-gold">{displayEmail}</Text> : ''}.
+          Hemos enviado un código de 6 dígitos a su correo electrónico {displayEmail ? <Text style={{ color: theme.secondary }}>{displayEmail}</Text> : ''}.
         </Text>
       </View>
 
@@ -130,7 +132,8 @@ export default function VerifyEmailScreen() {
         <TouchableOpacity 
           onPress={handleVerify}
           disabled={loading || resending}
-          className="bg-boston-gold py-4 rounded-2xl flex-row items-center justify-center mb-4"
+          style={{ backgroundColor: theme.secondary }}
+          className="py-4 rounded-2xl flex-row items-center justify-center mb-4"
         >
           {loading ? (
             <ActivityIndicator color="black" />
@@ -148,9 +151,9 @@ export default function VerifyEmailScreen() {
           className="py-2 items-center"
         >
           {resending ? (
-            <ActivityIndicator color="#D4AF37" size="small" />
+            <ActivityIndicator color={theme.secondary} size="small" />
           ) : (
-            <Text className={`text-boston-gold text-[10px] font-black uppercase tracking-widest ${isEditingEmail ? 'opacity-20' : ''}`}>
+            <Text style={{ color: theme.secondary }} className={`text-[10px] font-black uppercase tracking-widest ${isEditingEmail ? 'opacity-20' : ''}`}>
               ¿No recibiste el código? Reenviar
             </Text>
           )}
@@ -183,12 +186,13 @@ export default function VerifyEmailScreen() {
                 <TouchableOpacity 
                   onPress={handleChangeEmail}
                   disabled={editingLoading}
-                  className="flex-2 bg-boston-gold/20 border border-boston-gold/40 py-3 rounded-xl items-center px-6"
+                  style={{ backgroundColor: `${theme.secondary}33`, borderColor: `${theme.secondary}66` }}
+                  className="flex-2 border py-3 rounded-xl items-center px-6"
                 >
                   {editingLoading ? (
-                    <ActivityIndicator size="small" color="#D4AF37" />
+                    <ActivityIndicator size="small" color={theme.secondary} />
                   ) : (
-                    <Text className="text-boston-gold font-black text-[9px] uppercase tracking-widest">Guardar y Reenviar</Text>
+                    <Text style={{ color: theme.secondary }} className="font-black text-[9px] uppercase tracking-widest">Guardar y Reenviar</Text>
                   )}
                 </TouchableOpacity>
               </View>

@@ -5,6 +5,7 @@ import { ArrowLeft, History, ArrowUpRight, ArrowDownRight, Gift, CalendarCheck, 
 import api from '../lib/api';
 import { StatusBar } from 'expo-status-bar';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useTheme } from '../contexts/ThemeContext';
 
 type HistoryEvent = {
   id: string;
@@ -20,6 +21,7 @@ export default function HistoryScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState<string>('TODOS');
+  const { theme } = useTheme();
 
   const fetchHistory = async () => {
     try {
@@ -88,20 +90,20 @@ export default function HistoryScreen() {
   }, [history]);
 
   const getSourceIcon = (source: string, pointsGained: number) => {
-    if (source === 'DAILY_CHECKIN' || source === 'QR_CHECKIN') return <CalendarCheck size={20} color="#D4AF37" />;
+    if (source === 'DAILY_CHECKIN' || source === 'QR_CHECKIN') return <CalendarCheck size={20} color={theme.secondary} />;
     if (source === 'COMPRA_POSNET' || source === 'PURCHASE') return <CheckCircle2 size={20} color="#22c55e" />;
     if (source === 'CANJE_PROMO') return <Ticket size={20} color="#a855f7" />;
-    if (source === 'PROMO' || source === 'REDEEM') return <Gift size={20} color="#D4AF37" />;
-    if (source === 'REFERIDO') return <Users size={20} color="#D4AF37" />;
-    if (source.includes('RACHA') || source === 'STREAK_BONUS') return <Flame size={20} color="#FF3B30" />;
-    if (pointsGained < 0) return <ArrowDownRight size={20} color="#ff4d4d" />;
-    return <ArrowUpRight size={20} color="#D4AF37" />;
+    if (source === 'PROMO' || source === 'REDEEM') return <Gift size={20} color={theme.secondary} />;
+    if (source === 'REFERIDO') return <Users size={20} color={theme.secondary} />;
+    if (source.includes('RACHA') || source === 'STREAK_BONUS') return <Flame size={20} color={theme.primary} />;
+    if (pointsGained < 0) return <ArrowDownRight size={20} color={theme.primary} />;
+    return <ArrowUpRight size={20} color={theme.secondary} />;
   };
 
   if (loading && history.length === 0) {
     return (
       <View className="flex-1 bg-[#050505] items-center justify-center">
-        <ActivityIndicator color="#D4AF37" size="large" />
+        <ActivityIndicator color={theme.secondary} size="large" />
       </View>
     );
   }
@@ -135,7 +137,7 @@ export default function HistoryScreen() {
             <Text className="text-white/30 text-[8px] font-black uppercase tracking-widest mb-1">Total Ganado</Text>
             <View className="flex-row items-baseline">
               <Text className="text-white text-2xl font-black italic">{stats.total}</Text>
-              <Text className="text-[#D4AF37] text-[8px] font-black ml-1">PTS</Text>
+              <Text style={{ color: theme.secondary }} className="text-[8px] font-black ml-1">PTS</Text>
             </View>
           </LinearGradient>
           <LinearGradient 
@@ -145,7 +147,7 @@ export default function HistoryScreen() {
             <Text className="text-white/30 text-[8px] font-black uppercase tracking-widest mb-1">Mejor Mes</Text>
             <View className="flex-row items-baseline">
               <Text className="text-white text-lg font-black italic">{stats.bestMonth.slice(0, 7)}</Text>
-              <Text className="text-[#FF3B30] text-[8px] font-black ml-1">🔥</Text>
+              <Text style={{ color: theme.primary }} className="text-[8px] font-black ml-1">🔥</Text>
             </View>
           </LinearGradient>
         </View>
@@ -173,7 +175,7 @@ export default function HistoryScreen() {
 
       <ScrollView 
         className="flex-1 px-4"
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#D4AF37" />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.secondary} />}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 100 }}
       >
@@ -225,7 +227,7 @@ export default function HistoryScreen() {
                         {item.description || (isPromoRedeem ? 'Beneficio Canjeado' : isPositive ? 'Acreditación Boston' : 'Canje Boston')}
                       </Text>
                       <View className="flex-row items-center">
-                         <View className={`w-1.5 h-1.5 rounded-full mr-2 ${isPromoRedeem ? 'bg-purple-500' : isPositive ? 'bg-boston-gold' : 'bg-boston-red'}`} />
+                         <View style={{ backgroundColor: isPromoRedeem ? '#a855f7' : isPositive ? theme.secondary : theme.primary }} className="w-1.5 h-1.5 rounded-full mr-2" />
                          <Text className="text-white/30 text-[9px] uppercase tracking-widest font-black">
                            {date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} HS • {item.source}
                          </Text>
@@ -238,10 +240,10 @@ export default function HistoryScreen() {
                         </View>
                       ) : (
                         <>
-                          <Text className={`font-black text-lg italic ${isPositive ? 'text-white' : 'text-boston-red'}`}>
+                          <Text style={{ color: isPositive ? 'white' : theme.primary }} className="font-black text-lg italic">
                             {isPositive ? '+' : ''}{item.pointsGained}
                           </Text>
-                          <Text className={`text-[8px] font-black uppercase tracking-widest ${isPositive ? 'text-boston-gold' : 'text-boston-red/50'}`}>PTS</Text>
+                          <Text style={{ color: isPositive ? theme.secondary : `${theme.primary}80` }} className="text-[8px] font-black uppercase tracking-widest">PTS</Text>
                         </>
                       )}
                     </View>

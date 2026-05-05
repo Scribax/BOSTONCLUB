@@ -4,11 +4,13 @@ import { useRouter } from 'expo-router';
 import { KeyRound, ArrowRight, Mail, ChevronLeft } from 'lucide-react-native';
 import api from '../lib/api';
 import { StatusBar } from 'expo-status-bar';
+import { useTheme } from '../contexts/ThemeContext';
 
 export default function ForgotPasswordScreen() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const { theme } = useTheme();
 
   const handleRequestCode = async () => {
     if (!email) {
@@ -44,8 +46,8 @@ export default function ForgotPasswordScreen() {
       </TouchableOpacity>
       
       <View className="items-center mb-10">
-        <View className="w-20 h-20 bg-boston-gold/10 rounded-3xl items-center justify-center border border-boston-gold/20 mb-6">
-          <KeyRound size={40} color="#D4AF37" />
+        <View style={{ backgroundColor: `${theme.secondary}1A`, borderColor: `${theme.secondary}33` }} className="w-20 h-20 rounded-3xl items-center justify-center border mb-6">
+          <KeyRound size={40} color={theme.secondary} />
         </View>
         <Text className="text-3xl font-black text-white uppercase italic text-center">Recuperar Acceso</Text>
         <Text className="text-white/40 text-center mt-4 px-6 leading-5 uppercase text-[10px] tracking-widest font-bold">
@@ -71,7 +73,8 @@ export default function ForgotPasswordScreen() {
         <TouchableOpacity 
           onPress={handleRequestCode}
           disabled={loading}
-          className="bg-boston-gold py-5 rounded-2xl flex-row items-center justify-center shadow-lg"
+          style={{ backgroundColor: theme.secondary }}
+          className="py-5 rounded-2xl flex-row items-center justify-center shadow-lg"
         >
           {loading ? (
             <ActivityIndicator color="black" />

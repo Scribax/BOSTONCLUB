@@ -32,6 +32,55 @@ export const unstable_settings = {
 
 SplashScreen.preventAutoHideAsync();
 
+import { useTheme } from '../contexts/ThemeContext';
+
+function ThemedRootContent({ loaded, authState, isLocked, setIsLocked, handleUnlock, handleLogout }: any) {
+  const { theme } = useTheme();
+  const colorScheme = useColorScheme();
+
+  if (!loaded || authState.isLoading) {
+    return (
+      <View style={{ flex: 1, backgroundColor: '#050505', alignItems: 'center', justifyContent: 'center' }}>
+        <ActivityIndicator color={theme.secondary} />
+        <Text style={{ color: `${theme.secondary}66`, marginTop: 20, fontSize: 10, fontWeight: 'bold', letterSpacing: 4 }}>BOSTON CLUB</Text>
+      </View>
+    );
+  }
+
+  return (
+    <NavThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+      <Stack screenOptions={{ headerShown: false, animation: 'fade_from_bottom' }}>
+        <Stack.Screen name="login" />
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="verify-email" />
+        <Stack.Screen name="forgot-password" />
+        <Stack.Screen name="reset-password" />
+        <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+      </Stack>
+
+      {isLocked && (
+        <View className="absolute inset-0 bg-[#050505] items-center justify-center px-10 z-[9999]">
+          <View className="w-20 h-20 bg-white/5 rounded-3xl items-center justify-center border border-white/10 mb-8 font-black">
+            <Lock size={32} color={theme.secondary} />
+          </View>
+          <Text className="text-white text-2xl font-black italic uppercase tracking-tighter text-center mb-2">Acceso Protegido</Text>
+          <Text className="text-white/50 text-xs font-medium text-center mb-10">Tu sesión está resguardada por biometría.</Text>
+          <TouchableOpacity 
+            onPress={handleUnlock} 
+            style={{ backgroundColor: theme.secondary }}
+            className="py-4 px-8 rounded-2xl w-full items-center shadow-lg shadow-black/20"
+          >
+            <Text className="text-black font-black uppercase text-xs tracking-widest">Desbloquear</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={handleLogout} className="mt-6">
+            <Text className="text-white/30 font-bold uppercase text-[10px] tracking-widest underline">Cerrar Sesión</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+    </NavThemeProvider>
+  );
+}
+
 export default function RootLayout() {
   const [loaded, error] = useFonts({ ...FontAwesome.font });
   const [authState, setAuthState] = useState({ isLoading: true, isLoggedIn: false });
@@ -139,43 +188,16 @@ export default function RootLayout() {
     router.replace('/login');
   };
 
-  if (!loaded || authState.isLoading) {
-    return (
-      <View style={{ flex: 1, backgroundColor: '#050505', alignItems: 'center', justifyContent: 'center' }}>
-        <ActivityIndicator color="#D4AF37" />
-        <Text style={{ color: 'rgba(212, 175, 55, 0.4)', marginTop: 20, fontSize: 10, fontWeight: 'bold', letterSpacing: 4 }}>BOSTON CLUB</Text>
-      </View>
-    );
-  }
-
-  return (
+   return (
     <ThemeProvider>
-    <NavThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack screenOptions={{ headerShown: false, animation: 'fade_from_bottom' }}>
-        <Stack.Screen name="login" />
-        <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="verify-email" />
-        <Stack.Screen name="forgot-password" />
-        <Stack.Screen name="reset-password" />
-        <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-      </Stack>
-
-      {isLocked && (
-        <View className="absolute inset-0 bg-[#050505] items-center justify-center px-10 z-[9999]">
-          <View className="w-20 h-20 bg-white/5 rounded-3xl items-center justify-center border border-white/10 mb-8 font-black">
-            <Lock size={32} color="#D4AF37" />
-          </View>
-          <Text className="text-white text-2xl font-black italic uppercase tracking-tighter text-center mb-2">Acceso Protegido</Text>
-          <Text className="text-white/50 text-xs font-medium text-center mb-10">Tu sesión está resguardada por biometría.</Text>
-          <TouchableOpacity onPress={handleUnlock} className="bg-boston-gold py-4 px-8 rounded-2xl w-full items-center shadow-lg shadow-boston-gold/20">
-            <Text className="text-black font-black uppercase text-xs tracking-widest">Desbloquear</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={handleLogout} className="mt-6">
-            <Text className="text-white/30 font-bold uppercase text-[10px] tracking-widest underline">Cerrar Sesión</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-    </NavThemeProvider>
+      <ThemedRootContent 
+        loaded={loaded} 
+        authState={authState} 
+        isLocked={isLocked} 
+        setIsLocked={setIsLocked} 
+        handleUnlock={handleUnlock} 
+        handleLogout={handleLogout} 
+      />
     </ThemeProvider>
   );
 }

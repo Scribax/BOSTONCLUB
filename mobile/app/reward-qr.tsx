@@ -6,10 +6,12 @@ import QRCode from 'react-native-qrcode-svg';
 import { StatusBar } from 'expo-status-bar';
 import api from '../lib/api';
 import { Alert, ActivityIndicator } from 'react-native';
+import { useTheme } from '../contexts/ThemeContext';
 
 export default function RewardQRScreen() {
   const { token, reward } = useLocalSearchParams<{ token: string; reward: string }>();
   const router = useRouter();
+  const { theme } = useTheme();
 
   // Animation values
   const [fadeAnim] = useState(new Animated.Value(0));
@@ -113,7 +115,7 @@ export default function RewardQRScreen() {
 
   if (!token) {
     return (
-      <View className="flex-1 bg-boston-black items-center justify-center p-6">
+      <View className="flex-1 bg-black items-center justify-center p-6">
         <Text className="text-white text-xl">Sin token de canje válido.</Text>
         <TouchableOpacity onPress={() => router.back()} className="mt-4 p-4 bg-white/10 rounded-xl">
           <Text className="text-white font-bold">Volver</Text>
@@ -127,7 +129,7 @@ export default function RewardQRScreen() {
       <StatusBar style="light" />
 
       {/* Glow */}
-      <View className="absolute top-0 right-0 w-64 h-64 bg-boston-gold opacity-10 rounded-full blur-[80px]" />
+      <View style={{ backgroundColor: theme.secondary }} className="absolute top-0 right-0 w-64 h-64 opacity-10 rounded-full blur-[80px]" />
       
       <View className="pt-16 pb-4 px-6 flex-row items-center relative z-10">
         <TouchableOpacity 
@@ -142,17 +144,17 @@ export default function RewardQRScreen() {
         <View className="flex-1 justify-center items-center py-6">
            <Animated.View style={{ opacity: fadeAnim }} className="w-full">
               {/* Premium Ticket Card */}
-              <View className="bg-white/[0.03] border border-boston-gold/30 rounded-[3rem] p-8 items-center shadow-2xl overflow-hidden relative">
+              <View style={{ borderColor: `${theme.secondary}4D` }} className="bg-white/[0.03] border rounded-[3rem] p-8 items-center shadow-2xl overflow-hidden relative">
                  {/* Internal Ticket styling elements */}
-                 <View className="absolute -left-6 top-1/2 w-12 h-12 bg-[#050505] rounded-full border border-boston-gold/20" />
-                 <View className="absolute -right-6 top-1/2 w-12 h-12 bg-[#050505] rounded-full border border-boston-gold/20" />
+                 <View style={{ borderColor: `${theme.secondary}33` }} className="absolute -left-6 top-1/2 w-12 h-12 bg-[#050505] rounded-full border" />
+                 <View style={{ borderColor: `${theme.secondary}33` }} className="absolute -right-6 top-1/2 w-12 h-12 bg-[#050505] rounded-full border" />
                  
                  <View className="flex-row items-center w-full mb-8">
-                   <View className={`w-12 h-12 rounded-full items-center justify-center mr-4 border ${isCompleted ? 'bg-green-500/20 border-green-500/30' : 'bg-boston-gold/20 border-boston-gold/30'}`}>
-                     {isCompleted ? <CheckCircle2 size={24} color="#22c55e" /> : <Ticket size={24} color="#D4AF37" />}
+                   <View style={{ borderColor: isCompleted ? 'rgba(34,197,94,0.3)' : `${theme.secondary}4D`, backgroundColor: isCompleted ? 'rgba(34,197,94,0.2)' : `${theme.secondary}33` }} className="w-12 h-12 rounded-full items-center justify-center mr-4 border">
+                     {isCompleted ? <CheckCircle2 size={24} color="#22c55e" /> : <Ticket size={24} color={theme.secondary} />}
                    </View>
                    <View className="flex-1">
-                     <Text className={`text-[10px] font-bold uppercase tracking-widest leading-none mb-1 ${isCompleted ? 'text-green-400' : 'text-boston-gold'}`}>
+                     <Text style={{ color: isCompleted ? '#4ade80' : theme.secondary }} className="text-[10px] font-bold uppercase tracking-widest leading-none mb-1">
                        {isCompleted ? 'Premio Entregado' : 'Canje Aprobado'}
                      </Text>
                      <Text className="text-white font-black text-xl italic uppercase tracking-tighter" numberOfLines={2}>
@@ -168,7 +170,7 @@ export default function RewardQRScreen() {
                    </View>
                  ) : (
                    <>
-                     <View className="bg-white p-6 rounded-3xl shadow-xl mb-4 relative overflow-hidden border-4 border-boston-gold/20">
+                     <View style={{ borderColor: `${theme.secondary}33` }} className="bg-white p-6 rounded-3xl shadow-xl mb-4 relative overflow-hidden border-4">
                         <QRCode
                           value={`${token}|${totpTimestamp}`}
                           size={200}
@@ -180,17 +182,17 @@ export default function RewardQRScreen() {
                      {/* TOTP Progress Bar */}
                      <View className="w-full mb-6 items-center">
                         <Text className="text-white/40 text-[9px] font-black uppercase tracking-widest mb-2">
-                           Actualizando en <Text className="text-boston-gold">{timeLeft}s</Text>
+                           Actualizando en <Text style={{ color: theme.secondary }}>{timeLeft}s</Text>
                         </Text>
                         <View className="w-3/4 h-1 bg-white/10 rounded-full overflow-hidden">
                            <View 
-                             className="h-full bg-boston-gold rounded-full" 
-                             style={{ width: `${(timeLeft / 30) * 100}%` }} 
+                             style={{ width: `${(timeLeft / 30) * 100}%`, backgroundColor: theme.secondary }} 
+                             className="h-full rounded-full" 
                            />
                         </View>
                      </View>
 
-                     <Text className="text-boston-gold text-[10px] font-black uppercase tracking-[0.4em] mb-2 text-center">
+                     <Text style={{ color: theme.secondary }} className="text-[10px] font-black uppercase tracking-[0.4em] mb-2 text-center">
                        Seguridad Anti-Fraude
                      </Text>
                      <Text className="text-white/50 text-xs font-medium text-center uppercase tracking-tight leading-relaxed">
@@ -205,9 +207,9 @@ export default function RewardQRScreen() {
                 onPress={() => router.replace('/(tabs)')}
                 className="w-full mt-8 rounded-[1.5rem] p-[1px] relative overflow-hidden"
               >
-                 <View className="absolute inset-0 bg-boston-gold opacity-50" />
-                 <View className="flex-row items-center justify-center bg-boston-black py-4 rounded-[1.5rem] border border-boston-gold/50 space-x-3">
-                    <Ticket size={18} color="#D4AF37" />
+                 <View style={{ backgroundColor: theme.secondary }} className="absolute inset-0 opacity-50" />
+                 <View style={{ borderColor: `${theme.secondary}80` }} className="flex-row items-center justify-center bg-black py-4 rounded-[1.5rem] border space-x-3">
+                    <Ticket size={18} color={theme.secondary} />
                     <Text className="text-xs font-black text-white uppercase tracking-[0.2em]">Volver al Inicio</Text>
                  </View>
                </TouchableOpacity>
@@ -220,12 +222,12 @@ export default function RewardQRScreen() {
                    disabled={cancelling}
                    className="w-full mt-4 rounded-[1.5rem] p-[1px] relative overflow-hidden"
                  >
-                   <View className="absolute inset-0 bg-[#ff4d4d] opacity-20" />
-                   <View className="flex-row items-center justify-center bg-boston-black py-4 rounded-[1.5rem] border border-[#ff4d4d]/30 space-x-3">
+                   <View style={{ backgroundColor: theme.primary }} className="absolute inset-0 opacity-20" />
+                   <View style={{ borderColor: `${theme.primary}4D` }} className="flex-row items-center justify-center bg-black py-4 rounded-[1.5rem] border space-x-3">
                       {cancelling ? (
-                         <ActivityIndicator size="small" color="#ff4d4d" />
+                         <ActivityIndicator size="small" color={theme.primary} />
                       ) : (
-                         <Text className="text-xs font-black text-[#ff4d4d] uppercase tracking-[0.2em]">Cancelar Canje</Text>
+                         <Text style={{ color: theme.primary }} className="text-xs font-black uppercase tracking-[0.2em]">Cancelar Canje</Text>
                       )}
                    </View>
                  </TouchableOpacity>
