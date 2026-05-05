@@ -267,6 +267,31 @@ export default function DashboardHalloween({
           </View>
         </View>
 
+        {/* Spooky Guide Banner (Club Info) */}
+        <FadeInView delay={600} className="px-6 mt-10">
+          <TouchableOpacity
+            activeOpacity={0.9}
+            onPress={() => router.push('/club-info')}
+            style={{ minHeight: 90, borderRadius: 32, overflow: 'hidden', borderColor: `${theme.primary}33`, borderWidth: 1 }}
+            className="relative bg-[#0d0714] shadow-2xl"
+          >
+            <View className="flex-row items-center p-5 justify-between">
+              <View className="flex-row items-center flex-1">
+                <View style={{ backgroundColor: `${theme.primary}1A`, borderColor: `${theme.primary}33` }} className="w-14 h-14 rounded-2xl items-center justify-center border mr-4">
+                  <Skull size={28} color={theme.primary} />
+                </View>
+                <View className="flex-1">
+                  <Text className="text-white font-black uppercase text-[12px] tracking-[0.2em] italic">¿Cómo cosechar almas?</Text>
+                  <Text style={{ color: theme.primary }} className="font-bold text-[9px] uppercase tracking-widest mt-1">Descubre el mapa del Inframundo Boston</Text>
+                </View>
+              </View>
+              <View style={{ backgroundColor: theme.primary }} className="w-10 h-10 rounded-2xl items-center justify-center shadow-lg">
+                <ArrowRight size={18} color="black" />
+              </View>
+            </View>
+          </TouchableOpacity>
+        </FadeInView>
+
         {/* Promos (Bottom List) */}
         {promoBanners.length > 0 && (
           <View className="mt-10 px-6">
