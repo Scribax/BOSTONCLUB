@@ -3,7 +3,7 @@ name: Deploy Boston Club
 on:
   push:
     branches:
-      - main
+      - deploy-via-ssh
 
 jobs:
   deploy:
