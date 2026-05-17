@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { authenticate, requireAdmin } from "../middlewares/auth";
+import { redemptionRateLimit } from "../middlewares/rateLimit";
 import { addPoints, getMyPointsHistory } from "../controllers/points.controller";
 import { getAllRewards, createReward, deleteReward, updateReward, reorderRewards } from "../controllers/rewards.controller";
 import { generateRedemptionQR, confirmRedemption, getRedemptionStatus, cancelRedemption, getScannerHistory, getActiveRedemption } from "../controllers/redemptions.controller";
@@ -34,7 +35,7 @@ router.patch("/rewards/:id", authenticate, requireAdmin, updateReward);
 router.delete("/rewards/:id", authenticate, requireAdmin, deleteReward);
 
 // Redemptions
-router.post("/redemptions/generate", authenticate, generateRedemptionQR);
+router.post("/redemptions/generate", authenticate, redemptionRateLimit, generateRedemptionQR);
 router.post("/redemptions/confirm", authenticate, requireAdmin, confirmRedemption);
 router.post("/redemptions/cancel", authenticate, cancelRedemption);
 router.get("/redemptions/active", authenticate, getActiveRedemption);
