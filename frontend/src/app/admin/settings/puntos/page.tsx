@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Coins, Save, RefreshCw, TrendingUp, AlertCircle, Check } from "lucide-react";
+import { Coins, Save, RefreshCw, TrendingUp, AlertCircle, Check, Gift } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 
 const EXAMPLE_AMOUNTS = [5000, 10000, 25000, 50000, 100000];
@@ -9,9 +9,13 @@ const EXAMPLE_AMOUNTS = [5000, 10000, 25000, 50000, 100000];
 export default function PuntosSettingsPage() {
   const [rate, setRate] = useState<string>("1");
   const [savedRate, setSavedRate] = useState<number>(1);
+  const [checkinPoints, setCheckinPoints] = useState<string>("100");
+  const [savedCheckinPoints, setSavedCheckinPoints] = useState<number>(100);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [isSavingBirthday, setIsSavingBirthday] = useState(false);
+  const [savedBirthday, setSavedBirthday] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -24,6 +28,9 @@ export default function PuntosSettingsPage() {
       const currentRate = data.pointsPerPeso ?? 1;
       setRate(currentRate.toString());
       setSavedRate(currentRate);
+      const currentCheckin = data.checkinPoints ?? 100;
+      setCheckinPoints(currentCheckin.toString());
+      setSavedCheckinPoints(currentCheckin);
     } catch (err) {
       setError("No se pudieron cargar los ajustes.");
     } finally {
@@ -33,10 +40,32 @@ export default function PuntosSettingsPage() {
 
   const parsedRate = parseFloat(rate);
   const isValid = !isNaN(parsedRate) && parsedRate > 0;
+  const parsedCheckin = parseInt(checkinPoints);
+  const isCheckinValid = !isNaN(parsedCheckin) && parsedCheckin > 0;
+  const birthdayPoints = isCheckinValid ? parsedCheckin * 2 : 0;
 
   const calcPoints = (amount: number) => {
     if (!isValid) return "—";
     return Math.ceil(amount * parsedRate).toLocaleString("es-AR");
+  };
+
+  const handleSaveBirthday = async () => {
+    if (!isCheckinValid) return;
+    setIsSavingBirthday(true);
+    setError(null);
+    try {
+      await apiFetch("/settings", {
+        method: "POST",
+        body: JSON.stringify({ checkinPoints: parsedCheckin }),
+      });
+      setSavedCheckinPoints(parsedCheckin);
+      setSavedBirthday(true);
+      setTimeout(() => setSavedBirthday(false), 3000);
+    } catch (err: any) {
+      setError(err?.message || "Error al guardar.");
+    } finally {
+      setIsSavingBirthday(false);
+    }
   };
 
   const handleSave = async () => {
@@ -195,6 +224,54 @@ export default function PuntosSettingsPage() {
           * Los puntos siempre se redondean para arriba (Math.ceil). <br/>
           <span className="text-boston-gold/40">Nota: El sistema de "Racha" de la app puede multiplicar estos puntos (x1.5 o x2.0) según la fidelidad del socio.</span>
         </p>
+      </div>
+
+      {/* Birthday Points Card */}
+      <div className="glass-panel p-8 rounded-[2.5rem] border border-white/5 shadow-2xl relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-48 h-48 bg-pink-500 rounded-full opacity-5 blur-[80px]" />
+        <div className="flex items-center gap-4 mb-8">
+          <div className="w-12 h-12 bg-pink-500/10 rounded-2xl flex items-center justify-center border border-pink-500/20">
+            <Gift className="w-6 h-6 text-pink-400" />
+          </div>
+          <div>
+            <h2 className="text-white font-black tracking-widest uppercase text-lg italic">Puntos de Cumpleaños</h2>
+            <p className="text-white/40 text-xs font-bold uppercase tracking-wider">
+              Actualmente: <span className="text-pink-400">{savedCheckinPoints * 2} pts</span> por cumpleaños
+            </p>
+          </div>
+        </div>
+
+        <div className="mb-6">
+          <label className="text-[10px] text-white/40 uppercase font-black tracking-[0.2em] mb-3 block">
+            Puntos de Check-in Base
+          </label>
+          <div className="relative">
+            <input
+              type="number"
+              min="1"
+              step="1"
+              value={checkinPoints}
+              onChange={(e) => setCheckinPoints(e.target.value)}
+              className={`w-full bg-black/50 text-white border rounded-2xl py-5 px-6 focus:outline-none text-2xl font-black transition-all ${
+                isCheckinValid ? "border-pink-500/50 focus:border-pink-400" : "border-red-500/50"
+              }`}
+              placeholder="Ej: 100"
+            />
+            <span className="absolute right-6 top-1/2 -translate-y-1/2 text-white/30 font-black text-sm uppercase">pts</span>
+          </div>
+          <p className="text-white/30 text-xs mt-3 font-medium">
+            🎂 Los socios recibirán <span className="text-pink-400 font-bold">{birthdayPoints} puntos</span> automáticamente el día de su cumpleaños (el doble del check-in base).
+          </p>
+        </div>
+
+        <button
+          onClick={handleSaveBirthday}
+          disabled={!isCheckinValid || isSavingBirthday}
+          className="w-full py-5 rounded-[1.5rem] font-black uppercase text-xs tracking-[0.2em] shadow-xl transition-all active:scale-[0.98] disabled:opacity-40 bg-pink-500 text-white shadow-pink-500/20 flex items-center justify-center gap-3"
+        >
+          {isSavingBirthday ? <RefreshCw className="w-4 h-4 animate-spin" /> : savedBirthday ? <Check className="w-4 h-4" /> : <Save className="w-4 h-4" />}
+          {isSavingBirthday ? "Guardando..." : savedBirthday ? "¡Guardado!" : "Guardar Puntos de Cumpleaños"}
+        </button>
       </div>
     </div>
   );
