@@ -84,6 +84,24 @@ export const checkPosStatus = async (req: any, res: Response): Promise<void> => 
 
 export const handleWebhook = async (req: Request, res: Response): Promise<void> => {
   try {
+    // Verify MP webhook signature (x-signature header)
+    const xSignature = req.headers['x-signature'] as string;
+    const xRequestId = req.headers['x-request-id'] as string;
+    const secret = process.env.MP_WEBHOOK_SECRET;
+
+    if (secret && xSignature) {
+      const dataId = req.query['data.id'] || req.body?.data?.id;
+      const ts = xSignature.split(',').find(p => p.startsWith('ts='))?.split('=')[1];
+      const v1 = xSignature.split(',').find(p => p.startsWith('v1='))?.split('=')[1];
+      const signed = `id:${dataId};request-id:${xRequestId};ts:${ts};`;
+      const hmac = require('crypto').createHmac('sha256', secret).update(signed).digest('hex');
+      if (hmac !== v1) {
+        console.warn('[WEBHOOK] Firma inválida — posible intento de fraude');
+        res.sendStatus(401);
+        return;
+      }
+    }
+
     // Soportar tanto Webhook normal (body) como IPN (query params)
     const actionBody = req.body.action || req.body.type;
     const queryTopic = req.query.topic || req.query.type;

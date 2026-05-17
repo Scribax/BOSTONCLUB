@@ -14,17 +14,27 @@ Sentry.init({
 import express from "express";
 import path from "path";
 import cors from "cors";
-import { PrismaClient } from "@prisma/client";
 import authRoutes from "./routes/auth.routes";
 import apiRoutes from "./routes/api.routes";
 import paymentRoutes from "./routes/payments.routes";
 import { loggerMiddleware, logger } from "./utils/logger";
 
-const prisma = new PrismaClient();
+const ALLOWED_ORIGINS = [
+  "https://mybostonclub.com",
+  "http://localhost:3000",
+  "http://localhost:8081",
+];
+
 const app = express();
 
 app.use(cors({
-  origin: "*",
+  origin: (origin, callback) => {
+    if (!origin || ALLOWED_ORIGINS.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error(`CORS bloqueado: ${origin}`));
+    }
+  },
   credentials: true,
 }));
 
