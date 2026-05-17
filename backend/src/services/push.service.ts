@@ -1,9 +1,7 @@
 import { Expo, ExpoPushMessage } from 'expo-server-sdk';
-import { PrismaClient } from '@prisma/client';
 import { Queue } from 'bullmq';
 import Redis from 'ioredis';
-
-const prisma = new PrismaClient();
+import { prisma } from '../utils/prisma';
 
 const redisOptions = {
   host: process.env.REDIS_HOST || 'localhost',
@@ -78,6 +76,19 @@ export const sendEventPublishedNotification = async (title: string, description:
   } catch (err) {
     console.error('[Push Service Error]', err);
   }
+};
+
+export const sendBirthdayPush = async (expoPushToken: string, firstName: string, points: number) => {
+  if (!Expo.isExpoPushToken(expoPushToken)) return;
+  const messages: ExpoPushMessage[] = [{
+    to: expoPushToken,
+    sound: 'default',
+    priority: 'high',
+    title: `¡Feliz Cumpleaños, ${firstName}! 🎂`,
+    body: `Te regalamos ${points} puntos para celebrar. ¡Te esperamos esta noche!`,
+    data: { type: 'BIRTHDAY_BONUS' },
+  }];
+  await sendPushNotifications(messages);
 };
 
 export const sendEventReminderNotification = async (eventId: string, title: string) => {

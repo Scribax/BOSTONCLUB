@@ -76,6 +76,60 @@ export const sendVerificationEmail = async (to: string, code: string) => {
   }
 };
 
+export const sendBirthdayEmail = async (to: string, firstName: string, points: number) => {
+  try {
+    await transporter.sendMail({
+      from: `"Boston Club" <${process.env.SMTP_USER}>`,
+      to,
+      subject: '🎂 ¡Feliz Cumpleaños de parte de Boston Club!',
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        </head>
+        <body style="background-color: #000000; margin: 0; padding: 40px 20px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">
+          <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="max-width: 600px; margin: 0 auto; background-color: #0a0a0a; border-radius: 24px; overflow: hidden; border: 1px solid #222222;">
+            <tr>
+              <td style="height: 4px; background: linear-gradient(90deg, #8A6D3B 0%, #D4AF37 50%, #8A6D3B 100%);"></td>
+            </tr>
+            <tr>
+              <td style="padding: 50px 40px; text-align: center;">
+                <div style="font-size: 64px; margin-bottom: 24px;">🎂</div>
+                <h1 style="color: #D4AF37; font-size: 28px; font-weight: 900; letter-spacing: 8px; margin: 0 0 8px 0; text-transform: uppercase; font-style: italic;">BOSTON CLUB</h1>
+                <h2 style="color: #ffffff; font-size: 26px; font-weight: 300; margin: 0 0 16px 0;">¡Feliz Cumpleaños, ${firstName}!</h2>
+                <p style="color: #a0a0a0; font-size: 15px; line-height: 1.6; margin: 0 0 40px 0;">
+                  En tu día especial, te regalamos puntos extra para que los uses en tu próxima visita.
+                </p>
+                <div style="background-color: #111111; border: 1px solid rgba(212, 175, 55, 0.3); border-radius: 16px; padding: 30px; margin-bottom: 40px;">
+                  <p style="color: #D4AF37; font-size: 11px; font-weight: 700; letter-spacing: 4px; text-transform: uppercase; margin: 0 0 12px 0;">Puntos acreditados</p>
+                  <div style="color: #ffffff; font-size: 48px; font-weight: 900; letter-spacing: 4px;">+${points}</div>
+                  <p style="color: #666666; font-size: 12px; margin: 8px 0 0 0;">Ya están disponibles en tu cuenta</p>
+                </div>
+                <p style="color: #666666; font-size: 12px; line-height: 1.5; margin: 0;">
+                  Te esperamos esta noche para celebrarlo como se merece. 🥂
+                </p>
+              </td>
+            </tr>
+            <tr>
+              <td style="background-color: #050505; padding: 30px 40px; text-align: center; border-top: 1px solid #1a1a1a;">
+                <p style="color: #444444; font-size: 10px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; margin: 0;">
+                  © ${new Date().getFullYear()} BOSTON CLUB SOCIAL
+                </p>
+              </td>
+            </tr>
+          </table>
+        </body>
+        </html>
+      `,
+    });
+    console.log(`[Email] Cumpleaños enviado a ${to}`);
+  } catch (err) {
+    console.error('[Email Error - Birthday]', err);
+  }
+};
+
 export const sendPasswordResetEmail = async (to: string, code: string) => {
   try {
     console.log(`\n[SECURITY] Código de Recuperación para ${to}: ${code}\n`);
