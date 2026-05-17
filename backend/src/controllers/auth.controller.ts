@@ -1,9 +1,9 @@
 import { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { PrismaClient } from "@prisma/client";
 import { sendVerificationEmail, sendPasswordResetEmail } from "../services/email.service";
 import { calculateMembershipLevel } from "../services/user.service";
+import { prisma } from "../utils/prisma";
 
 // Define a custom Request type that includes the user from JWT
 interface AuthRequest extends Request {
@@ -12,8 +12,6 @@ interface AuthRequest extends Request {
     role: string;
   };
 }
-
-const prisma = new PrismaClient();
 
 // Helper to generate 6-digit code
 const generateSixDigitCode = () => {

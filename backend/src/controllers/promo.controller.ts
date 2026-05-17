@@ -1,9 +1,7 @@
 import { Request, Response } from "express";
-import { PrismaClient } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 import { awardPointsToUser } from "../services/user.service";
-
-const prisma = new PrismaClient();
+import { prisma } from "../utils/prisma";
 
 // Admin generates a token
 export const generatePromoToken = async (req: Request, res: Response): Promise<void> => {

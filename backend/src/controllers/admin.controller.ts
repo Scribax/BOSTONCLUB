@@ -1,9 +1,7 @@
 import { Request, Response } from "express";
-import { PrismaClient } from "@prisma/client";
 import { Expo, ExpoPushMessage } from 'expo-server-sdk';
 import { sendPushNotifications } from '../services/push.service';
-
-const prisma = new PrismaClient();
+import { prisma } from '../utils/prisma';
 
 export const getAdminStats = async (req: Request, res: Response): Promise<void> => {
   try {

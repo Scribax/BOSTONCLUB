@@ -1,12 +1,9 @@
 import { Request, Response } from "express";
-import { PrismaClient } from "@prisma/client";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
-
-const prisma = new PrismaClient();
-
 import { uploadToR2 } from "../services/storage.service";
+import { prisma } from "../utils/prisma";
 
 // Multer Configuration for Memory Storage
 const storage = multer.memoryStorage();

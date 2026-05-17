@@ -1,9 +1,7 @@
 import { Request, Response } from "express";
-import { PrismaClient } from "@prisma/client";
 import { MercadoPagoConfig, Payment, MerchantOrder } from "mercadopago";
 import { awardPointsToUser } from "../services/user.service";
-
-const prisma = new PrismaClient();
+import { prisma } from "../utils/prisma";
 
 // Mercado Pago Configuration
 const client = new MercadoPagoConfig({ 

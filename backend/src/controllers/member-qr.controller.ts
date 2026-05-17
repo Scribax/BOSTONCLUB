@@ -1,8 +1,6 @@
 import { Request, Response } from "express";
-import { PrismaClient } from "@prisma/client";
 import crypto from "crypto";
-
-const prisma = new PrismaClient();
+import { prisma } from "../utils/prisma";
 
 // Almacén temporal de tokens
 const tokenStore = new Map<string, { userId: string, expiresAt: number }>();

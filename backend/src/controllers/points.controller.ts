@@ -1,8 +1,6 @@
 import { Request, Response } from "express";
-import { PrismaClient } from "@prisma/client";
 import { awardPointsToUser } from "../services/user.service";
-
-const prisma = new PrismaClient();
+import { prisma } from "../utils/prisma";
 
 // Only admin
 export const addPoints = async (req: Request, res: Response): Promise<void> => {

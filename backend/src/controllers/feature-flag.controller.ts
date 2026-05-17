@@ -1,8 +1,6 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
 import { clearFlagCache, setFlagCache } from '../services/featureFlag.service';
-
-const prisma = new PrismaClient();
+import { prisma } from '../utils/prisma';
 
 export const getPublicFlags = async (req: Request, res: Response) => {
   try {

@@ -1,8 +1,6 @@
 import { Request, Response } from "express";
-import { PrismaClient } from "@prisma/client";
 import { calculateMembershipLevel } from "../services/user.service";
-
-const prisma = new PrismaClient();
+import { prisma } from "../utils/prisma";
 
 export const getAllUsers = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -162,21 +160,15 @@ export const toggleVipRewardStatus = async (req: Request, res: Response): Promis
 export const deleteUser = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    // 1. Nullify referrals so they don't break on FK constraint
-    await prisma.user.updateMany({
-      where: { referredById: id as string },
-      data: { referredById: null }
+    await prisma.$transaction(async (tx) => {
+      await tx.user.updateMany({ where: { referredById: id as string }, data: { referredById: null } });
+      await tx.pointHistory.deleteMany({ where: { userId: id as string } });
+      await tx.redemption.deleteMany({ where: { userId: id as string } });
+      await tx.notification.deleteMany({ where: { userId: id as string } });
+      await tx.visit.deleteMany({ where: { userId: id as string } });
+      await tx.posTransaction.deleteMany({ where: { userId: id as string } });
+      await tx.user.delete({ where: { id: id as string } });
     });
-    
-    // 2. Delete related records
-    await prisma.pointHistory.deleteMany({ where: { userId: id as string } });
-    await prisma.redemption.deleteMany({ where: { userId: id as string } });
-    await prisma.notification.deleteMany({ where: { userId: id as string } });
-    await prisma.visit.deleteMany({ where: { userId: id as string } });
-    await prisma.posTransaction.deleteMany({ where: { userId: id as string } }); 
-    
-    // 3. Delete the user
-    await prisma.user.delete({ where: { id: id as string } });
     res.json({ message: "User deleted" });
   } catch (error) {
     res.status(500).json({ message: "Server Error" });
