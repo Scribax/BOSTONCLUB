@@ -77,7 +77,8 @@ export const updateSettings = async (req: Request, res: Response): Promise<void>
       pointsPerPeso,
       isEventDay,
       eventCheckinPoints,
-      loginVideoUrl
+      loginVideoUrl,
+      birthdayPoints
     } = req.body;
 
     // Validate pointsPerPeso if provided
@@ -111,6 +112,7 @@ export const updateSettings = async (req: Request, res: Response): Promise<void>
     if (referralRewardReferrer !== undefined) data.referralRewardReferrer = Number(referralRewardReferrer);
     if (referralRewardReferee !== undefined) data.referralRewardReferee = Number(referralRewardReferee);
     if (parsedRate !== undefined) data.pointsPerPeso = parsedRate;
+    if (birthdayPoints !== undefined) data.birthdayPoints = Number(birthdayPoints);
 
     const settings = await prisma.clubSettings.upsert({
       where: { id: "singleton" },

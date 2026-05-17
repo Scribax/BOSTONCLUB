@@ -43,7 +43,7 @@ export const initCronJobs = () => {
     console.log('[CRON] Revisando cumpleaños del día...');
     try {
       const settings = await prisma.clubSettings.findUnique({ where: { id: 'singleton' } });
-      const birthdayPoints = settings ? Math.round(settings.checkinPoints * 2) : 200;
+      const birthdayPoints = settings?.birthdayPoints ?? 500;
 
       const now = new Date();
       const todayMonth = now.getUTCMonth() + 1;

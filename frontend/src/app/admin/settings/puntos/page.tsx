@@ -9,8 +9,8 @@ const EXAMPLE_AMOUNTS = [5000, 10000, 25000, 50000, 100000];
 export default function PuntosSettingsPage() {
   const [rate, setRate] = useState<string>("1");
   const [savedRate, setSavedRate] = useState<number>(1);
-  const [checkinPoints, setCheckinPoints] = useState<string>("100");
-  const [savedCheckinPoints, setSavedCheckinPoints] = useState<number>(100);
+  const [birthdayPts, setBirthdayPts] = useState<string>("500");
+  const [savedBirthdayPts, setSavedBirthdayPts] = useState<number>(500);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -28,9 +28,9 @@ export default function PuntosSettingsPage() {
       const currentRate = data.pointsPerPeso ?? 1;
       setRate(currentRate.toString());
       setSavedRate(currentRate);
-      const currentCheckin = data.checkinPoints ?? 100;
-      setCheckinPoints(currentCheckin.toString());
-      setSavedCheckinPoints(currentCheckin);
+      const currentBirthday = data.birthdayPoints ?? 500;
+      setBirthdayPts(currentBirthday.toString());
+      setSavedBirthdayPts(currentBirthday);
     } catch (err) {
       setError("No se pudieron cargar los ajustes.");
     } finally {
@@ -40,9 +40,8 @@ export default function PuntosSettingsPage() {
 
   const parsedRate = parseFloat(rate);
   const isValid = !isNaN(parsedRate) && parsedRate > 0;
-  const parsedCheckin = parseInt(checkinPoints);
-  const isCheckinValid = !isNaN(parsedCheckin) && parsedCheckin > 0;
-  const birthdayPoints = isCheckinValid ? parsedCheckin * 2 : 0;
+  const parsedBirthdayPts = parseInt(birthdayPts);
+  const isBirthdayValid = !isNaN(parsedBirthdayPts) && parsedBirthdayPts > 0;
 
   const calcPoints = (amount: number) => {
     if (!isValid) return "—";
@@ -50,15 +49,15 @@ export default function PuntosSettingsPage() {
   };
 
   const handleSaveBirthday = async () => {
-    if (!isCheckinValid) return;
+    if (!isBirthdayValid) return;
     setIsSavingBirthday(true);
     setError(null);
     try {
       await apiFetch("/settings", {
         method: "POST",
-        body: JSON.stringify({ checkinPoints: parsedCheckin }),
+        body: JSON.stringify({ birthdayPoints: parsedBirthdayPts }),
       });
-      setSavedCheckinPoints(parsedCheckin);
+      setSavedBirthdayPts(parsedBirthdayPts);
       setSavedBirthday(true);
       setTimeout(() => setSavedBirthday(false), 3000);
     } catch (err: any) {
@@ -236,37 +235,37 @@ export default function PuntosSettingsPage() {
           <div>
             <h2 className="text-white font-black tracking-widest uppercase text-lg italic">Puntos de Cumpleaños</h2>
             <p className="text-white/40 text-xs font-bold uppercase tracking-wider">
-              Actualmente: <span className="text-pink-400">{savedCheckinPoints * 2} pts</span> por cumpleaños
+              Actualmente: <span className="text-pink-400">{savedBirthdayPts} pts</span> por cumpleaños
             </p>
           </div>
         </div>
 
         <div className="mb-6">
           <label className="text-[10px] text-white/40 uppercase font-black tracking-[0.2em] mb-3 block">
-            Puntos de Check-in Base
+            Puntos a regalar por Cumpleaños
           </label>
           <div className="relative">
             <input
               type="number"
               min="1"
               step="1"
-              value={checkinPoints}
-              onChange={(e) => setCheckinPoints(e.target.value)}
+              value={birthdayPts}
+              onChange={(e) => setBirthdayPts(e.target.value)}
               className={`w-full bg-black/50 text-white border rounded-2xl py-5 px-6 focus:outline-none text-2xl font-black transition-all ${
-                isCheckinValid ? "border-pink-500/50 focus:border-pink-400" : "border-red-500/50"
+                isBirthdayValid ? "border-pink-500/50 focus:border-pink-400" : "border-red-500/50"
               }`}
-              placeholder="Ej: 100"
+              placeholder="Ej: 500"
             />
             <span className="absolute right-6 top-1/2 -translate-y-1/2 text-white/30 font-black text-sm uppercase">pts</span>
           </div>
           <p className="text-white/30 text-xs mt-3 font-medium">
-            🎂 Los socios recibirán <span className="text-pink-400 font-bold">{birthdayPoints} puntos</span> automáticamente el día de su cumpleaños (el doble del check-in base).
+            🎂 Cada socio recibirá exactamente <span className="text-pink-400 font-bold">{isBirthdayValid ? parsedBirthdayPts.toLocaleString('es-AR') : '—'} puntos</span> el día de su cumpleaños.
           </p>
         </div>
 
         <button
           onClick={handleSaveBirthday}
-          disabled={!isCheckinValid || isSavingBirthday}
+          disabled={!isBirthdayValid || isSavingBirthday}
           className="w-full py-5 rounded-[1.5rem] font-black uppercase text-xs tracking-[0.2em] shadow-xl transition-all active:scale-[0.98] disabled:opacity-40 bg-pink-500 text-white shadow-pink-500/20 flex items-center justify-center gap-3"
         >
           {isSavingBirthday ? <RefreshCw className="w-4 h-4 animate-spin" /> : savedBirthday ? <Check className="w-4 h-4" /> : <Save className="w-4 h-4" />}

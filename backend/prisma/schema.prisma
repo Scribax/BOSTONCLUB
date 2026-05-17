@@ -188,6 +188,7 @@ model ClubSettings {
   vipMessageTemplate String   @default("¡Felicidades {name}! 🎉 Has llegado a los {points} puntos en Boston Club. ¡Eres un socio VIP! Canjea tus puntos por premios exclusivos.")
   referralRewardReferrer Int @default(500)
   referralRewardReferee  Int @default(200)
+  birthdayPoints         Int @default(500)
   rewardListText     String   @default("- 30% Off en Bebidas\n- Ingreso Free a Eventos\n- Regalo Sorpresa")
   bronceBenefits     String   @default("- Beneficios base de socio\n- Acceso a promociones")
   goldBenefits       String   @default("- 10% Off en toda la carta\n- Mesa reservada los findes")
