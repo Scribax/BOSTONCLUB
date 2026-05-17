@@ -515,7 +515,7 @@ export const getMyRedemptionHistory = async (req: any, res: Response): Promise<v
       skip: (page - 1) * limit,
       take: limit,
       include: {
-        reward: { select: { name: true, pointsCost: true } },
+        reward: { select: { name: true, pointsRequired: true } },
         event: { select: { title: true } },
         vipBenefit: { select: { title: true } },
       }
@@ -526,7 +526,7 @@ export const getMyRedemptionHistory = async (req: any, res: Response): Promise<v
       status: r.status,
       createdAt: r.createdAt,
       title: r.reward?.name || r.event?.title || r.vipBenefit?.title || "Canje",
-      pointsCost: r.reward?.pointsCost ?? null,
+      pointsCost: r.reward?.pointsRequired ?? null,
       type: r.reward ? "REWARD" : r.event ? "EVENT" : "VIP_BENEFIT",
     }));
 
