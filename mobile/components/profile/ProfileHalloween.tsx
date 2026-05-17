@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, Alert, ActivityIndicator, TextInput, Modal, Share, ScrollView, Image, Animated } from 'react-native';
 import { router } from 'expo-router';
-import { LogOut, User, ShieldAlert, Mail, Edit2, X, Check, Users, Share2, Flame, Fingerprint, Crown, ChevronRight, RefreshCcw, Skull, Ghost, Moon, EyeOff } from 'lucide-react-native';
+import { LogOut, User, ShieldAlert, Mail, Edit2, X, Check, Users, Share2, Flame, Fingerprint, Crown, ChevronRight, RefreshCcw, Skull, Ghost, Moon, EyeOff, Ticket } from 'lucide-react-native';
 import api, { logout } from '../../lib/api';
 import { StatusBar } from 'expo-status-bar';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -91,6 +91,23 @@ export default function ProfileHalloween({
           }
         ]
       );
+    }
+  };
+
+  const [redemptionHistory, setRedemptionHistory] = useState<any[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+
+  const fetchRedemptionHistory = async () => {
+    if (loadingHistory) return;
+    setLoadingHistory(true);
+    try {
+      const res = await api.get('/redemptions/my-history');
+      setRedemptionHistory(res.data);
+    } catch (err) {
+      console.error('Error fetching redemption history', err);
+    } finally {
+      setLoadingHistory(false);
     }
   };
 
@@ -400,6 +417,58 @@ export default function ProfileHalloween({
               </View>
             )}
           </View>
+
+          {/* Redemption History */}
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={() => { if (!showHistory) fetchRedemptionHistory(); setShowHistory(!showHistory); }}
+            className="mt-8 border rounded-[2.5rem] p-6 flex-row items-center justify-between"
+            style={{ backgroundColor: 'rgba(147,51,234,0.05)', borderColor: 'rgba(147,51,234,0.2)' }}
+          >
+            <View className="flex-row items-center">
+              <View className="w-10 h-10 rounded-2xl items-center justify-center mr-4" style={{ backgroundColor: 'rgba(147,51,234,0.15)', borderWidth: 1, borderColor: 'rgba(147,51,234,0.3)' }}>
+                <Ticket size={18} color="#a855f7" />
+              </View>
+              <View>
+                <Text className="text-[8px] font-black uppercase tracking-widest mb-0.5" style={{ color: 'rgba(255,255,255,0.3)' }}>Historial</Text>
+                <Text className="text-white text-sm font-bold">Mis Canjes</Text>
+              </View>
+            </View>
+            <ChevronRight size={16} color="rgba(255,255,255,0.3)" style={{ transform: [{ rotate: showHistory ? '90deg' : '0deg' }] }} />
+          </TouchableOpacity>
+
+          {showHistory && (
+            <View className="mt-2 rounded-[2.5rem] overflow-hidden" style={{ backgroundColor: 'rgba(147,51,234,0.05)', borderWidth: 1, borderColor: 'rgba(147,51,234,0.15)' }}>
+              {loadingHistory ? (
+                <View className="py-10 items-center"><ActivityIndicator color="#a855f7" /></View>
+              ) : redemptionHistory.length === 0 ? (
+                <View className="py-10 items-center">
+                  <Ghost size={28} color="rgba(255,255,255,0.1)" />
+                  <Text className="text-white/20 text-[10px] font-black uppercase tracking-widest mt-3">Sin canjes en el aquelarre</Text>
+                </View>
+              ) : (
+                redemptionHistory.map((item, index) => (
+                  <View key={item.id} className={`px-6 py-5 flex-row items-center justify-between ${index < redemptionHistory.length - 1 ? 'border-b border-white/5' : ''}`}>
+                    <View className="flex-row items-center flex-1 mr-3">
+                      <View className={`w-8 h-8 rounded-xl items-center justify-center mr-3 ${item.status === 'COMPLETED' ? 'bg-green-500/10' : 'bg-white/5'}`}>
+                        <Ticket size={14} color={item.status === 'COMPLETED' ? '#22c55e' : 'rgba(255,255,255,0.3)'} />
+                      </View>
+                      <View className="flex-1">
+                        <Text className="text-white text-xs font-bold" numberOfLines={1}>{item.title}</Text>
+                        <Text className="text-white/30 text-[9px] font-bold uppercase tracking-wider mt-0.5">{new Date(item.createdAt).toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: 'numeric' })}</Text>
+                      </View>
+                    </View>
+                    <View className="items-end">
+                      {item.pointsCost ? <Text className="text-[#ff4d4d] text-xs font-black">-{item.pointsCost} pts</Text> : null}
+                      <View className={`mt-1 px-2 py-0.5 rounded-full ${item.status === 'COMPLETED' ? 'bg-green-500/10' : 'bg-white/5'}`}>
+                        <Text className={`text-[8px] font-black uppercase tracking-wider ${item.status === 'COMPLETED' ? 'text-green-400' : 'text-white/30'}`}>{item.status === 'COMPLETED' ? 'Canjeado' : 'Cancelado'}</Text>
+                      </View>
+                    </View>
+                  </View>
+                ))
+              )}
+            </View>
+          )}
 
           {/* Logout */}
           <TouchableOpacity

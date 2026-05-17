@@ -499,3 +499,40 @@ export const getActiveRedemption = async (req: any, res: Response): Promise<void
     res.status(500).json({ message: "Server Error" });
   }
 };
+
+export const getMyRedemptionHistory = async (req: any, res: Response): Promise<void> => {
+  try {
+    const userId = req.user.id;
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = 20;
+
+    const redemptions = await prisma.redemption.findMany({
+      where: {
+        userId,
+        status: { in: ["COMPLETED", "CANCELLED"] }
+      },
+      orderBy: { createdAt: "desc" },
+      skip: (page - 1) * limit,
+      take: limit,
+      include: {
+        reward: { select: { name: true, pointsCost: true } },
+        event: { select: { title: true } },
+        vipBenefit: { select: { title: true } },
+      }
+    });
+
+    const result = redemptions.map(r => ({
+      id: r.id,
+      status: r.status,
+      createdAt: r.createdAt,
+      title: r.reward?.name || r.event?.title || r.vipBenefit?.title || "Canje",
+      pointsCost: r.reward?.pointsCost ?? null,
+      type: r.reward ? "REWARD" : r.event ? "EVENT" : "VIP_BENEFIT",
+    }));
+
+    res.json(result);
+  } catch (error) {
+    console.error("[GetMyRedemptionHistory Error]", error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};

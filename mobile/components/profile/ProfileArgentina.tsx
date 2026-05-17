@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, Alert, ActivityIndicator, TextInput, Modal, Share, ScrollView, Image, Animated } from 'react-native';
 import { router } from 'expo-router';
-import { LogOut, ShieldAlert, Mail, Edit2, X, Check, Share2, Zap, Trophy, Star, ChevronRight, RefreshCcw, EyeOff, QrCode as QrIcon } from 'lucide-react-native';
+import { LogOut, ShieldAlert, Mail, Edit2, X, Check, Share2, Zap, Trophy, Star, ChevronRight, RefreshCcw, EyeOff, QrCode as QrIcon, Ticket } from 'lucide-react-native';
 import api, { logout } from '../../lib/api';
 import { StatusBar } from 'expo-status-bar';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -94,6 +94,23 @@ export default function ProfileArgentina({
           }
         ]
       );
+    }
+  };
+
+  const [redemptionHistory, setRedemptionHistory] = useState<any[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+
+  const fetchRedemptionHistory = async () => {
+    if (loadingHistory) return;
+    setLoadingHistory(true);
+    try {
+      const res = await api.get('/redemptions/my-history');
+      setRedemptionHistory(res.data);
+    } catch (err) {
+      console.error('Error fetching redemption history', err);
+    } finally {
+      setLoadingHistory(false);
     }
   };
 
@@ -350,6 +367,57 @@ export default function ProfileArgentina({
                 </TouchableOpacity>
               </View>
             </>
+          )}
+
+          {/* Redemption History */}
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={() => { if (!showHistory) fetchRedemptionHistory(); setShowHistory(!showHistory); }}
+            style={{ marginTop: 32, backgroundColor: 'rgba(0,126,51,0.05)', borderWidth: 1, borderColor: 'rgba(0,126,51,0.2)', borderRadius: 28, padding: 24, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <View style={{ width: 40, height: 40, borderRadius: 16, backgroundColor: 'rgba(0,126,51,0.15)', borderWidth: 1, borderColor: 'rgba(0,126,51,0.3)', alignItems: 'center', justifyContent: 'center', marginRight: 16 }}>
+                <Ticket size={18} color="#00843D" />
+              </View>
+              <View>
+                <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 8, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 3, marginBottom: 2 }}>Historial</Text>
+                <Text style={{ color: 'white', fontSize: 14, fontWeight: 'bold' }}>Mis Canjes</Text>
+              </View>
+            </View>
+            <ChevronRight size={16} color="rgba(255,255,255,0.3)" style={{ transform: [{ rotate: showHistory ? '90deg' : '0deg' }] }} />
+          </TouchableOpacity>
+
+          {showHistory && (
+            <View style={{ marginTop: 8, backgroundColor: 'rgba(0,126,51,0.05)', borderWidth: 1, borderColor: 'rgba(0,126,51,0.15)', borderRadius: 28, overflow: 'hidden' }}>
+              {loadingHistory ? (
+                <View style={{ paddingVertical: 40, alignItems: 'center' }}><ActivityIndicator color="#00843D" /></View>
+              ) : redemptionHistory.length === 0 ? (
+                <View style={{ paddingVertical: 40, alignItems: 'center' }}>
+                  <Trophy size={28} color="rgba(255,255,255,0.1)" />
+                  <Text style={{ color: 'rgba(255,255,255,0.2)', fontSize: 10, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 3, marginTop: 12 }}>Sin canjes registrados</Text>
+                </View>
+              ) : (
+                redemptionHistory.map((item, index) => (
+                  <View key={item.id} style={{ paddingHorizontal: 24, paddingVertical: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: index < redemptionHistory.length - 1 ? 1 : 0, borderBottomColor: 'rgba(255,255,255,0.05)' }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 12 }}>
+                      <View style={{ width: 32, height: 32, borderRadius: 10, backgroundColor: item.status === 'COMPLETED' ? 'rgba(34,197,94,0.1)' : 'rgba(255,255,255,0.05)', alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
+                        <Ticket size={14} color={item.status === 'COMPLETED' ? '#22c55e' : 'rgba(255,255,255,0.3)'} />
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={{ color: 'white', fontSize: 12, fontWeight: 'bold' }} numberOfLines={1}>{item.title}</Text>
+                        <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 9, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1, marginTop: 2 }}>{new Date(item.createdAt).toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: 'numeric' })}</Text>
+                      </View>
+                    </View>
+                    <View style={{ alignItems: 'flex-end' }}>
+                      {item.pointsCost ? <Text style={{ color: '#ff4d4d', fontSize: 12, fontWeight: '900' }}>-{item.pointsCost} pts</Text> : null}
+                      <View style={{ marginTop: 4, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 20, backgroundColor: item.status === 'COMPLETED' ? 'rgba(34,197,94,0.1)' : 'rgba(255,255,255,0.05)' }}>
+                        <Text style={{ color: item.status === 'COMPLETED' ? '#22c55e' : 'rgba(255,255,255,0.3)', fontSize: 8, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 1 }}>{item.status === 'COMPLETED' ? 'Canjeado' : 'Cancelado'}</Text>
+                      </View>
+                    </View>
+                  </View>
+                ))
+              )}
+            </View>
           )}
 
           {/* Logout */}

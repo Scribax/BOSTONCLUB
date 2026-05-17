@@ -3,7 +3,7 @@ import { authenticate, requireAdmin } from "../middlewares/auth";
 import { redemptionRateLimit } from "../middlewares/rateLimit";
 import { addPoints, getMyPointsHistory } from "../controllers/points.controller";
 import { getAllRewards, createReward, deleteReward, updateReward, reorderRewards } from "../controllers/rewards.controller";
-import { generateRedemptionQR, confirmRedemption, getRedemptionStatus, cancelRedemption, getScannerHistory, getActiveRedemption } from "../controllers/redemptions.controller";
+import { generateRedemptionQR, confirmRedemption, getRedemptionStatus, cancelRedemption, getScannerHistory, getActiveRedemption, getMyRedemptionHistory } from "../controllers/redemptions.controller";
 import { getAllEvents, createEvent, deleteEvent, notifyEvent, updateEvent, reorderEvents } from "../controllers/events.controller";
 import { getAllUsers, adjustPoints, toggleBlockUser, deleteUser, toggleVipRewardStatus, getUserHistory, getUserReferrals } from "../controllers/users.controller";
 import { getAdminStats, exportAudits, sendCustomPush } from "../controllers/admin.controller";
@@ -41,6 +41,7 @@ router.post("/redemptions/cancel", authenticate, cancelRedemption);
 router.get("/redemptions/active", authenticate, getActiveRedemption);
 router.get("/redemptions/status/:qrToken", authenticate, getRedemptionStatus);
 router.get("/redemptions/history", authenticate, requireAdmin, getScannerHistory);
+router.get("/redemptions/my-history", authenticate, getMyRedemptionHistory);
 
 // Events
 router.get("/events", getAllEvents);
