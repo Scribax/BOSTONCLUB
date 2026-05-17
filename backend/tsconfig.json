@@ -3,9 +3,9 @@
     "target": "ES2022",
     "module": "commonjs",
     "moduleResolution": "node",
-    "ignoreDeprecations": "6.0",
     "lib": [
-      "es2022"
+      "es2022",
+      "dom"
     ],
     "outDir": "./dist",
     "rootDir": "./src",
