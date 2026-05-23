@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { useAnimatedCounter } from '../../hooks/useAnimatedCounter';
 import { View, Text, ScrollView, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl, Image, Modal, Animated, useWindowDimensions, Dimensions, Alert } from 'react-native';
 import { Crown, Star, Flame, Ticket, ArrowRight, User as UserIcon, MapPin, CreditCard, Gift, QrCode, History, X, Calendar, TrendingUp, Zap, Trophy } from 'lucide-react-native';
 import api, { logout } from '../../lib/api';
@@ -119,6 +120,8 @@ export default function DashboardDefault({
       return () => clearInterval(interval);
     }
   }, [promoBanners, currentPromoIdx]);
+
+  const animatedPts = useAnimatedCounter(user?.points ?? 0);
 
   if (loading || (!user && !errorStatus)) {
     return (
@@ -387,7 +390,7 @@ export default function DashboardDefault({
                   <Star size={14} color="white" fill="white" />
                 </View>
                 <View>
-                  <Text className="text-white font-black text-xl italic tracking-tighter leading-none">{user.points}</Text>
+                  <Text className="text-white font-black text-xl italic tracking-tighter leading-none">{animatedPts.toLocaleString()}</Text>
                   <Text style={{ color: theme.primary }} className="font-black text-[8px] uppercase tracking-widest mt-0.5">PUNTOS</Text>
                 </View>
                 <ArrowRight size={12} color="white" className="ml-3 opacity-30" />

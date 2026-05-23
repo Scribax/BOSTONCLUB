@@ -7,6 +7,8 @@ import { StatusBar } from 'expo-status-bar';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as LocalAuthentication from 'expo-local-authentication';
 import * as SecureStore from 'expo-secure-store';
+import * as Haptics from 'expo-haptics';
+import Constants from 'expo-constants';
 import { VipStatusModal } from '../../components/VipStatusModal';
 import QRCode from 'react-native-qrcode-svg';
 import { QrCode as QrIcon } from 'lucide-react-native';
@@ -495,6 +497,10 @@ export default function ProfileDefault({
             <LogOut size={18} color="#ff4d4d" className="mr-4" />
             <Text className="text-[#ff4d4d] font-black text-[10px] uppercase tracking-[0.3em]">Finalizar Sesión</Text>
           </TouchableOpacity>
+
+          <Text className="text-white/15 text-[8px] font-bold uppercase tracking-[0.3em] text-center mt-6">
+            v{Constants.expoConfig?.version || '1.0.0'} · Boston Club
+          </Text>
         </View>
       </ScrollView>
 

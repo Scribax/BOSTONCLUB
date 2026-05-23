@@ -183,8 +183,10 @@ export default function RootLayout() {
             }}
           ]
         );
+      } else if (type === 'POINTS_CREDITED') {
+        router.push('/history');
       } else if (type === 'BIRTHDAY_BONUS') {
-        router.push('/(tabs)');
+        router.push('/(tabs)/rewards');
       }
     }
   }, [lastNotificationResponse, authState.isLoggedIn, authState.isLoading, loaded]);
