@@ -1,8 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { prisma } from "../utils/prisma";
 
 interface AuthRequest extends Request {
   user?: any;
@@ -48,5 +46,13 @@ export const requireAdmin = (req: AuthRequest, res: Response, next: NextFunction
     next();
   } else {
     res.status(403).json({ message: "Access denied. Admin only." });
+  }
+};
+
+export const requireStaff = (req: AuthRequest, res: Response, next: NextFunction): void => {
+  if (req.user && (req.user.role === "ADMIN" || req.user.role === "STAFF")) {
+    next();
+  } else {
+    res.status(403).json({ message: "Access denied. Staff only." });
   }
 };

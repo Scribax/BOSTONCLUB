@@ -2,6 +2,7 @@ import cron from 'node-cron';
 import { sendEventReminderNotification, sendBirthdayPush } from './services/push.service';
 import { sendBirthdayEmail } from './services/email.service';
 import { prisma } from './utils/prisma';
+import { calculateMembershipLevel } from './services/user.service';
 
 export const initCronJobs = () => {
   // Se ejecuta cada hora ('0 * * * *') para revisar eventos que ocurran en las próximas 24 horas.
@@ -68,7 +69,7 @@ export const initCronJobs = () => {
 
       for (const user of birthdayUsers) {
         await prisma.$transaction(async (tx) => {
-          await tx.user.update({
+          const updatedUser = await tx.user.update({
             where: { id: user.id },
             data: { points: { increment: birthdayPoints } }
           });
@@ -80,6 +81,12 @@ export const initCronJobs = () => {
               description: `🎂 Regalo de cumpleaños — +${birthdayPoints} puntos`
             }
           });
+          if (settings) {
+            const newLevel = calculateMembershipLevel(updatedUser.points, settings);
+            if (updatedUser.membershipLevel !== newLevel) {
+              await tx.user.update({ where: { id: user.id }, data: { membershipLevel: newLevel } });
+            }
+          }
         });
 
         await sendBirthdayEmail(user.email, user.firstName, birthdayPoints);

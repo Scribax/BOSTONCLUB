@@ -267,12 +267,14 @@ export const resendVerificationCode = async (req: AuthRequest, res: Response): P
       return;
     }
 
-    // Anti-Spam: Check if a code was sent recently (60s cooldown)
+    // Anti-Spam: Check if a code was sent recently (60s cooldown).
+    // verificationCodeExpires = createdAt + 24h, so if it expires more than (24h - 60s) from now,
+    // the code was sent less than 60 seconds ago.
     if (user.verificationCodeExpires) {
-      const lastSent = new Date(user.verificationCodeExpires.getTime() - 24 * 60 * 60 * 1000);
-      const secondsSinceLast = (Date.now() - lastSent.getTime()) / 1000;
-      if (secondsSinceLast < 60) {
-        res.status(429).json({ message: `Espera ${Math.round(60 - secondsSinceLast)} segundos para reenviar.` });
+      const secondsUntilExpiry = (user.verificationCodeExpires.getTime() - Date.now()) / 1000;
+      const secondsSinceCreation = 24 * 60 * 60 - secondsUntilExpiry;
+      if (secondsSinceCreation < 60) {
+        res.status(429).json({ message: `Espera ${Math.round(60 - secondsSinceCreation)} segundos para reenviar.` });
         return;
       }
     }

@@ -575,7 +575,7 @@ export default function AppContentManager() {
                       {/* Banners Area */}
                       <div className={`w-full ${activeTab === 'BANNER' ? 'h-[60%] border-2 border-boston-gold/50' : 'h-[60%] bg-zinc-900'} flex items-center justify-center relative`}>
                         {items.find(i => i.type === 'BANNER') ? (
-                          <img src={getFullUrl(items.find(i => i.type === 'BANNER')?.imageUrl)} className="w-full h-full object-cover opacity-60" />
+                          <img src={getFullUrl(items.find(i => i.type === 'BANNER')?.imageUrl) || undefined} className="w-full h-full object-cover opacity-60" />
                         ) : (
                           <div className="items-center flex flex-col gap-2 opacity-10">
                               <ImageIcon className="w-10 h-10" />

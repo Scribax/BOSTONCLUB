@@ -158,7 +158,7 @@ export const handleWebhook = async (req: Request, res: Response): Promise<void> 
               status: "PENDING",
               createdAt: { gte: twoMinutesAgo }
             },
-            orderBy: { createdAt: 'asc' }
+            orderBy: { createdAt: 'desc' }
           });
           
           if (pendingCandidates.length === 1) {
@@ -166,7 +166,7 @@ export const handleWebhook = async (req: Request, res: Response): Promise<void> 
             console.log(`[FALLBACK_SUCCESS] Vinculando pago ${paymentId} al usuario ${lastPending.userId} (único candidato reciente).`);
             await processPointsAwarding(lastPending.orderId, amount, paymentId);
           } else if (pendingCandidates.length > 1) {
-            console.log(`[FALLBACK_AMBIGUOUS] Hay ${pendingCandidates.length} candidatos en los últimos 2 min. Usando el más antiguo (cola del POS).`);
+            console.log(`[FALLBACK_AMBIGUOUS] Hay ${pendingCandidates.length} candidatos en los últimos 2 min. Usando el más reciente (cola del POS).`);
             await processPointsAwarding(pendingCandidates[0].orderId, amount, paymentId);
           } else {
             console.log(`[FALLBACK_FAIL] No se encontró ningún escaneo reciente (2 min).`);

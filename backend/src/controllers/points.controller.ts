@@ -33,9 +33,13 @@ export const addPoints = async (req: Request, res: Response): Promise<void> => {
 export const getMyPointsHistory = async (req: any, res: Response): Promise<void> => {
   try {
     const userId = req.user.id;
+    const page = Math.max(1, parseInt(req.query.page as string) || 1);
+    const limit = 50;
     const history = await prisma.pointHistory.findMany({
       where: { userId },
-      orderBy: { createdAt: "desc" }
+      orderBy: { createdAt: "desc" },
+      skip: (page - 1) * limit,
+      take: limit
     });
     res.json(history);
   } catch (error) {

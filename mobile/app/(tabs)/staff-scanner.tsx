@@ -72,7 +72,7 @@ export default function StaffScannerScreen() {
       Vibration.vibrate(100);
       setStatus("success");
       setMessage(response.data.message || "Canje confirmado con éxito.");
-      setRedemptionData(response.data.redemption);
+      setRedemptionData(response.data);
     } catch (err: any) {
       Vibration.vibrate([0, 100, 50, 100]);
       setStatus("error");
@@ -150,11 +150,17 @@ export default function StaffScannerScreen() {
                   
                   {redemptionData && (
                     <View className="bg-white/5 border border-white/10 rounded-3xl p-6 w-full mb-10">
-                       <Text className="text-white/40 text-[10px] font-black uppercase mb-1">Cliente</Text>
-                       <Text className="text-white text-lg font-bold mb-4 uppercase italic">{redemptionData.user?.firstName} {redemptionData.user?.lastName}</Text>
+                       <Text className="text-white/40 text-[10px] font-black uppercase mb-1">Tipo</Text>
+                       <Text className="text-white text-sm font-bold mb-4 uppercase italic">{redemptionData.type === 'REWARD' ? 'Premio' : redemptionData.type === 'VIP_BENEFIT' ? 'Beneficio VIP' : 'Promoción'}</Text>
                        
                        <Text className="text-white/40 text-[10px] font-black uppercase mb-1">Premio/Beneficio</Text>
-                       <Text style={{ color: theme.secondary }} className="text-xl font-black uppercase">{redemptionData.reward?.name || redemptionData.event?.title || redemptionData.vipBenefit?.title}</Text>
+                       <Text style={{ color: theme.secondary }} className="text-xl font-black uppercase">{redemptionData.details || '—'}</Text>
+
+                       {redemptionData.requiresIdCheck && (
+                         <View className="mt-4 bg-yellow-500/10 border border-yellow-500/30 rounded-2xl p-3">
+                           <Text className="text-yellow-400 text-[10px] font-black uppercase tracking-widest text-center">⚠️ Verificar DNI — menor de 25 años</Text>
+                         </View>
+                       )}
                     </View>
                   )}
 

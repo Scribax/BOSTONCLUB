@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { authenticate, requireAdmin } from "../middlewares/auth";
+import { authenticate, requireAdmin, requireStaff } from "../middlewares/auth";
 import { redemptionRateLimit } from "../middlewares/rateLimit";
 import { addPoints, getMyPointsHistory } from "../controllers/points.controller";
 import { getAllRewards, createReward, deleteReward, updateReward, reorderRewards } from "../controllers/rewards.controller";
@@ -36,11 +36,11 @@ router.delete("/rewards/:id", authenticate, requireAdmin, deleteReward);
 
 // Redemptions
 router.post("/redemptions/generate", authenticate, redemptionRateLimit, generateRedemptionQR);
-router.post("/redemptions/confirm", authenticate, requireAdmin, confirmRedemption);
+router.post("/redemptions/confirm", authenticate, requireStaff, confirmRedemption);
 router.post("/redemptions/cancel", authenticate, cancelRedemption);
 router.get("/redemptions/active", authenticate, getActiveRedemption);
 router.get("/redemptions/status/:qrToken", authenticate, getRedemptionStatus);
-router.get("/redemptions/history", authenticate, requireAdmin, getScannerHistory);
+router.get("/redemptions/history", authenticate, requireStaff, getScannerHistory);
 router.get("/redemptions/my-history", authenticate, getMyRedemptionHistory);
 
 // Events
@@ -89,8 +89,8 @@ router.delete("/avatars/:id", authenticate, requireAdmin, deleteAvatar);
 
 // Member QR System
 router.get("/member-qr/token", authenticate, generateMemberToken);
-router.get("/member-qr/verify/:token", authenticate, requireAdmin, verifyMemberToken);
-router.post("/member-qr/credit", authenticate, requireAdmin, creditPointsByToken);
+router.get("/member-qr/verify/:token", authenticate, requireStaff, verifyMemberToken);
+router.post("/member-qr/credit", authenticate, requireStaff, creditPointsByToken);
 
 // Feature Flags
 router.get("/flags/public", getPublicFlags);

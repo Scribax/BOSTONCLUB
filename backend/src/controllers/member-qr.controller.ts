@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import crypto from "crypto";
 import { prisma } from "../utils/prisma";
+import { awardPointsToUser } from "../services/user.service";
 
 // Almacén temporal de tokens
 const tokenStore = new Map<string, { userId: string, expiresAt: number }>();
@@ -69,25 +70,16 @@ export const creditPointsByToken = async (req: Request, res: Response) => {
     }
 
     const userId = tokenData.userId;
-    const user = await prisma.user.update({
-      where: { id: userId },
-      data: { points: { increment: Number(points) } }
-    });
 
-    await prisma.pointHistory.create({
-      data: {
-        userId,
-        pointsGained: Number(points),
-        source: "CARNET_DIGITAL",
-        description: "Escaneo de Carnet Digital en Caja"
-      }
+    const result = await prisma.$transaction(async (tx) => {
+      return awardPointsToUser(tx, userId, Number(points), "CARNET_DIGITAL", "Escaneo de Carnet Digital en Caja");
     });
 
     tokenStore.delete(token);
     res.json({ 
-      message: `¡Éxito! Se acreditaron ${points} puntos`,
-      userName: user.firstName,
-      newPoints: user.points
+      message: `¡Éxito! Se acreditaron ${result.finalPoints} puntos`,
+      userName: result.updatedUser.firstName,
+      newPoints: result.updatedUser.points
     });
   } catch (error) {
     res.status(500).json({ message: "Error al procesar la acreditación" });
