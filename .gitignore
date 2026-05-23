@@ -39,3 +39,6 @@ backend/prisma/dev.db-journal
 **/.env*
 
 *.apk
+
+# Local docs (no subir al repo)
+scripts/vps-manual.html
