@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useAnimatedCounter } from '../../hooks/useAnimatedCounter';
 import { View, Text, ScrollView, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl, Image, Modal, Animated, useWindowDimensions, Alert, InteractionManager } from 'react-native';
-import { Crown, Star, Flame, Ticket, ArrowRight, User as UserIcon, MapPin, CreditCard, Gift, QrCode, History, X, Calendar, TrendingUp, Zap, Trophy } from 'lucide-react-native';
+import { Crown, Star, Flame, Ticket, ArrowRight, User as UserIcon, MapPin, CreditCard, Gift, QrCode, History, X, Calendar, TrendingUp, Zap } from 'lucide-react-native';
 import api, { logout } from '../../lib/api';
 import { StatusBar } from 'expo-status-bar';
 import { VideoPlayer } from '../../components/VideoPlayer';
@@ -505,24 +505,6 @@ export default function DashboardDefault({
             <Star size={8} color="#FF3B30" fill="#FF3B30" className="mx-3" />
             <View className="h-[1px] w-8 bg-white/10" />
           </View>
-
-          {/* Ranking button */}
-          <TouchableOpacity
-            onPress={() => router.push('/leaderboard')}
-            activeOpacity={0.8}
-            className="flex-row items-center justify-between bg-white/[0.03] border border-white/5 rounded-2xl px-4 py-3 mb-4"
-          >
-            <View className="flex-row items-center">
-              <View style={{ backgroundColor: `${theme.secondary}1A` }} className="w-9 h-9 rounded-xl items-center justify-center mr-3">
-                <Trophy size={18} color={theme.secondary} />
-              </View>
-              <View>
-                <Text className="text-white font-black text-[11px] uppercase tracking-wider">Ranking de Socios</Text>
-                <Text className="text-white/30 font-bold text-[8px] uppercase">Ver quién lidera el club</Text>
-              </View>
-            </View>
-            <ArrowRight size={14} color="rgba(255,255,255,0.3)" />
-          </TouchableOpacity>
 
           <View className="flex-row justify-between">
             {/* Rewards Card */}
