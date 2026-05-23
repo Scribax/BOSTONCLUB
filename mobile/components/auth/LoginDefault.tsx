@@ -40,7 +40,7 @@ export default function LoginDefault(props: LoginProps) {
           <View className="flex-row items-center mt-2 space-x-2">
              <View style={{ backgroundColor: `${theme.secondary}4D` }} className="h-[1px] w-4" />
              <Text style={{ color: theme.secondary }} className="text-[10px] font-black tracking-[0.3em] uppercase opacity-80 mx-2">
-               Fidelización Premium
+               Puntos · Premios · Beneficios
              </Text>
              <View style={{ backgroundColor: `${theme.secondary}4D` }} className="h-[1px] w-4" />
           </View>
