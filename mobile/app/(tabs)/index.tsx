@@ -6,7 +6,7 @@ import api, { getAuthToken, logout } from '../../lib/api';
 import { StatusBar } from 'expo-status-bar';
 import * as Device from 'expo-device';
 import Constants from 'expo-constants';
-import { Platform, Dimensions, LogBox, Alert } from 'react-native';
+import { Platform, Dimensions, LogBox, Alert, InteractionManager } from 'react-native';
 import { initNotifications, registerForPushNotificationsAsync } from '../../lib/notificationHelper';
 import * as Haptics from 'expo-haptics';
 import { VideoPlayer } from '../../components/VideoPlayer';
@@ -258,7 +258,8 @@ export default function DashboardScreen() {
             console.error("Dashboard Init Error:", e);
           }
         };
-        initDashboard();
+        const interaction = InteractionManager.runAfterInteractions(initDashboard);
+        return () => interaction.cancel();
       }
 
       // Siempre buscamos si hay un canje activo, sin importar el cooldown,

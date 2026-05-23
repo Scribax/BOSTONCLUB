@@ -8,7 +8,7 @@ interface FadeInViewProps {
   style?: ViewStyle;
 }
 
-export const FadeInView = ({ delay = 0, children, className = "", style = {} }: FadeInViewProps) => {
+export const FadeInView = React.memo(({ delay = 0, children, className = "", style = {} }: FadeInViewProps) => {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(20)).current;
 
@@ -41,4 +41,4 @@ export const FadeInView = ({ delay = 0, children, className = "", style = {} }: 
       {children}
     </Animated.View>
   );
-};
+});

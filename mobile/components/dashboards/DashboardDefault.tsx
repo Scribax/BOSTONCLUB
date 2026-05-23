@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useAnimatedCounter } from '../../hooks/useAnimatedCounter';
-import { View, Text, ScrollView, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl, Image, Modal, Animated, useWindowDimensions, Dimensions, Alert } from 'react-native';
+import { View, Text, ScrollView, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl, Image, Modal, Animated, useWindowDimensions, Alert, InteractionManager } from 'react-native';
 import { Crown, Star, Flame, Ticket, ArrowRight, User as UserIcon, MapPin, CreditCard, Gift, QrCode, History, X, Calendar, TrendingUp, Zap, Trophy } from 'lucide-react-native';
 import api, { logout } from '../../lib/api';
 import { StatusBar } from 'expo-status-bar';
@@ -11,9 +11,6 @@ import { VipStatusModal } from '../VipStatusModal';
 import { useTheme } from '../../contexts/ThemeContext';
 import HappyHourExplosion from '../../components/HappyHourExplosion';
 import { DashboardProps } from './types';
-
-// FIX PERF #3: Leer Dimensions una sola vez a nivel módulo en lugar de en cada render
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 // FIX PERF #4: Array estático fuera del componente → no se recrea en cada render
 const PROGRESS_TEXTURE_BARS = [...Array(20)].map((_, i) => i);
@@ -43,7 +40,7 @@ type BannerEvent = {
 
 // Componente helper para animaciones optimizadas removido de acá y movido a components/FadeInView.tsx
 
-const StreakBadge = ({ streak }: { streak: number }) => {
+const StreakBadge = React.memo(({ streak }: { streak: number }) => {
   if (streak <= 0) return null;
 
   const multiplier = streak >= 7 ? 'x2.0' : (streak >= 3 ? 'x1.5' : '');
@@ -58,7 +55,7 @@ const StreakBadge = ({ streak }: { streak: number }) => {
       </Text>
     </FadeInView>
   );
-};
+});
 
 const SOURCE_LABELS: Record<string, string> = {
   COMPRA_POSNET: 'Compra en caja',
@@ -78,7 +75,7 @@ export default function DashboardDefault({
   fetchVipBenefits, vipBenefits, vipBenefitsLoading, redeemingVipId, handleRedeemVipBenefit
 }: DashboardProps) {
   const { theme, isHappyHour } = useTheme();
-  const { width: SCREEN_WIDTH } = useWindowDimensions();
+  const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = useWindowDimensions();
   const CAROUSEL_WIDTH = SCREEN_WIDTH - 48; // SCREEN_WIDTH minus px-6 (24px * 2)
   const [currentBannerIdx, setCurrentBannerIdx] = useState(0);
   const [currentPromoIdx, setCurrentPromoIdx] = useState(0);
@@ -236,6 +233,8 @@ export default function DashboardDefault({
               horizontal
               pagingEnabled
               showsHorizontalScrollIndicator={false}
+              removeClippedSubviews
+              windowSize={3}
               onViewableItemsChanged={onViewableItemsChangedRef.current}
               viewabilityConfig={viewabilityConfigRef.current}
               getItemLayout={(data, index) => ({
@@ -646,6 +645,8 @@ export default function DashboardDefault({
                 contentContainerStyle={{ paddingHorizontal: 24, gap: 16 }}
                 snapToInterval={SCREEN_WIDTH * 0.85 + 16}
                 decelerationRate="fast"
+                removeClippedSubviews
+                windowSize={3}
                 onViewableItemsChanged={onPromoViewableItemsChangedRef.current}
                 viewabilityConfig={viewabilityConfigRef.current}
                 getItemLayout={(data, index) => ({
@@ -762,17 +763,19 @@ export default function DashboardDefault({
         </View>
       </Modal>
 
-      {/* VIP Status & Benefits Unified Modal */}
-      <VipStatusModal
-        isVisible={showBenefits}
-        onClose={() => setShowBenefits(false)}
-        user={user}
-        settings={settings}
-        onRedeemSuccess={handleRedeemVipBenefit}
-      />
+      {/* VIP Status & Benefits Unified Modal — lazy mount */}
+      {showBenefits && (
+        <VipStatusModal
+          isVisible={showBenefits}
+          onClose={() => setShowBenefits(false)}
+          user={user}
+          settings={settings}
+          onRedeemSuccess={handleRedeemVipBenefit}
+        />
+      )}
 
-      {/* Splash Popup Modal */}
-      <Modal visible={showPopupModal} transparent animationType="fade">
+      {/* Splash Popup Modal — lazy mount */}
+      {showPopupModal && <Modal visible={showPopupModal} transparent animationType="fade">
         <View className="flex-1 bg-black/90 justify-center items-center p-6">
           <View className="w-full max-w-md bg-[#0a0a0a] rounded-[3rem] border-2 border-white/10 overflow-hidden relative shadow-2xl">
             {/* Close Button */}
@@ -785,7 +788,7 @@ export default function DashboardDefault({
 
             {currentPopup?.mediaType === 'VIDEO' ? (
               <View className="w-full h-[500px]">
-                <VideoPlayer uri={resolveImageUrl(currentPopup.videoUrl) || ''} />
+                <VideoPlayer uri={resolveImageUrl(currentPopup.videoUrl) || ''} paused={!isScreenFocused} />
               </View>
             ) : (
               <Image
@@ -819,7 +822,7 @@ export default function DashboardDefault({
             </View>
           </View>
         </View>
-      </Modal>
+      </Modal>}
 
     </View>
   );
