@@ -7,7 +7,7 @@
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "bostonclub",
-    "userInterfaceStyle": "automatic",
+    "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "splash": {
       "image": "./assets/images/splash-icon.png",
@@ -15,10 +15,12 @@
       "backgroundColor": "#050505"
     },
     "ios": {
-      "supportsTablet": true,
+      "supportsTablet": false,
       "bundleIdentifier": "com.bostonclub.app",
       "infoPlist": {
-        "NSFaceIDUsageDescription": "Permitir el acceso a FaceID para asegurar tu entrada al club de forma segura y privada."
+        "NSFaceIDUsageDescription": "Permitir el acceso a FaceID para asegurar tu entrada al club de forma segura y privada.",
+        "NSCameraUsageDescription": "Boston Club necesita acceso a la cámara para escanear códigos QR y acreditar puntos.",
+        "NSUserNotificationsUsageDescription": "Recibí notificaciones de puntos acreditados, eventos y beneficios exclusivos."
       }
     },
     "android": {
@@ -45,7 +47,16 @@
       "expo-router",
       "expo-secure-store",
       "expo-local-authentication",
-      "expo-video"
+      "expo-video",
+      "expo-camera",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/icon.png",
+          "color": "#050505",
+          "sounds": []
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
