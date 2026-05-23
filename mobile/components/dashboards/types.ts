@@ -6,6 +6,7 @@ export interface DashboardProps {
   settings: any;
   nextTier: any;
   isBirthday?: boolean;
+  recentHistory?: any[];
   loading: boolean;
   setLoading: (val: boolean) => void;
   refreshing: boolean;

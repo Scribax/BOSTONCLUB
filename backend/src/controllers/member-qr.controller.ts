@@ -3,6 +3,7 @@ import crypto from "crypto";
 import Redis from "ioredis";
 import { prisma } from "../utils/prisma";
 import { awardPointsToUser } from "../services/user.service";
+import { sendPointsCreditedPush } from "../services/push.service";
 
 const TOKEN_TTL_SECONDS = 60;
 const REDIS_PREFIX = "member_qr:";
@@ -68,6 +69,12 @@ export const creditPointsByToken = async (req: Request, res: Response) => {
     });
 
     await redis.del(`${REDIS_PREFIX}${token}`);
+
+    // Push no bloqueante al usuario
+    if (result.updatedUser.expoPushToken) {
+      sendPointsCreditedPush(result.updatedUser.expoPushToken, result.updatedUser.firstName, result.finalPoints).catch(console.error);
+    }
+
     res.json({ 
       message: `¡Éxito! Se acreditaron ${result.finalPoints} puntos`,
       userName: result.updatedUser.firstName,

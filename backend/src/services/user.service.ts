@@ -64,7 +64,7 @@ export async function awardPointsToUser(
   // 1. Fetch current user
   const user = await tx.user.findUnique({
     where: { id: userId },
-    select: { streak: true, lastStreakDate: true, points: true, membershipLevel: true }
+    select: { streak: true, lastStreakDate: true, points: true, membershipLevel: true, expoPushToken: true, firstName: true }
   });
 
   if (!user) throw new Error(`User ${userId} not found`);

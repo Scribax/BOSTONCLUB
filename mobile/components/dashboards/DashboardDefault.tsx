@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, ScrollView, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl, Image, Modal, Animated, useWindowDimensions, Dimensions, Alert } from 'react-native';
-import { Crown, Star, Flame, Ticket, ArrowRight, User as UserIcon, MapPin, CreditCard, Gift, QrCode, History, X, Calendar, TrendingUp, Zap } from 'lucide-react-native';
+import { Crown, Star, Flame, Ticket, ArrowRight, User as UserIcon, MapPin, CreditCard, Gift, QrCode, History, X, Calendar, TrendingUp, Zap, Trophy } from 'lucide-react-native';
 import api, { logout } from '../../lib/api';
 import { StatusBar } from 'expo-status-bar';
 import { VideoPlayer } from '../../components/VideoPlayer';
@@ -59,8 +59,18 @@ const StreakBadge = ({ streak }: { streak: number }) => {
   );
 };
 
+const SOURCE_LABELS: Record<string, string> = {
+  COMPRA_POSNET: 'Compra en caja',
+  DAILY_CHECKIN: 'Check-in diario',
+  CARNET_DIGITAL: 'Carnet digital',
+  BIRTHDAY: 'Regalo de cumpleaños',
+  REFERRAL: 'Referido',
+  ADMIN: 'Ajuste manual',
+  PROMO_TOKEN: 'Promo especial',
+};
+
 export default function DashboardDefault({
-  user, banners, promoBanners, activeRedemption, settings, nextTier, isBirthday,
+  user, banners, promoBanners, activeRedemption, settings, nextTier, isBirthday, recentHistory,
   loading, setLoading, errorStatus, refreshing, onRefresh, loadProfile,
   router, isScreenFocused, currentPopup, showPopupModal, setShowPopupModal,
   resolveImageUrl, showGuide, setShowGuide, showBenefits, setShowBenefits,
@@ -494,6 +504,24 @@ export default function DashboardDefault({
             <View className="h-[1px] w-8 bg-white/10" />
           </View>
 
+          {/* Ranking button */}
+          <TouchableOpacity
+            onPress={() => router.push('/leaderboard')}
+            activeOpacity={0.8}
+            className="flex-row items-center justify-between bg-white/[0.03] border border-white/5 rounded-2xl px-4 py-3 mb-4"
+          >
+            <View className="flex-row items-center">
+              <View style={{ backgroundColor: `${theme.secondary}1A` }} className="w-9 h-9 rounded-xl items-center justify-center mr-3">
+                <Trophy size={18} color={theme.secondary} />
+              </View>
+              <View>
+                <Text className="text-white font-black text-[11px] uppercase tracking-wider">Ranking de Socios</Text>
+                <Text className="text-white/30 font-bold text-[8px] uppercase">Ver quién lidera el club</Text>
+              </View>
+            </View>
+            <ArrowRight size={14} color="rgba(255,255,255,0.3)" />
+          </TouchableOpacity>
+
           <View className="flex-row justify-between">
             {/* Rewards Card */}
             <TouchableOpacity
@@ -554,6 +582,43 @@ export default function DashboardDefault({
             </TouchableOpacity>
           </View>
         </View>
+
+        {/* Últimos movimientos de puntos */}
+        {recentHistory && recentHistory.length > 0 && (
+          <FadeInView delay={500} className="px-6 mt-10">
+            <View className="flex-row justify-between items-center mb-4">
+              <View>
+                <Text className="text-white/20 font-black text-[8px] uppercase tracking-[0.4em] mb-1">Tu actividad reciente</Text>
+                <Text className="text-white text-xl font-black uppercase italic tracking-tighter">Últimos Movimientos</Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => router.push('/history')}
+                className="flex-row items-center bg-white/5 px-4 py-2 rounded-full border border-white/10"
+              >
+                <Text style={{ color: theme.secondary }} className="font-black text-[9px] uppercase tracking-widest mr-2">Ver todo</Text>
+                <ArrowRight size={10} color={theme.secondary} />
+              </TouchableOpacity>
+            </View>
+            <View className="gap-y-3">
+              {recentHistory.map((item: any) => (
+                <View key={item.id} className="flex-row items-center bg-white/[0.03] border border-white/5 rounded-2xl px-4 py-3">
+                  <View style={{ backgroundColor: `${theme.secondary}1A` }} className="w-10 h-10 rounded-xl items-center justify-center mr-3">
+                    <TrendingUp size={16} color={theme.secondary} />
+                  </View>
+                  <View className="flex-1">
+                    <Text className="text-white font-bold text-[11px]" numberOfLines={1}>
+                      {SOURCE_LABELS[item.source] || item.source}
+                    </Text>
+                    <Text className="text-white/30 text-[9px] font-medium mt-0.5">
+                      {new Date(item.createdAt).toLocaleDateString('es-AR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                    </Text>
+                  </View>
+                  <Text style={{ color: theme.secondary }} className="font-black text-sm">+{item.pointsGained}</Text>
+                </View>
+              ))}
+            </View>
+          </FadeInView>
+        )}
 
         {/* Promos Destacadas Section - Bottom Placement */}
         {promoBanners.length > 0 && (

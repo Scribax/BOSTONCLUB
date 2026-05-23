@@ -78,6 +78,19 @@ export const sendEventPublishedNotification = async (title: string, description:
   }
 };
 
+export const sendPointsCreditedPush = async (expoPushToken: string, firstName: string, points: number) => {
+  if (!Expo.isExpoPushToken(expoPushToken)) return;
+  const messages: ExpoPushMessage[] = [{
+    to: expoPushToken,
+    sound: 'default',
+    priority: 'high',
+    title: `¡Puntos acreditados, ${firstName}! 🎉`,
+    body: `El staff te acreditó ${points} puntos en caja. ¡Seguís sumando!`,
+    data: { type: 'POINTS_CREDITED', points },
+  }];
+  await sendPushNotifications(messages);
+};
+
 export const sendLevelUpPush = async (expoPushToken: string, firstName: string, newLevel: string) => {
   if (!Expo.isExpoPushToken(expoPushToken)) return;
   const levelEmojis: Record<string, string> = {

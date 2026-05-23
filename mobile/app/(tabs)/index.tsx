@@ -214,6 +214,7 @@ export default function DashboardScreen() {
   };
 
   const [activeRedemption, setActiveRedemption] = useState<any>(null);
+  const [recentHistory, setRecentHistory] = useState<any[]>([]);
 
   const fetchActiveRedemption = async () => {
     try {
@@ -222,6 +223,13 @@ export default function DashboardScreen() {
     } catch (err) {
       console.error('Error fetching active redemption', err);
     }
+  };
+
+  const fetchRecentHistory = async () => {
+    try {
+      const res = await api.get('/points/history?page=1');
+      setRecentHistory((res.data || []).slice(0, 3));
+    } catch {}
   };
 
   // FIX PERF #1: Cooldown de 30s para evitar re-fetches en cada foco de pantalla
@@ -243,6 +251,7 @@ export default function DashboardScreen() {
             if (success) {
               registerForPushNotificationsAsync();
               fetchVipBenefits();
+              fetchRecentHistory();
             }
           } catch (e) {
             console.error("Dashboard Init Error:", e);
@@ -300,7 +309,7 @@ export default function DashboardScreen() {
   }, [(user as any)?.birthDate]);
 
   const dashboardProps = {
-    user, banners, promoBanners, activeRedemption, settings, nextTier, isBirthday,
+    user, banners, promoBanners, activeRedemption, settings, nextTier, isBirthday, recentHistory,
     loading, setLoading, errorStatus, refreshing, onRefresh, loadProfile,
     theme, router, isScreenFocused, currentPopup, showPopupModal, setShowPopupModal,
     resolveImageUrl, showGuide, setShowGuide, showBenefits, setShowBenefits,

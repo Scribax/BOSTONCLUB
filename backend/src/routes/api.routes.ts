@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { authenticate, requireAdmin, requireStaff } from "../middlewares/auth";
 import { redemptionRateLimit } from "../middlewares/rateLimit";
-import { addPoints, getMyPointsHistory } from "../controllers/points.controller";
+import { addPoints, getMyPointsHistory, getLeaderboard } from "../controllers/points.controller";
 import { getAllRewards, createReward, deleteReward, updateReward, reorderRewards } from "../controllers/rewards.controller";
 import { generateRedemptionQR, confirmRedemption, getRedemptionStatus, cancelRedemption, getScannerHistory, getActiveRedemption, getMyRedemptionHistory } from "../controllers/redemptions.controller";
 import { getAllEvents, createEvent, deleteEvent, notifyEvent, updateEvent, reorderEvents } from "../controllers/events.controller";
@@ -24,6 +24,7 @@ router.post("/media/upload", authenticate, requireAdmin, uploadMedia.single("fil
 
 // Points
 router.get("/points/history", authenticate, getMyPointsHistory);
+router.get("/points/leaderboard", authenticate, getLeaderboard);
 router.post("/points/add", authenticate, requireAdmin, addPoints);
 
 
