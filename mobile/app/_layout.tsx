@@ -6,7 +6,7 @@ import { Stack, useRouter, useSegments } from 'expo-router';
 import { useRef } from 'react';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState } from 'react';
-import { View, ActivityIndicator, Text, TouchableOpacity, LogBox } from 'react-native';
+import { View, ActivityIndicator, Text, TouchableOpacity, LogBox, Alert } from 'react-native';
 
 LogBox.ignoreLogs([
   '[Reanimated] Reading from `value` during component render',
@@ -167,9 +167,24 @@ export default function RootLayout() {
       lastNotificationResponse.actionIdentifier === DEFAULT_ACTION_IDENTIFIER
     ) {
       const type = lastNotificationResponse.notification.request.content.data.type;
+      const data = lastNotificationResponse.notification.request.content.data;
       if (type === 'NEW_EVENT' || type === 'NEW_BANNER' || type === 'EVENT_REMINDER') {
-        // Redirigir a la pantalla de eventos si toca la notificación
         router.push('/events');
+      } else if (type === 'LEVEL_UP') {
+        const newLevel = data.newLevel as string;
+        Alert.alert(
+          '¡Subiste de nivel! 🎉',
+          `Ahora sos Socio ${newLevel}. ¿Querés compartirlo con tus amigos?`,
+          [
+            { text: 'Ahora no', style: 'cancel' },
+            { text: 'Compartir', onPress: () => {
+              const { Share } = require('react-native');
+              Share.share({ message: `¡Acabo de subir al nivel ${newLevel} en Boston Club! 🎉 Sumate vos también: https://mybostonclub.com` });
+            }}
+          ]
+        );
+      } else if (type === 'BIRTHDAY_BONUS') {
+        router.push('/(tabs)');
       }
     }
   }, [lastNotificationResponse, authState.isLoggedIn, authState.isLoading, loaded]);

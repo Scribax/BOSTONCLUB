@@ -78,6 +78,23 @@ export const sendEventPublishedNotification = async (title: string, description:
   }
 };
 
+export const sendLevelUpPush = async (expoPushToken: string, firstName: string, newLevel: string) => {
+  if (!Expo.isExpoPushToken(expoPushToken)) return;
+  const levelEmojis: Record<string, string> = {
+    'ORO': '🥇', 'PLATINO': '🪙', 'DIAMANTE': '💎', 'SÚPER VIP': '👑'
+  };
+  const emoji = levelEmojis[newLevel] || '⭐';
+  const messages: ExpoPushMessage[] = [{
+    to: expoPushToken,
+    sound: 'default',
+    priority: 'high',
+    title: `${emoji} ¡Subiste de nivel, ${firstName}!`,
+    body: `¡Felicitaciones! Ahora sos Socio ${newLevel}. Nuevos beneficios exclusivos te esperan.`,
+    data: { type: 'LEVEL_UP', newLevel },
+  }];
+  await sendPushNotifications(messages);
+};
+
 export const sendBirthdayPush = async (expoPushToken: string, firstName: string, points: number) => {
   if (!Expo.isExpoPushToken(expoPushToken)) return;
   const messages: ExpoPushMessage[] = [{

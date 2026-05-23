@@ -75,7 +75,7 @@ const StreakBadge = ({ streak }: { streak: number }) => {
 };
 
 export default function DashboardDefault({
-  user, banners, promoBanners, activeRedemption, settings, nextTier,
+  user, banners, promoBanners, activeRedemption, settings, nextTier, isBirthday,
   loading, setLoading, errorStatus, refreshing, onRefresh, loadProfile,
   router, isScreenFocused, currentPopup, showPopupModal, setShowPopupModal,
   resolveImageUrl, showGuide, setShowGuide, showBenefits, setShowBenefits,
@@ -217,6 +217,15 @@ export default function DashboardDefault({
             <FadeInView delay={300} style={{ position: 'absolute', top: 120, width: '100%', zIndex: 40, alignItems: 'center' }}>
               <View style={{ backgroundColor: theme.secondary, paddingHorizontal: 20, paddingVertical: 8, borderRadius: 20, shadowColor: theme.secondary, shadowOffset: {width: 0, height: 0}, shadowOpacity: 0.8, shadowRadius: 15, borderWidth: 1, borderColor: '#FFF' }}>
                 <Text style={{ color: 'black', fontWeight: '900', fontSize: 11, textTransform: 'uppercase', letterSpacing: 2 }}>¡HAPPY HOUR ACTIVO! Puntos x2</Text>
+              </View>
+            </FadeInView>
+          )}
+
+          {/* Birthday Banner pill */}
+          {isBirthday && (
+            <FadeInView delay={400} style={{ position: 'absolute', top: isHappyHour ? 160 : 120, width: '100%', zIndex: 40, alignItems: 'center' }}>
+              <View style={{ backgroundColor: '#FF3B30', paddingHorizontal: 20, paddingVertical: 8, borderRadius: 20, shadowColor: '#FF3B30', shadowOffset: {width: 0, height: 0}, shadowOpacity: 0.8, shadowRadius: 15, borderWidth: 1, borderColor: '#FFF' }}>
+                <Text style={{ color: 'white', fontWeight: '900', fontSize: 11, textTransform: 'uppercase', letterSpacing: 2 }}>🎂 ¡Feliz Cumpleaños, {user?.firstName}! Tus puntos ya fueron acreditados</Text>
               </View>
             </FadeInView>
           )}
@@ -426,6 +435,19 @@ export default function DashboardDefault({
                 <View className="w-3 h-0.5 bg-white rounded-full" />
               </View>
             </View>
+
+            {/* Countdown al siguiente nivel */}
+            {nextTier && (
+              <View className="flex-row items-center justify-between mb-4 px-1">
+                <View className="flex-row items-center">
+                  <TrendingUp size={11} color={theme.secondary} />
+                  <Text className="text-white/50 text-[9px] font-black uppercase tracking-widest ml-1.5">
+                    Te faltan <Text style={{ color: theme.secondary }}>{(nextTier.pointsNeeded - (user?.points ?? 0)).toLocaleString()} pts</Text> para {nextTier.name}
+                  </Text>
+                </View>
+                <Text className="text-white/20 text-[9px] font-black uppercase">{Math.round(nextTier.currentProgress)}%</Text>
+              </View>
+            )}
 
             {/* Milestones */}
             <View className="flex-row justify-between px-2">

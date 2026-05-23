@@ -1,5 +1,6 @@
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 
 // USAR TU VPS PARA PRODUCCIÓN (CON SSL)
@@ -33,8 +34,31 @@ export const setAuthToken = async (token: string) => {
 // DECLARADO ANTES de logout() para que clearCache() sea accesible
 const getCache = new Map<string, { data: any, timestamp: number }>();
 const CACHE_TTL = 60000; // 1 minuto de cache instantáneo
+const PERSIST_KEY_PREFIX = 'api_cache:';
 
-export const clearCache = () => getCache.clear();
+// Rutas que se persisten en AsyncStorage para offline mode
+const PERSIST_ROUTES = ['/auth/me', '/settings', '/rewards', '/events'];
+
+const persistCache = async (url: string, data: any) => {
+  try {
+    if (PERSIST_ROUTES.some(r => url.includes(r))) {
+      await AsyncStorage.setItem(`${PERSIST_KEY_PREFIX}${url}`, JSON.stringify(data));
+    }
+  } catch {}
+};
+
+const getPersistedCache = async (url: string): Promise<any | null> => {
+  try {
+    const raw = await AsyncStorage.getItem(`${PERSIST_KEY_PREFIX}${url}`);
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+};
+
+export const clearCache = () => {
+  getCache.clear();
+  // Limpiar también el cache persistido al hacer logout
+  PERSIST_ROUTES.forEach(r => AsyncStorage.removeItem(`${PERSIST_KEY_PREFIX}${r}`).catch(() => {}));
+};
 
 export const logout = async () => {
   await SecureStore.deleteItemAsync('boston_club_token');
@@ -70,9 +94,19 @@ api.get = async (url: string, config?: any) => {
     return { data: cached.data } as any;
   }
 
-  const res = await originalGet(url, config);
-  getCache.set(key, { data: res.data, timestamp: Date.now() });
-  return res;
+  try {
+    const res = await originalGet(url, config);
+    getCache.set(key, { data: res.data, timestamp: Date.now() });
+    persistCache(url, res.data);
+    return res;
+  } catch (err: any) {
+    // Sin internet — intentar devolver el último dato persistido
+    if (!err.response) {
+      const persisted = await getPersistedCache(url);
+      if (persisted) return { data: persisted } as any;
+    }
+    throw err;
+  }
 };
 
 // Interceptor para añadir el Token
@@ -88,6 +122,12 @@ api.interceptors.request.use(async (config) => {
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
+    if (error.response?.status === 401) {
+      // Token expirado o inválido — limpiar sesión y notificar
+      await SecureStore.deleteItemAsync('boston_club_token');
+      clearCache();
+      notifyListeners(false);
+    }
     return Promise.reject(error);
   }
 );

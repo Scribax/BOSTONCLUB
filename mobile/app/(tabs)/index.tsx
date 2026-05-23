@@ -292,8 +292,15 @@ export default function DashboardScreen() {
     return { name: nextTierName, pointsNeeded: nextTierPts, currentProgress: progress };
   }, [user?.points, settings?.goldThreshold, settings?.platinumThreshold, settings?.diamondThreshold, settings?.superVipThreshold]);
 
+  const isBirthday = useMemo(() => {
+    if (!user || !(user as any).birthDate) return false;
+    const today = new Date();
+    const bd = new Date((user as any).birthDate);
+    return bd.getUTCMonth() === today.getMonth() && bd.getUTCDate() === today.getDate();
+  }, [(user as any)?.birthDate]);
+
   const dashboardProps = {
-    user, banners, promoBanners, activeRedemption, settings, nextTier,
+    user, banners, promoBanners, activeRedemption, settings, nextTier, isBirthday,
     loading, setLoading, errorStatus, refreshing, onRefresh, loadProfile,
     theme, router, isScreenFocused, currentPopup, showPopupModal, setShowPopupModal,
     resolveImageUrl, showGuide, setShowGuide, showBenefits, setShowBenefits,

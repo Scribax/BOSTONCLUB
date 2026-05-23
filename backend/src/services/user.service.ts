@@ -4,6 +4,7 @@
  * consistent streak tracking, multipliers, history, and level upgrades.
  */
 import { isFeatureEnabled } from './featureFlag.service';
+import { sendLevelUpPush } from './push.service';
 
 // ─── Constants ─────────────────────────────────────────────────────────────
 const STREAK_WINDOW_DAYS = 2; // Max gap between visits to keep streak
@@ -140,13 +141,27 @@ export async function awardPointsToUser(
 
   // 6. Check for level upgrade
   const settings = await tx.clubSettings.findUnique({ where: { id: "singleton" } });
+  let levelChanged = false;
+  let newLevelValue = updatedUser.membershipLevel;
   if (settings) {
-    const newLevel = calculateMembershipLevel(updatedUser.points, settings);
-    if (updatedUser.membershipLevel !== newLevel) {
+    newLevelValue = calculateMembershipLevel(updatedUser.points, settings);
+    if (updatedUser.membershipLevel !== newLevelValue) {
+      levelChanged = true;
       updatedUser = await tx.user.update({
         where: { id: userId },
-        data: { membershipLevel: newLevel }
+        data: { membershipLevel: newLevelValue }
       });
+    }
+  }
+
+  // 7. Fire level-up push OUTSIDE transaction (non-blocking)
+  if (levelChanged) {
+    const fullUser = await tx.user.findUnique({
+      where: { id: userId },
+      select: { expoPushToken: true, firstName: true }
+    });
+    if (fullUser?.expoPushToken) {
+      sendLevelUpPush(fullUser.expoPushToken, fullUser.firstName, newLevelValue).catch(console.error);
     }
   }
 

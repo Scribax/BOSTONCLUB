@@ -5,6 +5,7 @@ export interface DashboardProps {
   activeRedemption: any;
   settings: any;
   nextTier: any;
+  isBirthday?: boolean;
   loading: boolean;
   setLoading: (val: boolean) => void;
   refreshing: boolean;

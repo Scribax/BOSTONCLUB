@@ -56,8 +56,24 @@ export default function RewardsDefault({ userPoints, rewards, loading, theme }: 
 
   if (loading && userPoints === null) {
     return (
-      <View style={{ flex: 1, backgroundColor: 'black', alignItems: 'center', justifyContent: 'center' }}>
-        <ActivityIndicator size="large" color={theme.primary} />
+      <View style={{ flex: 1, backgroundColor: '#050505', paddingTop: 64, paddingHorizontal: 24 }}>
+        {/* Header skeleton */}
+        <View style={{ height: 20, width: '50%', backgroundColor: '#1a1a1a', borderRadius: 10, marginBottom: 8 }} />
+        <View style={{ height: 12, width: '30%', backgroundColor: '#111', borderRadius: 8, marginBottom: 32 }} />
+        {/* Card skeletons */}
+        {[1, 2, 3].map(i => (
+          <View key={i} style={{ height: 110, backgroundColor: '#111', borderRadius: 24, marginBottom: 16, overflow: 'hidden' }}>
+            <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, opacity: 0.5, backgroundColor: '#1a1a1a', borderRadius: 24 }} />
+            <View style={{ flexDirection: 'row', padding: 16, alignItems: 'center' }}>
+              <View style={{ width: 72, height: 72, borderRadius: 16, backgroundColor: '#222' }} />
+              <View style={{ marginLeft: 16, flex: 1 }}>
+                <View style={{ height: 14, width: '70%', backgroundColor: '#222', borderRadius: 8, marginBottom: 8 }} />
+                <View style={{ height: 10, width: '50%', backgroundColor: '#1a1a1a', borderRadius: 6, marginBottom: 8 }} />
+                <View style={{ height: 10, width: '35%', backgroundColor: '#1a1a1a', borderRadius: 6 }} />
+              </View>
+            </View>
+          </View>
+        ))}
       </View>
     );
   }

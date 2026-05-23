@@ -21,10 +21,12 @@ export default function ScannerScreen() {
   useEffect(() => {
     let interval: ReturnType<typeof setInterval>;
     let timeout: ReturnType<typeof setTimeout>;
+    let consecutiveErrors = 0;
     if (status === 'pos_waiting' && currentOrderId) {
       interval = setInterval(async () => {
         try {
           const res = await api.get(`/payments/status/${currentOrderId}`);
+          consecutiveErrors = 0;
           if (res.data.status === 'SUCCESS') {
             setStatus('success');
             const pts = res.data.pointsAwarded > 0 ? res.data.pointsAwarded : null;
@@ -32,7 +34,12 @@ export default function ScannerScreen() {
             clearInterval(interval);
             clearTimeout(timeout);
           }
-        } catch (err) {}
+        } catch (err) {
+          consecutiveErrors++;
+          if (consecutiveErrors >= 3) {
+            setMessage('Sin conexión. Esperando reconexión para confirmar el pago...');
+          }
+        }
       }, 3000);
 
       timeout = setTimeout(() => {
