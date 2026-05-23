@@ -1,13 +1,8 @@
-import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
-import { View, Text, ScrollView, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl, Image, Modal, Animated, useWindowDimensions } from 'react-native';
-import { useRouter, useFocusEffect } from 'expo-router';
+import React, { useEffect, useState, useRef } from 'react';
+import { View, Text, ScrollView, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl, Image, Modal, Animated, useWindowDimensions, Dimensions, Alert } from 'react-native';
 import { Crown, Star, Flame, Ticket, ArrowRight, User as UserIcon, MapPin, CreditCard, Gift, QrCode, History, X, Calendar, TrendingUp, Zap } from 'lucide-react-native';
-import api, { getAuthToken, logout } from '../../lib/api';
+import api, { logout } from '../../lib/api';
 import { StatusBar } from 'expo-status-bar';
-import * as Device from 'expo-device';
-import Constants from 'expo-constants';
-import { Platform, Dimensions, LogBox, Alert } from 'react-native';
-import { initNotifications, registerForPushNotificationsAsync } from '../../lib/notificationHelper';
 import { VideoPlayer } from '../../components/VideoPlayer';
 import { FadeInView } from '../../components/FadeInView';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -15,16 +10,6 @@ import { VipStatusModal } from '../VipStatusModal';
 import { useTheme } from '../../contexts/ThemeContext';
 import HappyHourExplosion from '../../components/HappyHourExplosion';
 import { DashboardProps } from './types';
-
-LogBox.ignoreLogs([
-  '[Reanimated] Reading from `value` during component render',
-  '[Reanimated] Writing to `value` during component render'
-]);
-
-// Initialize notifications configuration (solo en nativo)
-if (Platform.OS !== 'web') {
-  initNotifications();
-}
 
 // FIX PERF #3: Leer Dimensions una sola vez a nivel módulo en lugar de en cada render
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
