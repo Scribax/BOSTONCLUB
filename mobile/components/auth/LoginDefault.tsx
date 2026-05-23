@@ -175,7 +175,7 @@ export default function LoginDefault(props: LoginProps) {
         </View>
 
         <Text className="text-center text-white/20 text-[8px] font-medium uppercase tracking-[0.4em] mt-10 z-10">
-          Powered by Boston Technology &copy; 2024
+          Powered by Boston Technology &copy; 2026
         </Text>
       </ScrollView>
     </View>
