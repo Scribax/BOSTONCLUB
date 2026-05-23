@@ -195,7 +195,7 @@ export const generateRedemptionQR = async (req: any, res: Response): Promise<voi
 export const confirmRedemption = async (req: Request, res: Response): Promise<void> => {
   try {
     const { qrToken: rawToken } = req.body;
-    const staffId = (req as any).user?.userId || (req as any).user?.id;
+    const staffId = (req as any).user?.id;
 
     // TOTP Dynamic QR Check (Format: token|timestamp)
     let qrToken = rawToken;

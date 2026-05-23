@@ -1,5 +1,5 @@
 import cron from 'node-cron';
-import { sendEventReminderNotification, sendBirthdayPush } from './services/push.service';
+import { sendEventReminderNotification, sendBirthdayPush, sendLevelUpPush } from './services/push.service';
 import { sendBirthdayEmail } from './services/email.service';
 import { prisma } from './utils/prisma';
 import { calculateMembershipLevel } from './services/user.service';
@@ -85,6 +85,9 @@ export const initCronJobs = () => {
             const newLevel = calculateMembershipLevel(updatedUser.points, settings);
             if (updatedUser.membershipLevel !== newLevel) {
               await tx.user.update({ where: { id: user.id }, data: { membershipLevel: newLevel } });
+              if (user.expoPushToken) {
+                sendLevelUpPush(user.expoPushToken, user.firstName, newLevel).catch(console.error);
+              }
             }
           }
         });

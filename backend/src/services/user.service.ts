@@ -155,14 +155,8 @@ export async function awardPointsToUser(
   }
 
   // 7. Fire level-up push OUTSIDE transaction (non-blocking)
-  if (levelChanged) {
-    const fullUser = await tx.user.findUnique({
-      where: { id: userId },
-      select: { expoPushToken: true, firstName: true }
-    });
-    if (fullUser?.expoPushToken) {
-      sendLevelUpPush(fullUser.expoPushToken, fullUser.firstName, newLevelValue).catch(console.error);
-    }
+  if (levelChanged && user.expoPushToken) {
+    sendLevelUpPush(user.expoPushToken, user.firstName, newLevelValue).catch(console.error);
   }
 
   return { updatedUser, finalPoints, multiplier, newStreak };

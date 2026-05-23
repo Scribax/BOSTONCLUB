@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { sendVerificationEmail, sendPasswordResetEmail } from "../services/email.service";
-import { calculateMembershipLevel } from "../services/user.service";
+import { calculateMembershipLevel, awardPointsToUser } from "../services/user.service";
 import { prisma } from "../utils/prisma";
 
 // Define a custom Request type that includes the user from JWT
@@ -215,30 +215,11 @@ export const verifyEmail = async (req: AuthRequest, res: Response): Promise<void
           });
 
           if (referralCount < 10) { // Limit to 10 rewarded referrals per person
-            // Bonus for the referrer
-            const updatedReferrer = await tx.user.update({
-              where: { id: user.referredById! },
-              data: { points: { increment: referrerReward } }
-            });
-            await tx.pointHistory.create({
-              data: { userId: user.referredById!, pointsGained: referrerReward, source: 'REFERIDO', description: `Amigo ${user.firstName} verificó su cuenta con tu código` }
-            });
-
-            // Upgrade referrer level if needed
-            if (settings) {
-              const { calculateMembershipLevel } = await import("../services/user.service");
-              const newLevel = calculateMembershipLevel(updatedReferrer.points, settings);
-              if (updatedReferrer.membershipLevel !== newLevel) {
-                await tx.user.update({ where: { id: user.referredById! }, data: { membershipLevel: newLevel } });
-              }
-            }
+            await awardPointsToUser(tx, user.referredById!, referrerReward, 'REFERIDO', `Amigo ${user.firstName} verificó su cuenta con tu código`);
           }
 
           // Bonus for the new user (they always get it, even if referrer is at limit)
-          await tx.user.update({ where: { id: user.id }, data: { points: { increment: refereeReward } } });
-          await tx.pointHistory.create({
-            data: { userId: user.id, pointsGained: refereeReward, source: 'REFERIDO', description: 'Bono por unirte con código de amigo' }
-          });
+          await awardPointsToUser(tx, user.id, refereeReward, 'REFERIDO', 'Bono por unirte con código de amigo');
         }
       });
     }
