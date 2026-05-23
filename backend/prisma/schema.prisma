@@ -197,6 +197,8 @@ model ClubSettings {
   superVipBenefits   String   @default("- 50% Off en toda la carta\n- Todo incluido en eventos seleccionados\n- Concierge privado")
   loginVideoUrl      String?
   pointsPerPeso      Float    @default(1.0)
+  mpAccessToken      String?
+  mpPublicKey        String?
   updatedAt          DateTime @updatedAt
 }
 

@@ -8,7 +8,7 @@ import { getAllEvents, createEvent, deleteEvent, notifyEvent, updateEvent, reord
 import { getAllUsers, adjustPoints, toggleBlockUser, deleteUser, toggleVipRewardStatus, getUserHistory, getUserReferrals } from "../controllers/users.controller";
 import { getAdminStats, exportAudits, sendCustomPush } from "../controllers/admin.controller";
 import { generatePromoToken, claimPromoToken } from "../controllers/promo.controller";
-import { getSettings, updateSettings, uploadVideo, upload } from "../controllers/settings.controller";
+import { getSettings, updateSettings, uploadVideo, upload, updateMpCredentials, getMpCredentialsStatus } from "../controllers/settings.controller";
 import { handleMediaUpload, uploadMedia } from "../controllers/media.controller";
 import { getAllVipBenefits, getMyVipBenefits, createVipBenefit, updateVipBenefit, deleteVipBenefit } from "../controllers/vip-benefits.controller";
 import { getAllAvatars, createAvatar, deleteAvatar } from "../controllers/avatars.controller";
@@ -75,6 +75,8 @@ router.post("/promo/claim", authenticate, claimPromoToken);
 router.get("/settings", getSettings);
 router.post("/settings", authenticate, requireAdmin, updateSettings);
 router.post("/settings/upload-video", authenticate, requireAdmin, upload.single("video"), uploadVideo);
+router.get("/settings/mp-credentials", authenticate, requireAdmin, getMpCredentialsStatus);
+router.post("/settings/mp-credentials", authenticate, requireAdmin, updateMpCredentials);
 
 // VIP Benefits
 router.get("/vip-benefits", authenticate, requireAdmin, getAllVipBenefits);

@@ -3,10 +3,17 @@ import { MercadoPagoConfig, Payment, MerchantOrder } from "mercadopago";
 import { awardPointsToUser } from "../services/user.service";
 import { prisma } from "../utils/prisma";
 
-// Mercado Pago Configuration
-const client = new MercadoPagoConfig({ 
-  accessToken: process.env.MP_ACCESS_TOKEN || "TEST-TOKEN-MISSING" 
-});
+// Mercado Pago — cliente dinámico: lee el token de DB en cada request
+// Si no hay token en DB, cae al .env como fallback
+async function getMpClient(): Promise<MercadoPagoConfig> {
+  try {
+    const settings = await prisma.clubSettings.findUnique({ where: { id: "singleton" } });
+    const token = settings?.mpAccessToken || process.env.MP_ACCESS_TOKEN || "TEST-TOKEN-MISSING";
+    return new MercadoPagoConfig({ accessToken: token });
+  } catch {
+    return new MercadoPagoConfig({ accessToken: process.env.MP_ACCESS_TOKEN || "TEST-TOKEN-MISSING" });
+  }
+}
 
 export const trackPosOrder = async (req: any, res: Response): Promise<void> => {
   try {
@@ -120,6 +127,7 @@ export const handleWebhook = async (req: Request, res: Response): Promise<void> 
     // 1. Manejo de Pagos (Payment)
     if (actionOrType === "payment.created" || actionOrType === "payment.updated" || actionOrType === "payment") {
       const paymentId = dataId.toString();
+      const client = await getMpClient();
       const payment = new Payment(client);
       const paymentData = await payment.get({ id: paymentId });
 
@@ -178,6 +186,7 @@ export const handleWebhook = async (req: Request, res: Response): Promise<void> 
     // 2. Manejo de Merchant Orders (Estructura Smart POS o Simulación)
     else if (actionOrType === "merchant_order" || actionOrType === "order" || actionOrType === "merchant_order.created" || actionOrType === "merchant_order.updated") {
       const orderId = dataId.toString();
+      const client = await getMpClient();
       const merchantOrder = new MerchantOrder(client);
       const orderData = await merchantOrder.get({ merchantOrderId: orderId });
 

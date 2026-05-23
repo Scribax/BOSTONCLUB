@@ -133,6 +133,52 @@ export const updateSettings = async (req: Request, res: Response): Promise<void>
   }
 };
 
+export const updateMpCredentials = async (req: any, res: Response): Promise<void> => {
+  try {
+    const { mpAccessToken, mpPublicKey } = req.body;
+
+    if (!mpAccessToken || typeof mpAccessToken !== "string" || mpAccessToken.trim().length < 20) {
+      res.status(400).json({ message: "El Access Token de MercadoPago no es válido." });
+      return;
+    }
+
+    const data: any = { mpAccessToken: mpAccessToken.trim() };
+    if (mpPublicKey && typeof mpPublicKey === "string" && mpPublicKey.trim().length > 10) {
+      data.mpPublicKey = mpPublicKey.trim();
+    }
+
+    await prisma.clubSettings.upsert({
+      where: { id: "singleton" },
+      update: data,
+      create: { id: "singleton", ...data }
+    });
+
+    const token = data.mpAccessToken as string;
+    const masked = token.substring(0, 8) + "..." + token.substring(token.length - 6);
+
+    console.log(`[Settings] MP credentials updated by admin ${req.user?.id}`);
+    res.json({ message: "Credenciales de MercadoPago actualizadas correctamente.", maskedToken: masked });
+  } catch (error) {
+    console.error("[UpdateMpCredentials Error]", error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+
+export const getMpCredentialsStatus = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const settings = await prisma.clubSettings.findUnique({ where: { id: "singleton" } });
+    const token = settings?.mpAccessToken;
+    if (!token) {
+      res.json({ configured: false, source: "env", maskedToken: null });
+      return;
+    }
+    const masked = token.substring(0, 8) + "..." + token.substring(token.length - 6);
+    res.json({ configured: true, source: "database", maskedToken: masked });
+  } catch (error) {
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+
 export const uploadVideo = async (req: Request, res: Response): Promise<void> => {
   try {
     if (!req.file) {
