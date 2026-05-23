@@ -7,6 +7,25 @@
   "client": [
     {
       "client_info": {
+        "mobilesdk_app_id": "1:359120142742:android:3b4875744bbaee3e3fddb7",
+        "android_client_info": {
+          "package_name": "com.bostonclub.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBOn8Twk1QesAJZr-P5o1Sff1JBxXXLZY4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
         "mobilesdk_app_id": "1:359120142742:android:35ce7a0ad6b68d0f3fddb7",
         "android_client_info": {
           "package_name": "com.scribax.mobile"
