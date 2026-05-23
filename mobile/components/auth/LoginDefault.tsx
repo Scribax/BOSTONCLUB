@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator, StyleSheet, Linking } from 'react-native';
 import { Mail, Lock, Crown, ArrowRight, User as UserIcon, Phone, Eye, EyeOff } from 'lucide-react-native';
 import { StatusBar } from 'expo-status-bar';
 import { VideoPlayer } from '../../components/VideoPlayer';
@@ -171,6 +171,26 @@ export default function LoginDefault(props: LoginProps) {
                 <Text style={{ color: theme.secondary }}>{isLogin ? 'Registrate' : 'Inicia Sesión'}</Text>
               </Text>
             </TouchableOpacity>
+
+            {!isLogin && (
+              <Text className="text-center text-white/30 text-[9px] leading-relaxed px-4 mt-1">
+                Al registrarte aceptás nuestros{' '}
+                <Text
+                  style={{ color: theme.secondary }}
+                  onPress={() => Linking.openURL('https://mybostonclub.com/terminos')}
+                >
+                  Términos y Condiciones
+                </Text>
+                {' '}y nuestra{' '}
+                <Text
+                  style={{ color: theme.secondary }}
+                  onPress={() => Linking.openURL('https://mybostonclub.com/privacidad')}
+                >
+                  Política de Privacidad
+                </Text>
+                .
+              </Text>
+            )}
           </View>
         </View>
 
