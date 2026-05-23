@@ -2,10 +2,43 @@
 
 import { ShieldCheck, Users, QrCode, LayoutDashboard, CalendarPlus, Gift, Zap, Monitor, Settings, Smartphone, Coins, Smile, ToggleLeft, CreditCard } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { apiFetch } from "@/lib/api";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const [authorized, setAuthorized] = useState(false);
+
+  useEffect(() => {
+    const token = typeof window !== "undefined" ? localStorage.getItem("boston_club_token") : null;
+    if (!token) {
+      router.replace("/login");
+      return;
+    }
+    apiFetch("/auth/me")
+      .then((data) => {
+        if (data?.role === "ADMIN" || data?.role === "STAFF") {
+          setAuthorized(true);
+        } else {
+          router.replace("/");
+        }
+      })
+      .catch(() => router.replace("/login"));
+  }, []);
+
+  if (!authorized) {
+    return (
+      <div className="min-h-screen bg-[#050505] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <ShieldCheck className="w-10 h-10 text-boston-red-glow animate-pulse" />
+          <p className="text-white/30 text-xs uppercase tracking-widest font-bold">Verificando acceso...</p>
+        </div>
+      </div>
+    );
+  }
+
   const isDisplayMode = pathname === "/admin/display";
 
   if (isDisplayMode) {
