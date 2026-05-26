@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { register, login, getMe, updateMe, updateAvatar, updatePushToken, verifyEmail, resendVerificationCode, forgotPassword, resetPassword } from "../controllers/auth.controller";
+import { register, login, getMe, updateMe, updateAvatar, updatePushToken, verifyEmail, resendVerificationCode, forgotPassword, resetPassword, deleteMe } from "../controllers/auth.controller";
 import { authenticate } from "../middlewares/auth";
 import { loginRateLimit, registerRateLimit, forgotPasswordRateLimit, resendVerificationRateLimit } from "../middlewares/rateLimit";
 
@@ -15,5 +15,6 @@ router.get("/me", authenticate, getMe);
 router.patch("/me", authenticate, updateMe);
 router.patch("/avatar", authenticate, updateAvatar);
 router.patch("/push-token", authenticate, updatePushToken);
+router.delete("/me", authenticate, deleteMe);
 
 export default router;

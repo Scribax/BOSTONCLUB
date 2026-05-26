@@ -577,6 +577,21 @@ export const updateAvatar = async (req: AuthRequest, res: Response): Promise<voi
   }
 };
 
+export const deleteMe = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ message: "No autorizado" });
+      return;
+    }
+    await prisma.user.delete({ where: { id: req.user.id } });
+    console.log(`[DeleteMe] User ${req.user.id} deleted their own account`);
+    res.json({ message: "Cuenta eliminada correctamente." });
+  } catch (error) {
+    console.error("[DeleteMe Error]", error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+
 export const updatePushToken = async (req: any, res: Response): Promise<void> => {
   try {
     const { token } = req.body;
