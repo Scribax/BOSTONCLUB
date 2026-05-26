@@ -242,7 +242,7 @@ export default function DashboardDefault({
                 offset: SCREEN_WIDTH * index,
                 index,
               })}
-              renderItem={({ item }: { item: any }) => (
+              renderItem={({ item, index }: { item: any; index: number }) => (
                 <TouchableOpacity
                   activeOpacity={0.9}
                   onPress={() => item.id !== 'empty' && router.push(`/banner/${item.id}`)}
@@ -250,12 +250,11 @@ export default function DashboardDefault({
                   className="relative bg-[#0c0c0c]"
                 >
                   {item.mediaType === 'VIDEO' && item.videoUrl ? (
-                    // Unmount completely when tab loses focus so the native video
-                    // surface doesn't bleed through the camera scanner
                     isScreenFocused ? (
                       <VideoPlayer
                         uri={resolveImageUrl(item.videoUrl) || ''}
                         style={{ width: '100%', height: '100%' }}
+                        paused={index !== currentBannerIdx}
                       />
                     ) : (
                       <Image

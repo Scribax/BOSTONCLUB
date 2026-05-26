@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, memo } from 'react';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { StyleSheet, ViewStyle } from 'react-native';
 
@@ -8,15 +8,13 @@ interface VideoPlayerProps {
   paused?: boolean; // When true, the video is paused (e.g. when the tab loses focus)
 }
 
-export const VideoPlayer = ({ uri, style, paused = false }: VideoPlayerProps) => {
-  const player = useVideoPlayer(uri, (player) => {
+export const VideoPlayer = memo(({ uri, style, paused = false }: VideoPlayerProps) => {
+  const player = useVideoPlayer({ uri, metadata: { title: '' } }, (player) => {
     player.loop = true;
     player.muted = true;
-    player.play();
+    if (!paused) player.play();
   });
 
-  // Pause/resume based on the paused prop
-  // Also reinforce loop=true every time we resume, to ensure it never stops
   useEffect(() => {
     if (!player) return;
     if (paused) {
@@ -35,4 +33,4 @@ export const VideoPlayer = ({ uri, style, paused = false }: VideoPlayerProps) =>
       contentFit="cover"
     />
   );
-};
+});
