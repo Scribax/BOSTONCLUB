@@ -29,7 +29,6 @@ export default function RewardsScreen() {
           }
         } catch (err) {
           console.error("Error loading rewards data", err);
-          if (isMounted) setUserPoints(0);
         } finally {
           if (isMounted) setLoading(false);
         }

@@ -34,7 +34,6 @@ const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 // FIX PERF #4: Array estático fuera del componente → no se recrea en cada render
 const PROGRESS_TEXTURE_BARS = [...Array(20)].map((_, i) => i);
 
-let hasShownGlobalPopup = false;
 
 type UserData = {
   id: string;
@@ -113,31 +112,8 @@ export default function DashboardScreen() {
     }
   });
 
-  const viewabilityConfigRef = useRef({ itemVisiblePercentThreshold: 50 });
-  const bannerListRef = useRef<FlatList>(null);
-  const promoListRef = useRef<FlatList>(null);
-
-  // Auto-scroll effect para Banners
-  useEffect(() => {
-    if (banners.length > 1) {
-      const interval = setInterval(() => {
-        const nextIdx = (currentBannerIdx + 1) % banners.length;
-        bannerListRef.current?.scrollToIndex({ index: nextIdx, animated: true });
-      }, 6000);
-      return () => clearInterval(interval);
-    }
-  }, [banners, currentBannerIdx]);
-
-  // Auto-scroll effect para Promos
-  useEffect(() => {
-    if (promoBanners.length > 1) {
-      const interval = setInterval(() => {
-        const nextIdx = (currentPromoIdx + 1) % promoBanners.length;
-        promoListRef.current?.scrollToIndex({ index: nextIdx, animated: true });
-      }, 6000);
-      return () => clearInterval(interval);
-    }
-  }, [promoBanners, currentPromoIdx]);
+  const hasShownPopupRef = useRef(false);
+  const lastUserIdRef = useRef<string | null>(null);
 
   const loadProfile = async () => {
     try {
@@ -155,6 +131,11 @@ export default function DashboardScreen() {
       setUser(userDataRes.data);
       setSettings(settingsRes.data);
 
+      if (lastUserIdRef.current !== userDataRes.data.id) {
+        lastUserIdRef.current = userDataRes.data.id;
+        hasShownPopupRef.current = false;
+      }
+
       const allEvents = eventsRes.data || [];
       const topBanners = allEvents.filter((e: any) => e.type === "BANNER" && e.isActive !== false);
       const bottomPromos = allEvents.filter((e: any) => e.type === "PROMO" && e.isActive !== false);
@@ -163,10 +144,10 @@ export default function DashboardScreen() {
       setBanners(topBanners);
       setPromoBanners(bottomPromos);
 
-      if (splashPopups.length > 0 && !hasShownGlobalPopup) {
+      if (splashPopups.length > 0 && !hasShownPopupRef.current) {
         setCurrentPopup(splashPopups[0]);
         setShowPopupModal(true);
-        hasShownGlobalPopup = true;
+        hasShownPopupRef.current = true;
       }
 
       return true;
@@ -308,7 +289,7 @@ export default function DashboardScreen() {
     if (!user || !(user as any).birthDate) return false;
     const today = new Date();
     const bd = new Date((user as any).birthDate);
-    return bd.getUTCMonth() === today.getMonth() && bd.getUTCDate() === today.getDate();
+    return bd.getUTCMonth() === today.getUTCMonth() && bd.getUTCDate() === today.getUTCDate();
   }, [(user as any)?.birthDate]);
 
   const dashboardProps = {

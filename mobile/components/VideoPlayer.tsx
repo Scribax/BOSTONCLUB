@@ -1,4 +1,4 @@
-import React, { useEffect, useState, memo } from 'react';
+import React, { useEffect, useState, useRef, memo } from 'react';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { ViewStyle } from 'react-native';
 
@@ -39,20 +39,29 @@ async function getCachedUri(remoteUri: string): Promise<string> {
 
 export const VideoPlayer = memo(({ uri, style, paused = false }: VideoPlayerProps) => {
   const [localUri, setLocalUri] = useState<string>(uri);
+  const appliedUriRef = useRef<string>(uri);
 
-  useEffect(() => {
-    let cancelled = false;
-    getCachedUri(uri).then((resolved) => {
-      if (!cancelled) setLocalUri(resolved);
-    });
-    return () => { cancelled = true; };
-  }, [uri]);
-
-  const player = useVideoPlayer({ uri: localUri, metadata: { title: '' } }, (player) => {
+  const player = useVideoPlayer({ uri, metadata: { title: '' } }, (player) => {
     player.loop = true;
     player.muted = true;
     if (!paused) player.play();
   });
+
+  useEffect(() => {
+    let cancelled = false;
+    getCachedUri(uri).then((resolved) => {
+      if (!cancelled && resolved !== appliedUriRef.current) {
+        appliedUriRef.current = resolved;
+        setLocalUri(resolved);
+        try {
+          player.replace({ uri: resolved, metadata: { title: '' } });
+          player.loop = true;
+          if (!paused) player.play();
+        } catch {}
+      }
+    });
+    return () => { cancelled = true; };
+  }, [uri]);
 
   useEffect(() => {
     if (!player) return;
