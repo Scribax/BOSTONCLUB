@@ -232,6 +232,7 @@ export default function DashboardScreen() {
             const success = await loadProfile();
             if (success) {
               registerForPushNotificationsAsync();
+              fetchActiveRedemption();
               fetchVipBenefits();
               fetchRecentHistory();
             }
@@ -240,7 +241,10 @@ export default function DashboardScreen() {
           }
         };
         const interaction = InteractionManager.runAfterInteractions(initDashboard);
-        return () => interaction.cancel();
+        return () => {
+          interaction.cancel();
+          setIsScreenFocused(false);
+        };
       }
 
       // Siempre buscamos si hay un canje activo, sin importar el cooldown,

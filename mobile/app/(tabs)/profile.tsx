@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { View, ActivityIndicator, Text } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import api from '../../lib/api';
@@ -20,6 +20,8 @@ export default function ProfileScreen() {
   
   const [isBiometricSupported, setIsBiometricSupported] = useState(false);
   const [biometricsEnabled, setBiometricsEnabled] = useState(false);
+  const lastFetchRef = useRef(0);
+  const REFETCH_COOLDOWN = 60_000;
 
   useFocusEffect(
     useCallback(() => {
@@ -35,7 +37,13 @@ export default function ProfileScreen() {
       };
 
       const fetchUser = async () => {
-        setLoading(true);
+        const now = Date.now();
+        if (user && now - lastFetchRef.current < REFETCH_COOLDOWN) {
+          setLoading(false);
+          return;
+        }
+
+        if (!user) setLoading(true);
         try {
           const [userRes, settingsRes, avatarsRes] = await Promise.all([
             api.get('/auth/me'),
@@ -46,6 +54,7 @@ export default function ProfileScreen() {
             setUser(userRes.data);
             setSettings(settingsRes.data);
             setCustomAvatars(avatarsRes.data || []);
+            lastFetchRef.current = Date.now();
           }
         } catch (err) {
           // Session error handled by interceptor
@@ -60,7 +69,7 @@ export default function ProfileScreen() {
       return () => {
         isMounted = false;
       };
-    }, [])
+    }, [user])
   );
 
   if (loading && !user) {

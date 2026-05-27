@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import api from '../../lib/api';
@@ -13,11 +13,19 @@ export default function RewardsScreen() {
   const [userPoints, setUserPoints] = useState<number | null>(null);
   const [rewards, setRewards] = useState<Reward[]>([]);
   const [loading, setLoading] = useState(true);
+  const lastFetchRef = useRef(0);
+  const REFETCH_COOLDOWN = 60_000;
 
   useFocusEffect(
     useCallback(() => {
       let isMounted = true;
       const loadData = async () => {
+        const now = Date.now();
+        if (rewards.length > 0 && now - lastFetchRef.current < REFETCH_COOLDOWN) {
+          setLoading(false);
+          return;
+        }
+
         try {
           const [userData, rewardsData] = await Promise.all([
             api.get("/auth/me"),
@@ -26,6 +34,7 @@ export default function RewardsScreen() {
           if (isMounted) {
             setUserPoints(userData.data.points);
             setRewards(rewardsData.data);
+            lastFetchRef.current = Date.now();
           }
         } catch (err) {
           console.error("Error loading rewards data", err);
@@ -39,7 +48,7 @@ export default function RewardsScreen() {
       return () => {
         isMounted = false;
       };
-    }, [])
+    }, [rewards.length])
   );
 
   const props = {

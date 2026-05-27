@@ -291,18 +291,25 @@ export default function TabLayout() {
   const router = useRouter();
   const [role, setRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const lastRoleFetchRef = useRef(0);
+  const ROLE_REFETCH_COOLDOWN = 5 * 60 * 1000;
 
   // useFocusEffect re-corre cada vez que este layout entra en foco,
   // incluso si el componente ya estaba montado en memoria (p.ej. tras cerrar sesión y volver)
   useFocusEffect(
     useCallback(() => {
-      setLoading(true);
-      setRole(null);
+      const now = Date.now();
+      if (role && now - lastRoleFetchRef.current < ROLE_REFETCH_COOLDOWN) {
+        return;
+      }
+
+      if (!role) setLoading(true);
 
       const fetchUser = async () => {
         try {
           const res = await api.get('/auth/me');
           setRole(res.data.role);
+          lastRoleFetchRef.current = Date.now();
         } catch (err: any) {
           if (err?.response?.status === 401) {
             router.replace('/login');
@@ -314,7 +321,7 @@ export default function TabLayout() {
         }
       };
       fetchUser();
-    }, [])
+    }, [role])
   );
 
   useEffect(() => {
