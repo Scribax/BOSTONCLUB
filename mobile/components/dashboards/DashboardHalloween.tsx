@@ -150,7 +150,10 @@ export default function DashboardHalloween({
             <TouchableOpacity
               key={item.id}
               activeOpacity={0.9}
-              onPress={() => item.id !== 'empty' && router.push(`/banner/${item.id}`)}
+              onPress={() => item.id !== 'empty' && router.push({
+                pathname: '/banner/[id]',
+                params: { id: item.id, initialData: JSON.stringify(item) }
+              })}
               style={{ width: '48%', aspectRatio: 0.65 }}
               className="relative rounded-3xl border border-white/10 overflow-hidden shadow-2xl bg-[#0d0714] mb-4"
             >
@@ -312,7 +315,10 @@ export default function DashboardHalloween({
                 <TouchableOpacity 
                   key={item.id}
                   activeOpacity={0.9} 
-                  onPress={() => item.id !== 'empty' && router.push(`/banner/${item.id}`)}
+                  onPress={() => item.id !== 'empty' && router.push({
+                    pathname: '/banner/[id]',
+                    params: { id: item.id, initialData: JSON.stringify(item) }
+                  })}
                   className="w-full h-32 bg-[#120a1a] border border-white/10 rounded-3xl mb-4 flex-row overflow-hidden shadow-2xl"
                 >
                    <View className="flex-1 p-5 justify-center z-10">
@@ -352,7 +358,7 @@ export default function DashboardHalloween({
             <View className="p-8 items-center bg-gradient-to-t from-black to-transparent absolute bottom-0 w-full">
               <Text className="text-2xl font-black text-white italic text-center uppercase tracking-tighter mb-2 shadow-black drop-shadow-md">{currentPopup?.title}</Text>
               <Text className="text-white/80 text-center font-bold text-xs mb-6 px-4">{currentPopup?.description}</Text>
-              <TouchableOpacity onPress={() => { setShowPopupModal(false); if (currentPopup?.id) router.push(`/banner/${currentPopup.id}`); }} style={{ backgroundColor: theme.primary }} className="w-full py-4 rounded-2xl">
+              <TouchableOpacity onPress={() => { setShowPopupModal(false); if (currentPopup?.id) router.push({ pathname: '/banner/[id]', params: { id: currentPopup.id, initialData: JSON.stringify(currentPopup) } }); }} style={{ backgroundColor: theme.primary }} className="w-full py-4 rounded-2xl">
                 <Text className="text-black text-center font-black uppercase tracking-widest text-sm">{currentPopup?.benefits || 'VER MÁS'}</Text>
               </TouchableOpacity>
             </View>

@@ -22,7 +22,7 @@ const resolveImageUrl = (url: string) => {
 };
 
 export default function BannerDetailScreen() {
-  const { id } = useLocalSearchParams();
+  const { id, initialData } = useLocalSearchParams<{ id: string; initialData?: string }>();
   const router = useRouter();
   const { theme } = useTheme();
   const [banner, setBanner] = useState<any>(null);
@@ -46,12 +46,22 @@ export default function BannerDetailScreen() {
   });
 
   useEffect(() => {
+    if (initialData) {
+      try {
+        const parsed = JSON.parse(initialData);
+        if (parsed.gallery && typeof parsed.gallery === 'string') {
+          try { parsed.gallery = JSON.parse(parsed.gallery); } catch(e) {}
+        }
+        setBanner(parsed);
+        setLoading(false);
+      } catch {}
+    }
     fetchBanner();
-  }, [id]);
+  }, [id, initialData]);
 
   const fetchBanner = async () => {
     try {
-      setLoading(true);
+      if (!banner) setLoading(true);
       const response = await api.get('/events');
       const events = response.data;
       const found = events.find((e: any) => e.id === id);
@@ -71,14 +81,15 @@ export default function BannerDetailScreen() {
   const handleRedeem = async () => {
     try {
       setRedemptionLoading(true);
-      const res = await api.post('/redemptions/generate', { eventId: id });
+      const redeemEventId = banner?.linkedEventId || banner?.id || id;
+      const res = await api.post('/redemptions/generate', { eventId: redeemEventId });
       
       router.push({
         pathname: '/reward-qr',
         params: { token: res.data.qrToken, reward: banner.title }
       });
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Error al generar cupón');
+      alert(err.response?.data?.message || 'No se pudo generar el cupón. Verificá que esta promoción esté activa y sea canjeable.');
     } finally {
       setRedemptionLoading(false);
     }

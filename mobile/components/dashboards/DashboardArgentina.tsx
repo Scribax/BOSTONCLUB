@@ -303,7 +303,10 @@ export default function DashboardArgentina({
               keyExtractor={(item) => item.id}
               renderItem={({ item }) => (
                 <TouchableOpacity
-                  onPress={() => item.id !== 'empty' && router.push(`/banner/${item.id}`)}
+                  onPress={() => item.id !== 'empty' && router.push({
+                    pathname: '/banner/[id]',
+                    params: { id: item.id, initialData: JSON.stringify(item) }
+                  })}
                   activeOpacity={0.9}
                   style={{ width: SW * 0.62, borderRadius: 24, overflow: 'hidden', backgroundColor: NAVY_MID }}
                 >
@@ -405,7 +408,10 @@ export default function DashboardArgentina({
               keyExtractor={(item) => item.id}
               renderItem={({ item }) => (
                 <TouchableOpacity
-                  onPress={() => item.id !== 'empty' && router.push(`/banner/${item.id}`)}
+                  onPress={() => item.id !== 'empty' && router.push({
+                    pathname: '/banner/[id]',
+                    params: { id: item.id, initialData: JSON.stringify(item) }
+                  })}
                   activeOpacity={0.9}
                   style={{ width: SW * 0.78, height: 130, backgroundColor: NAVY_MID, borderWidth: 1, borderColor: 'rgba(255,255,255,0.07)', borderRadius: 22, overflow: 'hidden', flexDirection: 'row' }}
                   key={item.id}
@@ -466,7 +472,7 @@ export default function DashboardArgentina({
               <Text style={{ color: '#fff', fontSize: 20, fontWeight: '900', fontStyle: 'italic', textTransform: 'uppercase', letterSpacing: -0.5, textAlign: 'center', marginBottom: 8 }}>{currentPopup?.title}</Text>
               <Text style={{ color: 'rgba(255,255,255,0.6)', textAlign: 'center', fontSize: 12, fontWeight: '600', marginBottom: 20, paddingHorizontal: 16 }}>{currentPopup?.description}</Text>
               <TouchableOpacity
-                onPress={() => { setShowPopupModal(false); if (currentPopup?.id) router.push(`/banner/${currentPopup.id}`); }}
+                onPress={() => { setShowPopupModal(false); if (currentPopup?.id) router.push({ pathname: '/banner/[id]', params: { id: currentPopup.id, initialData: JSON.stringify(currentPopup) } }); }}
                 style={{ backgroundColor: CELESTE, borderRadius: 18, paddingVertical: 18 }}
               >
                 <Text style={{ color: '#000', fontWeight: '900', fontSize: 12, textTransform: 'uppercase', letterSpacing: 2, textAlign: 'center' }}>

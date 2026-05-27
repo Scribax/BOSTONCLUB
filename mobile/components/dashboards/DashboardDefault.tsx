@@ -245,7 +245,10 @@ export default function DashboardDefault({
               renderItem={({ item, index }: { item: any; index: number }) => (
                 <TouchableOpacity
                   activeOpacity={0.9}
-                  onPress={() => item.id !== 'empty' && router.push(`/banner/${item.id}`)}
+                  onPress={() => item.id !== 'empty' && router.push({
+                    pathname: '/banner/[id]',
+                    params: { id: item.id, initialData: JSON.stringify(item) }
+                  })}
                   style={{ width: SCREEN_WIDTH, height: '100%' }}
                   className="relative bg-[#0c0c0c]"
                 >
@@ -638,7 +641,10 @@ export default function DashboardDefault({
                 renderItem={({ item }: { item: any }) => (
                   <TouchableOpacity
                     activeOpacity={0.9}
-                    onPress={() => item.id !== 'empty' && router.push(`/banner/${item.id}`)}
+                    onPress={() => item.id !== 'empty' && router.push({
+                      pathname: '/banner/[id]',
+                      params: { id: item.id, initialData: JSON.stringify(item) }
+                    })}
                     style={{ width: SCREEN_WIDTH * 0.85, height: 160 }}
                     className="relative bg-[#0c0c0c] rounded-[2.5rem] border border-white/5 overflow-hidden shadow-2xl"
                   >
@@ -791,7 +797,10 @@ export default function DashboardDefault({
                 onPress={() => {
                   setShowPopupModal(false);
                   if (currentPopup?.id) {
-                    router.push(`/banner/${currentPopup.id}`);
+                    router.push({
+                      pathname: '/banner/[id]',
+                      params: { id: currentPopup.id, initialData: JSON.stringify(currentPopup) }
+                    });
                   }
                 }}
                 className="w-full bg-boston-gold py-4 rounded-2xl shadow-[0_0_20px_rgba(212,175,55,0.3)]"
