@@ -361,7 +361,7 @@ export const confirmRedemption = async (req: Request, res: Response): Promise<vo
   }
 };
 
-export const getRedemptionStatus = async (req: Request, res: Response): Promise<void> => {
+export const getRedemptionStatus = async (req: any, res: Response): Promise<void> => {
   try {
     const { qrToken } = req.params;
     
@@ -372,11 +372,18 @@ export const getRedemptionStatus = async (req: Request, res: Response): Promise<
 
     const redemption = await prisma.redemption.findFirst({
       where: { qrToken: String(qrToken) },
-      select: { status: true }
+      select: { status: true, userId: true }
     });
 
     if (!redemption) {
       res.status(404).json({ message: "Not found" });
+      return;
+    }
+
+    const role = req.user?.role;
+    const canView = redemption.userId === req.user?.id || role === "ADMIN" || role === "STAFF";
+    if (!canView) {
+      res.status(403).json({ message: "No tienes permiso para consultar este canje" });
       return;
     }
 
